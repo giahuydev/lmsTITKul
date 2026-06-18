@@ -41,7 +41,7 @@ export default function LessonPlayer() {
          {/* H5P Iframe Mock */}
          <div className={`w-full max-w-4xl h-full bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-500 ${completed ? 'scale-95 opacity-50 blur-sm' : ''}`}>
              <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-                <img src="https://img.icons8.com/3d-fluency/94/puzzle.png" alt="H5P" className="w-24 h-24 mb-6 opacity-80" />
+                <img src="https://img.icons8.com/color/96/puzzle.png" alt="H5P" className="w-20 h-20 mb-6 opacity-80" />
                 <h3 className="text-2xl font-bold text-slate-700 mb-2">Trình phát bài giảng H5P</h3>
                 <p className="text-slate-500 max-w-md">Khu vực này sẽ nhúng iframe H5P từ Backend. Học sinh sẽ kéo thả, điền khuyết trực tiếp tại đây.</p>
              </div>
@@ -50,8 +50,8 @@ export default function LessonPlayer() {
          {/* Reward Overlay */}
          {completed && (
             <div className="absolute inset-0 z-50 flex items-center justify-center">
-               <div className="bg-white p-10 rounded-3xl shadow-2xl border-4 border-amber-300 text-center animate-in zoom-in-95 duration-300 max-w-sm">
-                  <h1 className="text-3xl font-black text-amber-500 mb-2">Giỏi Quá!</h1>
+               <div className="bg-white p-10 rounded-2xl shadow-xl border border-slate-200 text-center animate-in zoom-in-95 duration-300 max-w-sm">
+                  <h1 className="text-3xl font-bold text-amber-500 mb-2">Giỏi Quá!</h1>
                   <p className="text-slate-600 font-medium mb-8">Em đã hoàn thành xuất sắc bài tập này.</p>
                   
                   <div className="flex justify-center items-end space-x-2 mb-8">
@@ -60,14 +60,14 @@ export default function LessonPlayer() {
                      <img src="https://img.icons8.com/color/96/star--v1.png" className="w-16 h-16 animate-bounce delay-150" />
                   </div>
 
-                  <div className="inline-flex items-center justify-center bg-blue-50 border-2 border-blue-200 px-6 py-3 rounded-2xl w-full mb-6">
-                     <span className="text-slate-600 font-bold mr-3">Nhận thưởng:</span>
-                     <img src="https://img.icons8.com/color/48/diamond.png" className="w-8 h-8 mr-2" />
-                     <span className="text-3xl font-black text-blue-600">+50</span>
+                  <div className="inline-flex items-center justify-center bg-slate-50 border border-slate-200 px-6 py-3 rounded-xl w-full mb-6">
+                     <span className="text-slate-600 font-semibold mr-3">Phần thưởng:</span>
+                     <img src="https://img.icons8.com/color/48/diamond.png" className="w-6 h-6 mr-2" />
+                     <span className="text-2xl font-bold text-amber-500">+50</span>
                   </div>
 
                   <Link to="/student/subject/math" className="block w-full">
-                    <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-xl shadow-[0_4px_0_#2563eb] hover:shadow-[0_2px_0_#2563eb] hover:translate-y-[2px] transition-all">
+                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors">
                       Tiếp tục hành trình
                     </button>
                   </Link>

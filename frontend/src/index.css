@@ -8,3 +8,10 @@
     font-family: 'Inter', sans-serif;
   }
 }
+
+@layer utilities {
+  .bg-polka-dots {
+    background-image: radial-gradient(#e2e8f0 2px, transparent 2px);
+    background-size: 32px 32px;
+  }
+}

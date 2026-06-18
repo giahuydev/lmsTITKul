@@ -45,80 +45,92 @@ export default function SubjectTree() {
         </div>
       </div>
 
-      <div className="space-y-12">
+      <div className="space-y-12 mt-12 relative pb-20">
         {chapters.map((chapter) => (
-          <div key={chapter.id} className="relative">
+          <div key={chapter.id} className="relative z-10">
             {/* Tiêu đề Chương */}
-            <div className="flex items-center mb-6">
-               <img src={chapter.icon} alt={chapter.title} className="w-12 h-12 mr-4 drop-shadow-md z-10" />
-               <h2 className="text-2xl font-black text-slate-700 bg-white px-4 py-2 border-2 border-slate-200 rounded-2xl shadow-sm z-10">
-                 {chapter.title}
-               </h2>
+            <div className="flex flex-col items-center mb-8">
+               <div className="bg-white border-2 border-slate-200 rounded-2xl px-6 py-3 shadow-sm inline-flex items-center">
+                 <img src={chapter.icon} alt={chapter.title} className="w-10 h-10 mr-3" />
+                 <h2 className="text-2xl font-bold text-slate-800">
+                   {chapter.title}
+                 </h2>
+               </div>
             </div>
 
-            {/* Trục chính của Cây */}
-            <div className="absolute left-6 top-12 bottom-0 w-1.5 bg-slate-200 rounded-full"></div>
+            {/* Các nhánh (Bài học) xếp thẳng hàng */}
+            <div className="relative max-w-xl mx-auto">
+               {/* Đường nối dọc ở giữa */}
+               <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-slate-200 -translate-x-1/2 -z-10"></div>
 
-            {/* Các nhánh (Bài học) */}
-            <div className="space-y-6 ml-14 relative">
-               {chapter.lessons.map((lesson, idx) => (
-                 <div key={lesson.id} className="relative flex items-center group">
-                    {/* Đường rẽ nhánh */}
-                    <div className="absolute -left-8 top-1/2 w-8 h-1.5 bg-slate-200 rounded-l-full"></div>
+               {chapter.lessons.map((lesson, idx) => {
+                 const isLeft = idx % 2 === 0;
+                 return (
+                   <div key={lesson.id} className={`relative flex items-center justify-between mb-8 ${isLeft ? 'flex-row-reverse' : ''}`}>
+                      
+                      {/* Khoảng trống đối diện */}
+                      <div className="w-[45%] hidden md:block"></div>
 
-                    {/* Node Cột mốc */}
-                    <div className={`absolute -left-[39px] w-6 h-6 rounded-full border-4 z-10 ${
-                      lesson.status === 'completed' ? 'bg-green-500 border-green-200 shadow-[0_0_10px_rgba(34,197,94,0.4)]' :
-                      lesson.status === 'current' ? 'bg-blue-500 border-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.6)] animate-bounce' :
-                      'bg-slate-300 border-slate-100'
-                    }`}></div>
+                      {/* Node Giữa (Flat UI) */}
+                      <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border-4 z-20 ${
+                        lesson.status === 'completed' ? 'bg-green-500 border-green-100' :
+                        lesson.status === 'current' ? 'bg-blue-600 border-blue-200 ring-4 ring-blue-50' :
+                        'bg-slate-200 border-white'
+                      }`}></div>
 
-                    {/* Card Bài Học */}
-                    <div className={`flex-1 flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
-                      lesson.status === 'completed' ? 'bg-white border-green-200 hover:shadow-md cursor-pointer' :
-                      lesson.status === 'current' ? 'bg-blue-50 border-blue-300 shadow-md cursor-pointer hover:-translate-y-1' :
-                      'bg-slate-50 border-slate-200 opacity-60 grayscale'
-                    }`}>
-                       <div className="flex items-center">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 ${
-                            lesson.status === 'completed' ? 'bg-green-100' :
-                            lesson.status === 'current' ? 'bg-blue-100' :
-                            'bg-slate-200'
-                          }`}>
-                            {lesson.type === 'video' && <img src="https://img.icons8.com/color/48/play--v1.png" className="w-6 h-6" />}
-                            {lesson.type === 'h5p' && <img src="https://img.icons8.com/color/48/puzzle.png" className="w-6 h-6" />}
-                            {lesson.type === 'quiz' && <img src="https://img.icons8.com/color/48/exam.png" className="w-6 h-6" />}
-                          </div>
-                          <div>
-                            <h3 className={`text-lg font-bold ${lesson.status === 'current' ? 'text-blue-800' : 'text-slate-700'}`}>
-                              {lesson.title}
-                            </h3>
-                            <p className="text-sm font-medium text-slate-500">
-                              {lesson.type === 'video' ? 'Video bài giảng' : lesson.type === 'h5p' ? 'Bài tập tương tác' : 'Bài kiểm tra'}
-                            </p>
-                          </div>
-                       </div>
+                      {/* Card Bài Học (Flat UI) */}
+                      <div className={`w-full md:w-[45%] flex flex-col p-4 rounded-2xl border transition-all z-10 bg-white ${
+                        lesson.status === 'completed' ? 'border-green-200 shadow-sm hover:shadow-md cursor-pointer' :
+                        lesson.status === 'current' ? 'border-blue-300 shadow-md ring-2 ring-blue-50 cursor-pointer hover:-translate-y-1' :
+                        'border-slate-200 opacity-60 grayscale'
+                      }`}>
+                         <div className="flex items-center mb-4">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-3 ${
+                              lesson.status === 'completed' ? 'bg-green-50 text-green-600' :
+                              lesson.status === 'current' ? 'bg-blue-50 text-blue-600' :
+                              'bg-slate-100 text-slate-400'
+                            }`}>
+                              {lesson.type === 'video' && <img src="https://img.icons8.com/color/48/play--v1.png" className="w-6 h-6" />}
+                              {lesson.type === 'h5p' && <img src="https://img.icons8.com/color/48/puzzle.png" className="w-6 h-6" />}
+                              {lesson.type === 'quiz' && <img src="https://img.icons8.com/color/48/exam.png" className="w-6 h-6" />}
+                            </div>
+                            <div>
+                              <h3 className={`text-lg font-bold leading-tight mb-1 ${lesson.status === 'current' ? 'text-blue-800' : 'text-slate-700'}`}>
+                                {lesson.title}
+                              </h3>
+                              <p className="text-xs font-semibold text-slate-500">
+                                {lesson.type === 'video' ? 'Video bài giảng' : lesson.type === 'h5p' ? 'Bài tập tương tác' : 'Bài kiểm tra'}
+                              </p>
+                            </div>
+                         </div>
 
-                       {/* Nút Trạng thái */}
-                       <div>
-                          {lesson.status === 'completed' && (
-                             <img src="https://img.icons8.com/color/48/checked--v1.png" alt="Hoàn thành" className="w-8 h-8" />
-                          )}
-                          {lesson.status === 'current' && (
-                             <Link to={`/student/lesson/${lesson.id}`}>
-                               <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center">
-                                 Học ngay
-                                 <img src="https://img.icons8.com/ios-glyphs/30/ffffff/circled-play.png" className="w-5 h-5 ml-2" />
-                               </button>
-                             </Link>
-                          )}
-                          {lesson.status === 'locked' && (
-                             <img src="https://img.icons8.com/color/48/lock.png" alt="Khóa" className="w-8 h-8 opacity-50" />
-                          )}
-                       </div>
-                    </div>
-                 </div>
-               ))}
+                         {/* Nút Trạng thái dạng Flat */}
+                         <div className="mt-auto">
+                            {lesson.status === 'completed' && (
+                               <div className="flex items-center justify-center w-full py-2 bg-green-50 rounded-lg text-green-700 font-semibold text-sm">
+                                 <img src="https://img.icons8.com/color/48/checked--v1.png" alt="Hoàn thành" className="w-5 h-5 mr-1.5" />
+                                 Hoàn thành
+                               </div>
+                            )}
+                            {lesson.status === 'current' && (
+                               <Link to={`/student/lesson/${lesson.id}`} className="block">
+                                 <button className="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-sm">
+                                   Học ngay
+                                   <img src="https://img.icons8.com/color/48/circled-play.png" className="w-5 h-5 ml-1.5 brightness-200" />
+                                 </button>
+                               </Link>
+                            )}
+                            {lesson.status === 'locked' && (
+                               <div className="flex items-center justify-center w-full py-2 bg-slate-50 rounded-lg text-slate-500 font-semibold text-sm">
+                                 <img src="https://img.icons8.com/color/48/lock.png" alt="Khóa" className="w-5 h-5 mr-1.5 grayscale" />
+                                 Chưa mở khóa
+                               </div>
+                            )}
+                         </div>
+                      </div>
+                   </div>
+                 );
+               })}
             </div>
           </div>
         ))}

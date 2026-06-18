@@ -36,6 +36,9 @@ import StudentLayout from './layouts/StudentLayout';
 import StudentDashboard from './pages/student/Dashboard';
 import SubjectTree from './pages/student/SubjectTree';
 import LessonPlayer from './pages/student/LessonPlayer';
+import StudentRewards from './pages/student/Rewards';
+import StudentAssignments from './pages/student/Assignments';
+import StudentNotifications from './pages/student/Notifications';
 
 function App() {
   return (
@@ -52,6 +55,9 @@ function App() {
           <Route index element={<StudentDashboard />} />
           <Route path="subject/:subjectId" element={<SubjectTree />} />
           <Route path="lesson/:lessonId" element={<LessonPlayer />} />
+          <Route path="rewards" element={<StudentRewards />} />
+          <Route path="tasks" element={<StudentAssignments />} />
+          <Route path="notifications" element={<StudentNotifications />} />
         </Route>
 
         {/* Admin Routes */}
