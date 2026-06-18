@@ -31,6 +31,12 @@ import ParentDashboard from './pages/parent/Dashboard';
 import ParentChildren from './pages/parent/Children';
 import ParentGrades from './pages/parent/Grades';
 
+// Pages - Student (Bright Theme)
+import StudentLayout from './layouts/StudentLayout';
+import StudentDashboard from './pages/student/Dashboard';
+import SubjectTree from './pages/student/SubjectTree';
+import LessonPlayer from './pages/student/LessonPlayer';
+
 function App() {
   return (
     <BrowserRouter>
@@ -39,6 +45,13 @@ function App() {
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Route>
+
+        {/* Student Routes (Bright Theme) */}
+        <Route path="/student" element={<StudentLayout />}>
+          <Route index element={<StudentDashboard />} />
+          <Route path="subject/:subjectId" element={<SubjectTree />} />
+          <Route path="lesson/:lessonId" element={<LessonPlayer />} />
         </Route>
 
         {/* Admin Routes */}
