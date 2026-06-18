@@ -3,6 +3,41 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Badge } from '../../components/ui/Badge';
 import { parentChildrenList } from '../../mocks/parentData';
 
+// --- Subcomponents (KISS / SRP) ---
+
+const ActivityItem = ({ title, type, badge }: { title: string, type: string, badge: string }) => (
+  <div className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border border-slate-100">
+    <div>
+      <p className="font-medium text-slate-800">{title}</p>
+      <p className="text-sm text-slate-500">{type}</p>
+    </div>
+    <Badge variant="success">{badge}</Badge>
+  </div>
+);
+
+const AlertItem = ({ title, description }: { title: string, description: string }) => (
+  <li className="flex items-start p-4 border border-amber-200 bg-amber-50 rounded-lg">
+    <AlertCircle className="h-5 w-5 mr-3 shrink-0 mt-0.5 text-amber-600" />
+    <div>
+      <p className="font-medium text-amber-900">{title}</p>
+      <p className="text-sm mt-1 text-amber-700">{description}</p>
+    </div>
+  </li>
+);
+
+const AnnouncementItem = ({ title, content, date, tag }: { title: string, content: string, date: string, tag: string }) => (
+  <div className="p-4 border border-blue-100 bg-blue-50/50 rounded-lg">
+    <div className="flex justify-between items-center mb-2">
+      <Badge variant="outline" className="border-blue-300 text-blue-700 bg-blue-100">{tag}</Badge>
+      <span className="text-xs text-slate-500">{date}</span>
+    </div>
+    <h4 className="font-bold text-slate-800">{title}</h4>
+    <p className="text-sm text-slate-600 mt-2">{content}</p>
+  </div>
+);
+
+// --- Main Component ---
+
 export default function ParentDashboard() {
   const childrenList = parentChildrenList;
 
@@ -32,20 +67,8 @@ export default function ParentDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border border-slate-100">
-              <div>
-                <p className="font-medium text-slate-800">Toán học - Phân số</p>
-                <p className="text-sm text-slate-500">Bài tập H5P</p>
-              </div>
-              <Badge variant="success">Hoàn thành Tốt</Badge>
-            </div>
-            <div className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border border-slate-100">
-              <div>
-                <p className="font-medium text-slate-800">Tiếng Việt - Chính tả</p>
-                <p className="text-sm text-slate-500">Bài tự luận</p>
-              </div>
-              <Badge variant="success">Hoàn thành Tốt</Badge>
-            </div>
+            <ActivityItem title="Toán học - Phân số" type="Bài tập H5P" badge="Hoàn thành Tốt" />
+            <ActivityItem title="Tiếng Việt - Chính tả" type="Bài tự luận" badge="Hoàn thành Tốt" />
           </CardContent>
         </Card>
 
@@ -58,13 +81,10 @@ export default function ParentDashboard() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">
-              <li className="flex items-start p-4 border border-amber-200 bg-amber-50 rounded-lg">
-                <AlertCircle className="h-5 w-5 mr-3 shrink-0 mt-0.5 text-amber-600" />
-                <div>
-                  <p className="font-medium text-amber-900">Sắp đến hạn nộp bài!</p>
-                  <p className="text-sm mt-1 text-amber-700">Bé An còn 1 bài tập "Lịch sử" chưa làm. Hạn chót: tối nay 23:59.</p>
-                </div>
-              </li>
+              <AlertItem 
+                title="Sắp đến hạn nộp bài!" 
+                description="Bé An còn 1 bài tập &quot;Lịch sử&quot; chưa làm. Hạn chót: tối nay 23:59." 
+              />
             </ul>
           </CardContent>
         </Card>
@@ -77,14 +97,12 @@ export default function ParentDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 border border-blue-100 bg-blue-50/50 rounded-lg">
-              <div className="flex justify-between items-center mb-2">
-                <Badge variant="outline" className="border-blue-300 text-blue-700 bg-blue-100">Ghim</Badge>
-                <span className="text-xs text-slate-500">10/06/2026</span>
-              </div>
-              <h4 className="font-bold text-slate-800">Lịch thi Học kỳ 1</h4>
-              <p className="text-sm text-slate-600 mt-2">Kính gửi quý phụ huynh, tuần sau các con sẽ bắt đầu thi học kỳ 1. Phụ huynh vui lòng đôn đốc các con ôn tập nhé.</p>
-            </div>
+            <AnnouncementItem 
+              title="Lịch thi Học kỳ 1" 
+              content="Kính gửi quý phụ huynh, tuần sau các con sẽ bắt đầu thi học kỳ 1. Phụ huynh vui lòng đôn đốc các con ôn tập nhé." 
+              date="10/06/2026" 
+              tag="Ghim" 
+            />
           </CardContent>
         </Card>
       </div>

@@ -14,11 +14,11 @@ export default function TeacherAnnouncements() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Input placeholder="Tiêu đề thông báo..." />
-          <textarea 
+          <textarea
             className="w-full h-32 px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-primary focus:ring-1 resize-none"
             placeholder="Nội dung thông báo (hỗ trợ Markdown)..."
           ></textarea>
-          
+
           <div className="flex justify-between items-center">
             <label className="flex items-center text-sm font-medium text-slate-700 cursor-pointer">
               <input type="checkbox" className="w-4 h-4 text-primary rounded border-slate-300 mr-2" />
@@ -34,7 +34,7 @@ export default function TeacherAnnouncements() {
 
       <div className="space-y-4 mt-8">
         <h3 className="text-lg font-bold text-slate-800">Lịch sử đăng</h3>
-        
+
         <Card className="border-amber-300 bg-amber-100 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-16 h-16 bg-amber-200/50 rounded-bl-full -z-10"></div>
           <CardContent className="p-4 relative z-10">
