@@ -6,11 +6,11 @@ export default function StudentRewards() {
   const [activeTab, setActiveTab] = useState('badges');
 
   const badges = [
-    { id: 1, name: 'Vua Toán Học', desc: 'Đạt điểm tuyệt đối 3 bài kiểm tra Toán', icon: 'https://img.icons8.com/3d-fluency/94/crown.png', date: '15/06/2026', unlocked: true },
-    { id: 2, name: 'Chăm Chỉ', desc: 'Hoàn thành bài tập 7 ngày liên tiếp', icon: 'https://img.icons8.com/3d-fluency/94/star.png', date: '10/06/2026', unlocked: true },
-    { id: 3, name: 'Bút Vàng', desc: 'Hoàn thành bài tập Tiếng Việt xuất sắc', icon: 'https://img.icons8.com/3d-fluency/94/pen.png', date: '05/06/2026', unlocked: true },
-    { id: 4, name: 'Siêu Tốc Độ', desc: 'Hoàn thành bài tập sớm nhất lớp', icon: 'https://img.icons8.com/3d-fluency/94/rocket.png', date: '', unlocked: false },
-    { id: 5, name: 'Nhà Thám Hiểm', desc: 'Hoàn thành 50% chương trình Tự nhiên XH', icon: 'https://img.icons8.com/3d-fluency/94/map.png', date: '', unlocked: false },
+    { id: 1, name: 'Vua Toán Học', desc: 'Đạt điểm tuyệt đối 3 bài kiểm tra Toán', icon: 'https://img.icons8.com/color/96/crown.png', date: '15/06/2026', unlocked: true },
+    { id: 2, name: 'Chăm Chỉ', desc: 'Hoàn thành bài tập 7 ngày liên tiếp', icon: 'https://img.icons8.com/color/96/star--v1.png', date: '10/06/2026', unlocked: true },
+    { id: 3, name: 'Bút Vàng', desc: 'Hoàn thành bài tập Tiếng Việt xuất sắc', icon: 'https://img.icons8.com/color/96/pen.png', date: '05/06/2026', unlocked: true },
+    { id: 4, name: 'Siêu Tốc Độ', desc: 'Hoàn thành bài tập sớm nhất lớp', icon: 'https://img.icons8.com/color/96/rocket.png', date: '', unlocked: false },
+    { id: 5, name: 'Nhà Thám Hiểm', desc: 'Hoàn thành 50% chương trình Tự nhiên XH', icon: 'https://img.icons8.com/color/96/map-marker--v1.png', date: '', unlocked: false },
   ];
 
   const letters = [

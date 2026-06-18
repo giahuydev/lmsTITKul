@@ -9,7 +9,7 @@ export default function SubjectTree() {
     {
       id: 1,
       title: 'Chương 1: Số Tự Nhiên',
-      icon: 'https://img.icons8.com/3d-fluency/94/1-circle.png',
+      icon: 'https://img.icons8.com/color/96/1-circle.png',
       lessons: [
         { id: 101, title: 'Ôn tập các số đến 100,000', type: 'video', status: 'completed' },
         { id: 102, title: 'Biểu thức có chứa một chữ', type: 'h5p', status: 'completed' },
@@ -20,7 +20,7 @@ export default function SubjectTree() {
     {
       id: 2,
       title: 'Chương 2: Bốn Phép Tính',
-      icon: 'https://img.icons8.com/3d-fluency/94/math.png',
+      icon: 'https://img.icons8.com/color/96/math.png',
       lessons: [
         { id: 201, title: 'Phép cộng', type: 'h5p', status: 'locked' },
         { id: 202, title: 'Phép trừ', type: 'h5p', status: 'locked' },
@@ -37,7 +37,7 @@ export default function SubjectTree() {
 
       <div className="flex items-center mb-10">
         <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mr-4 border-2 border-blue-200">
-           <img src="https://img.icons8.com/3d-fluency/94/calculator.png" alt="Toán" className="w-10 h-10" />
+           <img src="https://img.icons8.com/color/96/calculator--v1.png" alt="Toán" className="w-10 h-10" />
         </div>
         <div>
           <h1 className="text-3xl font-black text-slate-800">Toán Học (Lớp 4)</h1>
