@@ -1,12 +1,12 @@
 import { Users } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { Link } from 'react-router-dom';
+
+import { teacherClasses } from '../../mocks/teacherData';
 
 export default function TeacherClasses() {
-  const classes = [
-    { id: 1, name: 'Lớp 5A', role: 'GV Chủ Nhiệm', students: 35 },
-    { id: 2, name: 'Lớp 5B', role: 'GV Bộ Môn', students: 40 },
-  ];
+  const classes = teacherClasses;
 
   return (
     <div className="space-y-6">
@@ -26,7 +26,9 @@ export default function TeacherClasses() {
                 </div>
               </div>
               <div className="flex space-x-3 pt-4 border-t border-slate-100">
-                <Button variant="outline" className="flex-1">Danh sách Học sinh chi tiết</Button>
+                <Link to={`/teacher/classes/${cls.id}`} className="flex-1">
+                  <Button variant="outline" className="w-full">Danh sách Học sinh chi tiết</Button>
+                </Link>
               </div>
             </CardContent>
           </Card>

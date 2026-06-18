@@ -4,12 +4,10 @@ import { Button } from '../../components/ui/Button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
 
+import { parentGrades } from '../../mocks/parentData';
+
 export default function ParentGrades() {
-  const grades = [
-    { id: 1, subject: 'Toán học', assignment: 'Bài tập trên lớp - Phân số', score: 'Hoàn thành Tốt', type: 'H5P', date: '15/06/2026' },
-    { id: 2, subject: 'Tiếng Việt', assignment: 'Tập làm văn miêu tả', score: 'Hoàn thành Tốt', type: 'Tự luận', date: '14/06/2026' },
-    { id: 3, subject: 'Lịch sử', assignment: 'Bài 4: Khởi nghĩa', score: null, type: 'H5P', date: 'Chưa nộp' },
-  ];
+  const grades = parentGrades;
 
   return (
     <div className="space-y-6">

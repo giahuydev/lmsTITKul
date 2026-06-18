@@ -1,32 +1,11 @@
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-
+import { subjectChapters } from '../../mocks/studentData';
 export default function SubjectTree() {
   const { subjectId } = useParams();
 
   // Dữ liệu Mock cho Cây môn học
-  const chapters = [
-    {
-      id: 1,
-      title: 'Chương 1: Số Tự Nhiên',
-      icon: 'https://img.icons8.com/color/96/1-circle.png',
-      lessons: [
-        { id: 101, title: 'Ôn tập các số đến 100,000', type: 'video', status: 'completed' },
-        { id: 102, title: 'Biểu thức có chứa một chữ', type: 'h5p', status: 'completed' },
-        { id: 103, title: 'Các số có sáu chữ số', type: 'h5p', status: 'current' },
-        { id: 104, title: 'Kiểm tra Chương 1', type: 'quiz', status: 'locked' }
-      ]
-    },
-    {
-      id: 2,
-      title: 'Chương 2: Bốn Phép Tính',
-      icon: 'https://img.icons8.com/color/96/math.png',
-      lessons: [
-        { id: 201, title: 'Phép cộng', type: 'h5p', status: 'locked' },
-        { id: 202, title: 'Phép trừ', type: 'h5p', status: 'locked' },
-      ]
-    }
-  ];
+  const chapters = subjectChapters;
 
   return (
     <div className="max-w-4xl mx-auto pb-20">

@@ -1,11 +1,10 @@
 import { Users } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/Card';
 
+import { parentChildren } from '../../mocks/parentData';
+
 export default function ParentChildren() {
-  const children = [
-    { id: 1, name: 'Nguyễn Văn An', grade: 'Lớp 5A', school: 'Tiểu học Titkul Kids', username: 'HS2026001' },
-    { id: 2, name: 'Nguyễn Thị Bình', grade: 'Lớp 3B', school: 'Tiểu học Titkul Kids', username: 'HS2026002' },
-  ];
+  const children = parentChildren;
 
   return (
     <div className="space-y-6">

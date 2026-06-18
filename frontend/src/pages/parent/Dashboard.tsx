@@ -1,16 +1,26 @@
 import { Bell, TrendingUp, AlertCircle, MessageSquare } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
+import { parentChildrenList } from '../../mocks/parentData';
 
 export default function ParentDashboard() {
+  const childrenList = parentChildrenList;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">Tiến độ của Bé An</h1>
-        <select className="px-4 py-2 bg-white border border-slate-300 rounded-lg outline-none font-medium">
-          <option>Bé Nguyễn Văn An (Lớp 5A)</option>
-          <option>Bé Nguyễn Thị Bình (Lớp 3B)</option>
-        </select>
+        <h1 className="text-2xl font-bold text-slate-800">Tiến độ học tập</h1>
+        {childrenList.length > 1 ? (
+          <select className="px-4 py-2 bg-white border border-slate-300 rounded-lg outline-none font-medium">
+            {childrenList.map(child => (
+               <option key={child.id}>{child.name} ({child.className})</option>
+            ))}
+          </select>
+        ) : (
+          <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-bold">
+            {childrenList[0]?.name} ({childrenList[0]?.className})
+          </div>
+        )}
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

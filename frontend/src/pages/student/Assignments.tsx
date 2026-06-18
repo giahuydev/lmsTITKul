@@ -1,17 +1,13 @@
 import { useState } from 'react';
 import { Clock, CheckCircle, AlertCircle, FileText, Upload, X } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { assignmentTasks } from '../../mocks/studentData';
 
 export default function StudentAssignments() {
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
 
-  const tasks = [
-    { id: 1, title: 'Tả con vật nuôi trong nhà', subject: 'Tiếng Việt', type: 'TU_LUAN', status: 'CHUA_NOP', deadline: '20/06/2026 23:59', timeRemaining: '2 ngày', isLate: false },
-    { id: 2, title: 'Luyện tập phép cộng trừ', subject: 'Toán Học', type: 'H5P', status: 'CHUA_NOP', deadline: '18/06/2026 17:00', timeRemaining: '3 giờ', isLate: false },
-    { id: 3, title: 'Viết thư cho bạn', subject: 'Tiếng Việt', type: 'TU_LUAN', status: 'YC_LAM_LAI', deadline: '17/06/2026 23:59', timeRemaining: 'Quá hạn', isLate: true },
-    { id: 4, title: 'Các số có 6 chữ số', subject: 'Toán Học', type: 'H5P', status: 'DA_NOP', deadline: '15/06/2026', timeRemaining: '-', isLate: false },
-  ];
+  const tasks = assignmentTasks;
 
   const handleOpenSubmit = (task: any) => {
     setSelectedTask(task);

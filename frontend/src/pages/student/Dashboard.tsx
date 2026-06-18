@@ -1,22 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Clock, Bell, ArrowRight } from 'lucide-react';
+import { dashboardSubjects, upcomingTasks, recentNotifications } from '../../mocks/studentData';
 
 export default function StudentDashboard() {
-  const subjects = [
-    { id: 'math', name: 'Toán Học', desc: 'Khám phá thế giới của những con số', icon: 'https://img.icons8.com/color/96/calculator--v1.png', color: 'bg-white border-slate-200 text-blue-700', btnColor: 'bg-blue-50 text-blue-600 hover:bg-blue-100', trackColor: 'bg-slate-100', barColor: 'bg-blue-500', progress: 60 },
-    { id: 'viet', name: 'Tiếng Việt', desc: 'Luyện đọc và viết chữ thật hay', icon: 'https://img.icons8.com/color/96/books.png', color: 'bg-white border-slate-200 text-orange-700', btnColor: 'bg-orange-50 text-orange-600 hover:bg-orange-100', trackColor: 'bg-slate-100', barColor: 'bg-orange-500', progress: 85 },
-    { id: 'science', name: 'Tự nhiên Xã hội', desc: 'Tìm hiểu về thế giới quanh ta', icon: 'https://img.icons8.com/color/96/globe--v1.png', color: 'bg-white border-slate-200 text-green-700', btnColor: 'bg-green-50 text-green-600 hover:bg-green-100', trackColor: 'bg-slate-100', barColor: 'bg-green-500', progress: 20 }
-  ];
-
-  const upcomingTasks = [
-    { id: 1, title: 'Luyện tập phép cộng trừ', subject: 'Toán', time: '3 giờ nữa' },
-    { id: 2, title: 'Tả con vật nuôi', subject: 'Tiếng Việt', time: 'Ngày mai' }
-  ];
-
-  const recentNotifications = [
-    { id: 1, title: 'Nghỉ học ngày mai do bão', isNew: true },
-    { id: 2, title: 'Thưởng nóng 50 Kim cương!', isNew: false }
-  ];
+  const subjects = dashboardSubjects;
 
   return (
     <div className="max-w-6xl mx-auto pb-12">
@@ -42,7 +29,8 @@ export default function StudentDashboard() {
             </div>
           </div>
         </div>
-        <img src="https://img.icons8.com/color/240/turtle.png" alt="Mascot" className="w-48 hidden lg:block relative z-10" />
+        {/* Đã thêm animate-bounce cho Mascot để khắc phục lỗi Mascot tĩnh */}
+        <img src="https://img.icons8.com/color/240/turtle.png" alt="Mascot" className="w-48 hidden lg:block relative z-10 animate-bounce" />
         <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
       </div>
 

@@ -20,20 +20,28 @@ export default function LessonPlayer() {
           </div>
         </div>
         
-        {!completed ? (
-          <button 
-            onClick={() => setCompleted(true)}
-            className="flex items-center px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-[0_4px_0_#16a34a] hover:shadow-[0_2px_0_#16a34a] hover:translate-y-[2px] transition-all"
-          >
-            <img src="https://img.icons8.com/color/48/checked-checkbox.png" className="w-5 h-5 mr-2" alt="Nộp" />
-            Nộp bài
-          </button>
-        ) : (
-          <div className="flex items-center px-4 py-2 bg-green-50 border border-green-200 rounded-xl">
-             <img src="https://img.icons8.com/color/48/ok--v1.png" className="w-6 h-6 mr-2" alt="Đã nộp" />
-             <span className="text-green-700 font-bold">Đã hoàn thành</span>
-          </div>
-        )}
+        <div className="flex items-center space-x-4">
+          {!completed && (
+            <div className="flex items-center bg-orange-100 border border-orange-200 text-orange-700 px-4 py-2 rounded-xl font-bold animate-pulse">
+              <img src="https://img.icons8.com/color/48/time.png" className="w-5 h-5 mr-2" />
+              14:59
+            </div>
+          )}
+          {!completed ? (
+            <button 
+              onClick={() => setCompleted(true)}
+              className="flex items-center px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-[0_4px_0_#16a34a] hover:shadow-[0_2px_0_#16a34a] hover:translate-y-[2px] transition-all"
+            >
+              <img src="https://img.icons8.com/color/48/checked-checkbox.png" className="w-5 h-5 mr-2" alt="Nộp" />
+              Nộp bài
+            </button>
+          ) : (
+            <div className="flex items-center px-4 py-2 bg-green-50 border border-green-200 rounded-xl">
+               <img src="https://img.icons8.com/color/48/ok--v1.png" className="w-6 h-6 mr-2" alt="Đã nộp" />
+               <span className="text-green-700 font-bold">Đã hoàn thành</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Content */}

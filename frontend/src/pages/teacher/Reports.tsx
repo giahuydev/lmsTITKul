@@ -6,15 +6,14 @@ import { Input } from '../../components/ui/Input';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
 
+import { teacherStudents } from '../../mocks/teacherData';
+
 export default function TeacherReports() {
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [selectedStudentName, setSelectedStudentName] = useState('');
 
-  const students = [
-    { id: 1, name: 'Nguyễn Văn An', math: 'Tốt', viet: 'Tốt', avg: 'Tốt', isExcellent: true },
-    { id: 2, name: 'Trần Thị Bình', math: 'Đạt', viet: 'Tốt', avg: 'Đạt', isExcellent: false },
-  ];
+  const students = teacherStudents;
 
   const handleOpenReward = (name: string) => {
     setSelectedStudentName(name);

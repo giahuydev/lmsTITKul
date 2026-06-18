@@ -4,15 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 
+import { adminImportErrors } from '../../mocks/adminData';
+
 export default function AdminImport() {
   // Giả lập state để Demo UI báo lỗi All-or-Nothing
   const [hasError, setHasError] = useState(false);
 
-  const mockErrors = [
-    { row: 2, studentName: 'Nguyễn Văn A', parentPhone: '0901234567', error: 'Trống trường ngày sinh' },
-    { row: 5, studentName: 'Trần Thị B', parentPhone: '0987654321', error: 'Trùng lặp mã định danh HS2026001' },
-    { row: 12, studentName: 'Lê Hoàng C', parentPhone: '090111222', error: 'Sai định dạng ngày sinh (DD/MM/YYYY)' },
-  ];
+  const mockErrors = adminImportErrors;
 
   const handleSimulateUpload = () => {
     // Demo chuyển sang trạng thái lỗi sau khi upload

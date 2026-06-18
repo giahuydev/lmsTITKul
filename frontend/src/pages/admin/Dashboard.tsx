@@ -1,13 +1,10 @@
 import { Users, BookOpen, UserCheck, AlertCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 
+import { adminKpis } from '../../mocks/adminData';
+
 export default function AdminDashboard() {
-  const kpis = [
-    { title: 'Giáo viên hoạt động', value: '45', icon: Users, color: 'text-blue-500', bg: 'bg-blue-100' },
-    { title: 'Học sinh đang học', value: '1,250', icon: BookOpen, color: 'text-indigo-500', bg: 'bg-indigo-100' },
-    { title: 'Phụ huynh liên kết', value: '1,120', icon: UserCheck, color: 'text-green-500', bg: 'bg-green-100' },
-    { title: 'Tài khoản vô hiệu', value: '12', icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-100' },
-  ];
+  const kpis = adminKpis;
 
   return (
     <div className="space-y-6">

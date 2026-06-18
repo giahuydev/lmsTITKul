@@ -6,15 +6,15 @@ import { Input } from '../../components/ui/Input';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
 
+import { teacherSubmissions } from '../../mocks/teacherData';
+
 export default function TeacherGrading() {
   const [selectedStudent, setSelectedStudent] = useState<number | null>(1);
   const [showAI, setShowAI] = useState(false);
   const [commentText, setCommentText] = useState('');
+  const [viewGradedDetails, setViewGradedDetails] = useState<any>(null);
 
-  const submissions = [
-    { id: 1, student: 'Nguyễn Văn An', task: 'Viết đoạn văn tả con vật', type: 'Tu_Luan', date: '10/06 14:30', status: 'DA_NOP', late: false },
-    { id: 2, student: 'Trần Thị Bình', task: 'Bài tập trắc nghiệm H5P', type: 'H5P', date: '10/06 15:45', status: 'DA_CHAM', late: false, score: 'Hoàn thành tốt' },
-  ];
+  const submissions = teacherSubmissions;
 
   const handleApplyAI = (text: string) => {
     setCommentText(text);
@@ -34,7 +34,12 @@ export default function TeacherGrading() {
                 <Input className="pl-9" placeholder="Tìm kiếm học sinh..." />
               </div>
               <div className="flex items-center space-x-2">
-                <Filter className="h-4 w-4 text-slate-400" />
+                <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary font-bold text-indigo-700 bg-indigo-50">
+                  <option value="5A">Lớp 5A</option>
+                  <option value="5B">Lớp 5B</option>
+                  <option value="5C">Lớp 5C</option>
+                </select>
+                <Filter className="h-4 w-4 text-slate-400 ml-2" />
                 <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary">
                   <option value="all">Tất cả bài tập</option>
                   <option value="pending">Chờ chấm</option>
@@ -72,8 +77,10 @@ export default function TeacherGrading() {
                         {sub.status === 'DA_CHAM' && <Badge variant="success">Đã chấm ({sub.score})</Badge>}
                       </TableCell>
                       <TableCell className="text-right">
-                        {sub.type === 'H5P' ? (
-                          <Button variant="ghost" size="sm" onClick={() => setSelectedStudent(sub.id)}>Xem chi tiết</Button>
+                        {sub.status === 'DA_CHAM' ? (
+                          <Button variant="ghost" size="sm" onClick={() => setViewGradedDetails(sub)}>Xem chi tiết</Button>
+                        ) : sub.type === 'H5P' ? (
+                          <Button variant="ghost" size="sm" onClick={() => setSelectedStudent(sub.id)}>Xem tiến độ</Button>
                         ) : (
                           <Button variant="outline" size="sm" onClick={() => setSelectedStudent(sub.id)}>Chấm bài</Button>
                         )}
@@ -172,6 +179,45 @@ export default function TeacherGrading() {
           </Card>
         )}
       </div>
+
+      {/* Modal Chi tiết Bài đã chấm */}
+      {viewGradedDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white w-[500px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-bold text-slate-800">Chi tiết Đánh giá</h3>
+              <button onClick={() => setViewGradedDetails(null)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-bold text-lg text-slate-800">{viewGradedDetails.student}</h3>
+                  <p className="text-sm text-slate-500">{viewGradedDetails.task}</p>
+                </div>
+                <Badge variant="success">Điểm: {viewGradedDetails.score}</Badge>
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm leading-relaxed text-slate-700">
+                <strong className="block mb-2 text-slate-800">Bài làm:</strong>
+                Nhà em có nuôi một chú chó rất đáng yêu... (Nội dung bài làm của học sinh)
+              </div>
+
+              <div>
+                <strong className="block mb-1 text-sm text-slate-800">Nhận xét của giáo viên:</strong>
+                <div className="p-3 bg-indigo-50 text-indigo-900 text-sm rounded border border-indigo-100">
+                  Bài viết của con rất tốt, miêu tả sinh động và giàu cảm xúc. Cố gắng phát huy con nhé!
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end">
+                <Button variant="outline" onClick={() => setViewGradedDetails(null)}>Đóng</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

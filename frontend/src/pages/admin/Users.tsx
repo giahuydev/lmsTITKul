@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, ArrowRightLeft, Upload } from 'lucide-react';
+import { Search, Filter, ArrowRightLeft, Upload, X } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -8,24 +8,19 @@ import { Badge } from '../../components/ui/Badge';
 import { cn } from '../../layouts/DashboardLayout';
 import { Link } from 'react-router-dom';
 
+import { adminTeachers, adminStudents, adminParents } from '../../mocks/adminData';
+
 type TabType = 'teacher' | 'student' | 'parent';
 
 export default function AdminUsers() {
   const [activeTab, setActiveTab] = useState<TabType>('student');
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  const teachers = [
-    { id: 1, name: 'Nguyễn Văn A', username: 'GV0901234567', phone: '0901234567', status: 'ACTIVE', isDefaultPwd: false },
-    { id: 2, name: 'Trần Thị B', username: 'GV0987654321', phone: '0987654321', status: 'ACTIVE', isDefaultPwd: true },
-  ];
-
-  const students = [
-    { id: 1, name: 'Lê Hoàng Cường', username: 'HS2026001', class: 'Lớp 5A', status: 'ACTIVE' },
-    { id: 2, name: 'Nguyễn Thị D', username: 'HS2026002', class: 'Lớp 5A', status: 'ACTIVE' },
-  ];
-
-  const parents = [
-    { id: 1, name: 'Lê Văn C (Bố)', username: 'PH090111222', phone: '090111222', children: 'Lê Hoàng Cường (Lớp 5A)', status: 'ACTIVE' },
-  ];
+  const teachers = adminTeachers;
+  const students = adminStudents;
+  const parents = adminParents;
 
   return (
     <div className="space-y-6">
@@ -109,7 +104,7 @@ export default function AdminUsers() {
                     <Badge variant="success">Hoạt động</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Sửa</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSelectedUser(user); setShowEditModal(true); }}>Sửa</Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -125,10 +120,10 @@ export default function AdminUsers() {
                     <Badge variant="success">Hoạt động</Badge>
                   </TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button variant="outline" size="sm" className="text-indigo-600 border-indigo-200 hover:bg-indigo-50">
+                    <Button variant="outline" size="sm" className="text-indigo-600 border-indigo-200 hover:bg-indigo-50" onClick={() => { setSelectedUser(user); setShowTransferModal(true); }}>
                       <ArrowRightLeft className="w-3 h-3 mr-1" /> Chuyển lớp
                     </Button>
-                    <Button variant="ghost" size="sm">Sửa</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSelectedUser(user); setShowEditModal(true); }}>Sửa</Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -142,7 +137,7 @@ export default function AdminUsers() {
                     <Badge variant="success">Hoạt động</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Sửa</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSelectedUser(user); setShowEditModal(true); }}>Sửa</Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -150,6 +145,84 @@ export default function AdminUsers() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Modal Chuyển Lớp */}
+      {showTransferModal && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
+              <h3 className="font-bold text-indigo-900">Chuyển Lớp Học Sinh</h3>
+              <button onClick={() => setShowTransferModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-sm text-slate-500 mb-1">Học sinh:</p>
+                <p className="font-bold text-slate-800">{selectedUser.name} ({selectedUser.username})</p>
+                <p className="text-sm text-slate-600 mt-1">Lớp hiện tại: <span className="font-medium text-slate-800">{selectedUser.class}</span></p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Chọn lớp mới</label>
+                <select className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary">
+                  <option>Lớp 5B</option>
+                  <option>Lớp 5C</option>
+                </select>
+              </div>
+              
+              <div className="pt-2 flex justify-end space-x-3">
+                <Button variant="outline" onClick={() => setShowTransferModal(false)}>Hủy bỏ</Button>
+                <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setShowTransferModal(false)}>Xác nhận chuyển</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Sửa Tài Khoản */}
+      {showEditModal && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white w-[500px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-bold text-slate-800">Sửa thông tin Tài khoản</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Input label="Họ và tên" defaultValue={selectedUser.name} />
+                <Input label="Tên đăng nhập" defaultValue={selectedUser.username} disabled />
+              </div>
+              
+              {activeTab === 'teacher' && (
+                <Input label="Số điện thoại" defaultValue={selectedUser.phone} />
+              )}
+              
+              {activeTab === 'parent' && (
+                <Input label="Số điện thoại" defaultValue={selectedUser.phone} />
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Trạng thái</label>
+                <select className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary" defaultValue={selectedUser.status}>
+                  <option value="ACTIVE">Đang hoạt động</option>
+                  <option value="INACTIVE">Vô hiệu hóa</option>
+                </select>
+              </div>
+
+              <div className="pt-4 flex justify-between items-center border-t border-slate-100 mt-2">
+                <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">Reset Mật khẩu</Button>
+                <div className="space-x-3">
+                  <Button variant="ghost" onClick={() => setShowEditModal(false)}>Hủy</Button>
+                  <Button onClick={() => setShowEditModal(false)}>Lưu thay đổi</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

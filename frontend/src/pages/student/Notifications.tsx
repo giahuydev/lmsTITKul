@@ -1,11 +1,8 @@
 import { Bell, CheckCircle2 } from 'lucide-react';
+import { allNotifications } from '../../mocks/studentData';
 
 export default function StudentNotifications() {
-  const notifications = [
-    { id: 1, title: 'Nghỉ học ngày mai do bão', content: 'Các con ở nhà chú ý an toàn nhé, cô sẽ gửi bài tập H5P lên hệ thống.', date: '18/06/2026 08:30', read: false, type: 'NOI_BO', pinned: true },
-    { id: 2, title: 'Thưởng nóng 50 Kim cương!', content: 'Cô khen cả lớp hôm qua đã nộp bài đầy đủ và đúng hạn. Mỗi bạn được cộng 50 Kim cương nhé!', date: '17/06/2026 15:00', read: true, type: 'KHEN_THUONG', pinned: false },
-    { id: 3, title: 'Nhắc nhở làm bài tập Toán', content: 'Hiện tại vẫn còn 5 bạn chưa nộp bài tập Số Tự Nhiên, các con tranh thủ làm trước 9h tối nay.', date: '16/06/2026 14:20', read: true, type: 'NOI_BO', pinned: false },
-  ];
+  const notifications = allNotifications;
 
   return (
     <div className="max-w-4xl mx-auto pb-12">

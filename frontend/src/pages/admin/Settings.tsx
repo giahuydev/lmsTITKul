@@ -2,11 +2,17 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
+import { useState } from 'react';
+
+import { adminSubjects, adminGrades } from '../../mocks/adminData';
 
 export default function AdminSettings() {
-  const subjects = ['Toán học', 'Tiếng Việt', 'Lịch sử', 'Địa lý', 'Khoa học', 'Tiếng Anh'];
-  const grades = ['Khối 1', 'Khối 2', 'Khối 3', 'Khối 4', 'Khối 5'];
+  const [showGradeModal, setShowGradeModal] = useState(false);
+  const [showSubjectModal, setShowSubjectModal] = useState(false);
+
+  const subjects = adminSubjects;
+  const grades = adminGrades;
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -49,7 +55,9 @@ export default function AdminSettings() {
           <div>
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-semibold text-slate-700 text-sm">Danh sách Khối lớp</h3>
-              <Button variant="outline" size="sm"><Plus className="w-4 h-4 mr-1" /> Thêm Khối</Button>
+              <Button variant="outline" size="sm" onClick={() => setShowGradeModal(true)}>
+                <Plus className="w-4 h-4 mr-1" /> Thêm Khối
+              </Button>
             </div>
             <div className="flex flex-wrap gap-2">
               {grades.map(g => (
@@ -63,7 +71,9 @@ export default function AdminSettings() {
           <div className="pt-4 border-t border-slate-100">
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-semibold text-slate-700 text-sm">Danh mục Môn học</h3>
-              <Button variant="outline" size="sm"><Plus className="w-4 h-4 mr-1" /> Thêm Môn</Button>
+              <Button variant="outline" size="sm" onClick={() => setShowSubjectModal(true)}>
+                <Plus className="w-4 h-4 mr-1" /> Thêm Môn
+              </Button>
             </div>
             <div className="flex flex-wrap gap-2">
               {subjects.map(s => (
@@ -75,6 +85,48 @@ export default function AdminSettings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal Thêm Khối */}
+      {showGradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-bold text-slate-800">Thêm Khối mới</h3>
+              <button onClick={() => setShowGradeModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <Input label="Tên Khối" placeholder="VD: Khối 6" />
+              <div className="pt-2 flex justify-end space-x-3">
+                <Button variant="outline" onClick={() => setShowGradeModal(false)}>Hủy bỏ</Button>
+                <Button onClick={() => setShowGradeModal(false)}>Thêm Khối</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Thêm Môn Học */}
+      {showSubjectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-bold text-slate-800">Thêm Môn học mới</h3>
+              <button onClick={() => setShowSubjectModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <Input label="Tên Môn học" placeholder="VD: Tin học" />
+              <div className="pt-2 flex justify-end space-x-3">
+                <Button variant="outline" onClick={() => setShowSubjectModal(false)}>Hủy bỏ</Button>
+                <Button onClick={() => setShowSubjectModal(false)}>Thêm Môn</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
