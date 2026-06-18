@@ -21,10 +21,13 @@ export default function TeacherMaterials() {
               Soạn H5P mới
             </Button>
           </Link>
-          <Button variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Tải lên File
-          </Button>
+          <div>
+            <input type="file" id="upload-material" className="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar" />
+            <Button variant="outline" onClick={() => document.getElementById('upload-material')?.click()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Tải lên File
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -56,17 +59,27 @@ export default function TeacherMaterials() {
         </div>
         <div className="flex items-center space-x-2">
           <Filter className="h-4 w-4 text-slate-400" />
+          <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary font-bold text-slate-700">
+            <option value="all">Tất cả Khối</option>
+            <option value="1">Khối 1</option>
+            <option value="2">Khối 2</option>
+            <option value="3">Khối 3</option>
+            <option value="4">Khối 4</option>
+            <option value="5">Khối 5</option>
+          </select>
           <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary">
             <option>Tất cả môn học</option>
             <option>Toán học</option>
             <option>Tiếng Việt</option>
+            <option>Đạo đức</option>
+            <option>Tự nhiên & Xã hội</option>
           </select>
         </div>
       </div>
 
       {activeTab === 'my-library' && (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          <Card className="hover:border-primary/50 transition-colors cursor-pointer group">
+          <Card className="hover:border-primary/50 transition-colors cursor-pointer group" onClick={() => setViewMaterial({ title: 'Toán học Lớp 5', type: 'Folder', shared: false })}>
             <CardContent className="p-4 flex flex-col items-center justify-center text-center h-48">
               <Folder className="h-12 w-12 text-primary/40 group-hover:text-primary transition-colors mb-3" />
               <h3 className="font-bold text-slate-800">Toán học Lớp 5</h3>

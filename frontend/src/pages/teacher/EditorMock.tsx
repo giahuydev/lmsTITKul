@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Sparkles, Save, X, Bot, PlayCircle, Plus } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
@@ -16,7 +17,9 @@ export default function TeacherEditorMock() {
           Soạn Bài giảng H5P
         </h1>
         <div className="flex space-x-2">
-          <Button variant="outline"><X className="w-4 h-4 mr-2" /> Hủy</Button>
+          <Link to="/teacher/materials">
+            <Button variant="outline"><X className="w-4 h-4 mr-2" /> Hủy</Button>
+          </Link>
           <Button className="bg-indigo-600 hover:bg-indigo-700"><Save className="w-4 h-4 mr-2" /> Lưu học liệu</Button>
         </div>
       </div>
