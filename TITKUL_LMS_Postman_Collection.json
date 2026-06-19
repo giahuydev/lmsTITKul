@@ -1,0 +1,267 @@
+{
+  "info": {
+    "name": "TITKUL LMS API v1 (Full 24 Endpoints)",
+    "description": "Collection test API cho dự án TITKUL LMS. Bao gồm toàn bộ 24 API từ tài liệu thiết kế.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Auth & Users",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"HS001\",\n  \"password\": \"Password123!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Quên Mật Khẩu (Gửi OTP)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"emailOrPhone\": \"0901234567\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "forgot-password"] }
+          }
+        },
+        {
+          "name": "Đổi Mật Khẩu (Gửi OTP)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/change-password", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "change-password"] }
+          }
+        },
+        {
+          "name": "Xác thực Đổi Mật Khẩu",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewPass123!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/change-password/verify", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "change-password", "verify"] }
+          }
+        },
+        {
+          "name": "Tạo Ticket xin cấp lại MK (GV)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"studentId\": 105,\n  \"reason\": \"Quên mật khẩu.\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/tickets", "host": ["{{baseUrl}}"], "path": ["api", "v1", "tickets"] }
+          }
+        },
+        {
+          "name": "Duyệt Ticket Reset MK (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/tickets/1/approve", "host": ["{{baseUrl}}"], "path": ["api", "v1", "tickets", "1", "approve"] }
+          }
+        },
+        {
+          "name": "Lấy thông tin cá nhân (Me)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/me", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "me"] }
+          }
+        },
+        {
+          "name": "Lấy DS con cái (Phụ Huynh)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/parents/children", "host": ["{{baseUrl}}"], "path": ["api", "v1", "parents", "children"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Quản trị & Lớp học",
+      "item": [
+        {
+          "name": "Dashboard (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/dashboard", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "dashboard"] }
+          }
+        },
+        {
+          "name": "Lấy Danh Sách Lớp",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/classes?page=0&size=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "classes"], "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "20" }] }
+          }
+        },
+        {
+          "name": "Tạo Lớp Mới (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"5A\",\n  \"grade\": 5,\n  \"teacherId\": 10\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/classes", "host": ["{{baseUrl}}"], "path": ["api", "v1", "classes"] }
+          }
+        },
+        {
+          "name": "Lấy DS Học sinh trong Lớp",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/classes/5/students", "host": ["{{baseUrl}}"], "path": ["api", "v1", "classes", "5", "students"] }
+          }
+        },
+        {
+          "name": "Import Excel (All-or-Nothing)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": [] }] },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/import/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "import", "users"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Học Liệu & H5P",
+      "item": [
+        {
+          "name": "Lấy Danh Mục Bài Học (SGK)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/lesson-categories", "host": ["{{baseUrl}}"], "path": ["api", "v1", "lesson-categories"] }
+          }
+        },
+        {
+          "name": "Tạo Học Liệu Mới (GV)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Bài tập về nhà\",\n  \"materialType\": \"TAI_LIEU\",\n  \"origin\": \"GIAO_VIEN_TAO\",\n  \"xpReward\": 10,\n  \"allowRetry\": true\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/materials", "host": ["{{baseUrl}}"], "path": ["api", "v1", "materials"] }
+          }
+        },
+        {
+          "name": "Lấy DS Học Liệu",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/materials?page=0&size=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "materials"], "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "20" }] }
+          }
+        },
+        {
+          "name": "Lưu Record Học Liệu (Internal)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Bài giảng mới\",\n  \"h5pId\": \"123abc456\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/internal/materials", "host": ["{{baseUrl}}"], "path": ["api", "v1", "internal", "materials"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Bài Tập & Chấm Bài",
+      "item": [
+        {
+          "name": "Giao Bài Tập (GV)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Làm toán\",\n  \"classId\": 5,\n  \"deadline\": \"2026-06-20T23:59:00Z\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/assignments", "host": ["{{baseUrl}}"], "path": ["api", "v1", "assignments"] }
+          }
+        },
+        {
+          "name": "Lấy DS Bài tập",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/assignments?classId=5", "host": ["{{baseUrl}}"], "path": ["api", "v1", "assignments"], "query": [{ "key": "classId", "value": "5" }] }
+          }
+        },
+        {
+          "name": "Nộp Bài (HS)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"assignmentId\": 10,\n  \"content\": \"Đáp án là 5\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/submissions", "host": ["{{baseUrl}}"], "path": ["api", "v1", "submissions"] }
+          }
+        },
+        {
+          "name": "Lấy DS Nộp bài của 1 Bài tập (GV)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/assignments/10/submissions", "host": ["{{baseUrl}}"], "path": ["api", "v1", "assignments", "10", "submissions"] }
+          }
+        },
+        {
+          "name": "Chấm Bài Định Tính (GV)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"evaluationType\": \"HOAN_THANH_TOT\",\n  \"comment\": \"Rất tốt\",\n  \"action\": \"DUYET\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/submissions/456/evaluate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "submissions", "456", "evaluate"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Truyền Thông & AI",
+      "item": [
+        {
+          "name": "Đăng Thông Báo (GV)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"classId\": 5,\n  \"title\": \"Nhắc đóng tiền\",\n  \"content\": \"...\",\n  \"audience\": \"PARENT\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/announcements", "host": ["{{baseUrl}}"], "path": ["api", "v1", "announcements"] }
+          }
+        },
+        {
+          "name": "Lấy Thông Báo",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/announcements", "host": ["{{baseUrl}}"], "path": ["api", "v1", "announcements"] }
+          }
+        },
+        {
+          "name": "AI: Gợi ý Nhận Xét",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"submissionId\": 456\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/suggestions/evaluation", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "suggestions", "evaluation"] }
+          }
+        },
+        {
+          "name": "AI: Báo Cáo Buổi Sáng",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/reports/morning?classId=5", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "reports", "morning"], "query": [{ "key": "classId", "value": "5" }] }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -19,11 +19,18 @@ export default function TeacherAnnouncements() {
             placeholder="Nội dung thông báo (hỗ trợ Markdown)..."
           ></textarea>
 
-          <div className="flex justify-between items-center">
-            <label className="flex items-center text-sm font-medium text-slate-700 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4 text-primary rounded border-slate-300 mr-2" />
-              Ghim lên đầu trang
-            </label>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center space-x-4">
+              <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary">
+                <option value="all">Gửi tất cả (Phụ huynh & Học sinh)</option>
+                <option value="parents">Chỉ gửi Phụ huynh</option>
+                <option value="students">Chỉ gửi Học sinh</option>
+              </select>
+              <label className="flex items-center text-sm font-medium text-slate-700 cursor-pointer">
+                <input type="checkbox" className="w-4 h-4 text-primary rounded border-slate-300 mr-2" />
+                Ghim lên đầu
+              </label>
+            </div>
             <Button>
               <Send className="w-4 h-4 mr-2" />
               Đăng ngay
@@ -39,9 +46,14 @@ export default function TeacherAnnouncements() {
           <div className="absolute top-0 right-0 w-16 h-16 bg-amber-200/50 rounded-bl-full -z-10"></div>
           <CardContent className="p-4 relative z-10">
             <div className="flex justify-between items-start">
-              <div className="flex items-center text-amber-700 mb-2 font-bold bg-amber-200/50 px-2 py-1 rounded-md">
-                <Pin className="w-4 h-4 mr-1" />
-                Đã ghim
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center text-amber-700 font-bold bg-amber-200/50 px-2 py-1 rounded-md text-sm">
+                  <Pin className="w-4 h-4 mr-1" />
+                  Đã ghim
+                </div>
+                <div className="px-2 py-1 bg-white/50 text-amber-800 rounded text-xs border border-amber-300/50">
+                  Gửi: Phụ huynh
+                </div>
               </div>
               <span className="text-xs text-slate-500">10/06/2026</span>
             </div>
@@ -53,8 +65,13 @@ export default function TeacherAnnouncements() {
         <Card className="border-slate-200 bg-white mt-4">
           <CardContent className="p-4">
             <div className="flex justify-between items-start">
-              <div className="flex items-center text-blue-600 mb-2 font-medium bg-blue-50 px-2 py-1 rounded-md">
-                Tin chung
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-md text-sm">
+                  Tin chung
+                </div>
+                <div className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs border border-slate-200">
+                  Gửi: Tất cả
+                </div>
               </div>
               <span className="text-xs text-slate-500">08/06/2026</span>
             </div>

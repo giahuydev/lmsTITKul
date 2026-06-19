@@ -1,17 +1,18 @@
 import { useState } from 'react';
-import { Search, Filter, CheckCircle, AlertCircle, Bot, X } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
 import { teacherSubmissions } from '../../mocks/teacherData';
-import { GradingPanel } from './components/GradingPanel';
 import { GradedDetailsModal } from './components/GradedDetailsModal';
 import { useGradingSystem } from './hooks/useGradingSystem';
 import type { SubmissionInfo } from '../../types';
 
 export default function TeacherGrading() {
+  const navigate = useNavigate();
   const { 
     selectedStudentId, 
     viewGradedDetails, 
@@ -26,29 +27,27 @@ export default function TeacherGrading() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-800">Chấm bài & Phản hồi</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
-          <Card>
-            <div className="p-4 border-b border-slate-100 flex flex-wrap gap-4 items-center">
-              <div className="relative flex-1 min-w-[200px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input className="pl-9" placeholder="Tìm kiếm học sinh..." />
-              </div>
-              <div className="flex items-center space-x-2">
-                <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary font-bold text-indigo-700 bg-indigo-50">
-                  <option value="5A">Lớp 5A</option>
-                  <option value="5B">Lớp 5B</option>
-                  <option value="5C">Lớp 5C</option>
-                </select>
-                <Filter className="h-4 w-4 text-slate-400 ml-2" />
-                <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary">
-                  <option value="all">Tất cả bài tập</option>
-                  <option value="pending">Chờ chấm</option>
-                  <option value="graded">Đã chấm</option>
-                </select>
-              </div>
-            </div>
-            <CardContent className="p-0">
+      <Card>
+        <div className="p-4 border-b border-slate-100 flex flex-wrap gap-4 items-center">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input className="pl-9" placeholder="Tìm kiếm học sinh..." />
+          </div>
+          <div className="flex items-center space-x-2">
+            <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary font-bold text-indigo-700 bg-indigo-50">
+              <option value="5A">Lớp 5A</option>
+              <option value="5B">Lớp 5B</option>
+              <option value="5C">Lớp 5C</option>
+            </select>
+            <Filter className="h-4 w-4 text-slate-400 ml-2" />
+            <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary">
+              <option value="all">Tất cả bài tập</option>
+              <option value="pending">Chờ chấm</option>
+              <option value="graded">Đã chấm</option>
+            </select>
+          </div>
+        </div>
+        <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -83,7 +82,7 @@ export default function TeacherGrading() {
                         ) : sub.type === 'H5P' ? (
                           <Button variant="ghost" size="sm" onClick={() => handleSelectStudent(sub.id)}>Xem tiến độ</Button>
                         ) : (
-                          <Button variant="outline" size="sm" onClick={() => handleSelectStudent(sub.id)}>Chấm bài</Button>
+                          <Button variant="outline" size="sm" onClick={() => navigate(`/teacher/grading/${sub.id}`)}>Chấm bài</Button>
                         )}
                       </TableCell>
                     </TableRow>
@@ -91,14 +90,7 @@ export default function TeacherGrading() {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
-        </div>
-
-        {/* Khung chấm điểm (Chỉ hiển thị cho Tự luận) */}
-        {selectedStudentId === 1 && (
-          <GradingPanel studentId={selectedStudentId} />
-        )}
-      </div>
+      </Card>
 
       <GradedDetailsModal 
         submission={viewGradedDetails} 

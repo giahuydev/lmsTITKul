@@ -21,8 +21,10 @@ import TeacherDashboard from './pages/teacher/Dashboard';
 import TeacherClasses from './pages/teacher/Classes';
 import TeacherClassDetails from './pages/teacher/ClassDetails';
 import TeacherMaterials from './pages/teacher/Materials';
+import TeacherMaterialDetail from './pages/teacher/MaterialDetail';
 import TeacherAssignments from './pages/teacher/Assignments';
 import TeacherGrading from './pages/teacher/Grading';
+import TeacherGradingDetail from './pages/teacher/GradingDetail';
 import TeacherReports from './pages/teacher/Reports';
 import TeacherAnnouncements from './pages/teacher/Announcements';
 import TeacherEditorMock from './pages/teacher/EditorMock';
@@ -79,9 +81,11 @@ function App() {
           <Route path="classes/:classId" element={<TeacherClassDetails />} />
           <Route path="announcements" element={<TeacherAnnouncements />} />
           <Route path="materials" element={<TeacherMaterials />} />
+          <Route path="materials/:materialId" element={<TeacherMaterialDetail />} />
           <Route path="editor" element={<TeacherEditorMock />} />
           <Route path="assignments" element={<TeacherAssignments />} />
           <Route path="grading" element={<TeacherGrading />} />
+          <Route path="grading/:submissionId" element={<TeacherGradingDetail />} />
           <Route path="reports" element={<TeacherReports />} />
           <Route path="tickets" element={<TeacherTickets />} />
         </Route>
