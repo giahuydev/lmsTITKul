@@ -1,12 +1,35 @@
-import { Users } from 'lucide-react';
-import { Card, CardContent } from '../../components/ui/Card';
+import { useState, useEffect } from 'react';
+import { Users, Search, Filter, Loader2 } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
-
-import { teacherClasses } from '../../mocks/teacherData';
+import { teacherService } from '../../services/teacher.service';
 
 export default function TeacherClasses() {
-  const classes = teacherClasses;
+  const [classes, setClasses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const data = await teacherService.getClasses();
+        setClasses(data);
+      } catch (err) {
+        console.error('Failed to fetch classes', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchClasses();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

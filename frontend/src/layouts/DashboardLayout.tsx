@@ -1,22 +1,38 @@
-import { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, Settings, BookOpen, 
   FileText, Award, Bell, Upload, LogOut, KeyRound, ShieldCheck, X
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { useAuthStore } from '../stores/useAuthStore';
+import { userService } from '../services/user.service';
 
-export function cn(...classes: (string | undefined | null | false)[]) {
-  return classes.filter(Boolean).join(' ');
-}
+import { cn } from '../lib/utils';
 
 type Role = 'admin' | 'teacher' | 'parent';
 
 export default function DashboardLayout({ role }: { role: Role }) {
   const location = useLocation();
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [otpStep, setOtpStep] = useState(false);
+  const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const updateUser = useAuthStore((state) => state.updateUser);
+
+  useEffect(() => {
+    if (user?.requirePasswordChange) {
+      navigate('/force-change-password');
+      return;
+    }
+
+    if (user && !user.fullName) {
+      userService.getMyProfile()
+        .then(data => {
+          updateUser({ fullName: data.fullName, avatarUrl: data.avatarUrl || undefined });
+        })
+        .catch(err => console.error("Failed to fetch profile", err));
+    }
+  }, [user, navigate, updateUser]);
 
   const navItems = {
     admin: [
@@ -56,8 +72,14 @@ export default function DashboardLayout({ role }: { role: Role }) {
             </div>
             <span className="text-xl font-bold text-slate-800">Titkul Kids</span>
           </div>
-          <div className="mt-2 text-xs font-medium text-slate-500 uppercase tracking-wider">
-            {role === 'admin' ? 'Quản trị viên' : role === 'teacher' ? 'Giáo viên' : 'Phụ huynh'}
+          <div className="mt-4 flex items-center space-x-3 bg-slate-50 p-2 rounded-lg border border-slate-100">
+             <img src={user?.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=b6e3f4"} alt="Avatar" className="w-10 h-10 rounded-full border border-slate-200 bg-white" />
+             <div className="flex flex-col overflow-hidden">
+                <span className="text-sm font-bold text-slate-800 truncate" title={user?.fullName || user?.username}>{user?.fullName || user?.username || 'User'}</span>
+                <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+                  {role === 'admin' ? 'Quản trị viên' : role === 'teacher' ? 'Giáo viên' : 'Phụ huynh'}
+                </span>
+             </div>
           </div>
         </div>
         
@@ -88,18 +110,10 @@ export default function DashboardLayout({ role }: { role: Role }) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-slate-200 space-y-2">
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start text-slate-600 hover:text-slate-900"
-            onClick={() => setShowPasswordModal(true)}
-          >
-            <KeyRound className="mr-2 h-4 w-4 text-slate-400" /> Đổi mật khẩu
-          </Button>
-          <Link to="/login" className="block w-full">
-            <Button variant="ghost" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50">
-              <LogOut className="mr-2 h-4 w-4" /> Đăng xuất
-            </Button>
+        <div className="p-4 border-t border-slate-200">
+          <Link to={`/${role}/profile`} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+            <Settings className="mr-3 h-5 w-5 text-slate-400" />
+            Hồ sơ cá nhân
           </Link>
         </div>
       </aside>
@@ -108,43 +122,6 @@ export default function DashboardLayout({ role }: { role: Role }) {
       <main className="flex-1 ml-64 p-8">
         <Outlet />
       </main>
-
-      {/* Password Change Modal */}
-      {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h3 className="font-bold text-slate-800 flex items-center">
-                <ShieldCheck className="w-5 h-5 mr-2 text-indigo-600" /> Đổi mật khẩu (QT01.2)
-              </h3>
-              <button onClick={() => setShowPasswordModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              {!otpStep ? (
-                <>
-                  <Input label="Mật khẩu cũ" type="password" placeholder="Nhập mật khẩu hiện tại" />
-                  <Input label="Mật khẩu mới" type="password" placeholder="Tối thiểu 6 ký tự" />
-                  <Input label="Xác nhận mật khẩu mới" type="password" placeholder="Nhập lại mật khẩu mới" />
-                  <Button className="w-full mt-2" onClick={() => setOtpStep(true)}>Tiếp tục</Button>
-                </>
-              ) : (
-                <>
-                  <div className="text-center mb-4">
-                    <p className="text-sm text-slate-600">Một mã OTP gồm 6 chữ số đã được gửi đến email của bạn.</p>
-                    <p className="text-xs text-indigo-600 font-medium mt-1">Mã có hiệu lực trong 1 phút.</p>
-                  </div>
-                  <Input label="Mã OTP" placeholder="Ví dụ: 123456" className="text-center text-lg tracking-widest" />
-                  <Button className="w-full mt-2 bg-green-600 hover:bg-green-700" onClick={() => setShowPasswordModal(false)}>Xác nhận đổi mật khẩu</Button>
-                  <Button variant="ghost" className="w-full text-sm text-slate-500 mt-1" onClick={() => setOtpStep(false)}>Quay lại</Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -24,4 +24,7 @@ public class ParentProfile {
 
     @Column(name = "email_nhan_thong_bao", length = 150)
     private String notificationEmail;
+
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
+    private java.util.List<StudentProfile> children;
 }

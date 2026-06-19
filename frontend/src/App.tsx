@@ -7,13 +7,15 @@ import DashboardLayout from './layouts/DashboardLayout';
 // Pages - Auth
 import Login from './pages/auth/Login';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import ForceChangePassword from './pages/auth/ForceChangePassword';
 
 // Pages - Admin
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminUsers from './pages/admin/Users';
 import AdminTickets from './pages/admin/Tickets';
-import AdminImport from './pages/admin/Import';
+import AdminImport from './pages/admin/ExcelImport';
 import AdminClasses from './pages/admin/Classes';
+import ClassDetails from './pages/admin/ClassDetails';
 import AdminSettings from './pages/admin/Settings';
 
 // Pages - Teacher
@@ -29,11 +31,13 @@ import TeacherReports from './pages/teacher/Reports';
 import TeacherAnnouncements from './pages/teacher/Announcements';
 import TeacherEditorMock from './pages/teacher/EditorMock';
 import TeacherTickets from './pages/teacher/Tickets';
+import TeacherProfile from './pages/teacher/Profile';
 
 // Pages - Parent
 import ParentDashboard from './pages/parent/Dashboard';
 import ParentChildren from './pages/parent/Children';
 import ParentGrades from './pages/parent/Grades';
+import ParentProfile from './pages/parent/Profile';
 
 // Pages - Student (Bright Theme)
 import StudentLayout from './layouts/StudentLayout';
@@ -43,6 +47,7 @@ import LessonPlayer from './pages/student/LessonPlayer';
 import StudentRewards from './pages/student/Rewards';
 import StudentAssignments from './pages/student/Assignments';
 import StudentNotifications from './pages/student/Notifications';
+import StudentProfile from './pages/student/Profile';
 
 function App() {
   return (
@@ -52,6 +57,7 @@ function App() {
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/force-change-password" element={<ForceChangePassword />} />
         </Route>
 
         {/* Student Routes (Bright Theme) */}
@@ -62,6 +68,7 @@ function App() {
           <Route path="rewards" element={<StudentRewards />} />
           <Route path="tasks" element={<StudentAssignments />} />
           <Route path="notifications" element={<StudentNotifications />} />
+          <Route path="profile" element={<StudentProfile />} />
         </Route>
 
         {/* Admin Routes */}
@@ -71,6 +78,7 @@ function App() {
           <Route path="tickets" element={<AdminTickets />} />
           <Route path="import" element={<AdminImport />} />
           <Route path="classes" element={<AdminClasses />} />
+          <Route path="classes/:id" element={<ClassDetails />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
 
@@ -88,6 +96,7 @@ function App() {
           <Route path="grading/:submissionId" element={<TeacherGradingDetail />} />
           <Route path="reports" element={<TeacherReports />} />
           <Route path="tickets" element={<TeacherTickets />} />
+          <Route path="profile" element={<TeacherProfile />} />
         </Route>
 
         {/* Parent Routes */}
@@ -95,6 +104,7 @@ function App() {
           <Route index element={<ParentDashboard />} />
           <Route path="children" element={<ParentChildren />} />
           <Route path="grades" element={<ParentGrades />} />
+          <Route path="profile" element={<ParentProfile />} />
         </Route>
 
         {/* Default Redirect */}

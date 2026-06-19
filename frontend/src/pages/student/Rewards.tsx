@@ -1,13 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, MailOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { rewardBadges, rewardLetters } from '../../mocks/studentData';
+import { studentService } from '../../services/student.service';
 
 export default function StudentRewards() {
   const [activeTab, setActiveTab] = useState('badges');
+  const [rewardsData, setRewardsData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const badges = rewardBadges;
-  const letters = rewardLetters;
+  useEffect(() => {
+    const fetchRewards = async () => {
+      try {
+        const data = await studentService.getRewards();
+        setRewardsData(data);
+      } catch (err) {
+        console.error('Failed to fetch rewards', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRewards();
+  }, []);
+
+  const badges = rewardsData?.badges || [];
+  const letters = rewardsData?.letters || [];
 
   return (
     <div className="max-w-5xl mx-auto pb-12">
@@ -51,10 +67,14 @@ export default function StudentRewards() {
          </button>
       </div>
 
-      {/* Content */}
-      {activeTab === 'badges' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
-          {badges.map((badge) => (
+      <div className="mt-8">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20 text-amber-500">
+             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
+          </div>
+        ) : activeTab === 'badges' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+          {badges.map((badge: any) => (
             <div key={badge.id} className={`bg-white rounded-3xl p-6 border-2 flex flex-col items-center text-center transition-all ${
               badge.unlocked 
                 ? 'border-amber-100 hover:border-amber-200 shadow-sm hover:shadow-md hover:-translate-y-1' 
@@ -110,6 +130,7 @@ export default function StudentRewards() {
            ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

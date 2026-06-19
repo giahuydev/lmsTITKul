@@ -1,10 +1,33 @@
-import { Users } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/Card';
-
-import { parentChildren } from '../../mocks/parentData';
+import { parentService } from '../../services/parent.service';
 
 export default function ParentChildren() {
-  const children = parentChildren;
+  const [children, setChildren] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchChildren = async () => {
+      try {
+        const data = await parentService.getChildren();
+        setChildren(data);
+      } catch (err) {
+        console.error('Failed to fetch children', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchChildren();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -33,6 +56,10 @@ export default function ParentChildren() {
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Tên đăng nhập:</span>
                   <span className="font-medium text-slate-800">{child.username}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Tổng điểm XP:</span>
+                  <span className="font-bold text-amber-500">{child.totalXp} XP</span>
                 </div>
               </div>
             </CardContent>

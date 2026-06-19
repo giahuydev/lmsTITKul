@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface MaterialRepository extends JpaRepository<Material, Long> {
     List<Material> findByLessonCategoryId(Long lessonCategoryId);
+    long countByTeacher_Id(Long teacherId);
 }

@@ -1,7 +1,8 @@
-import { Bell, TrendingUp, AlertCircle, MessageSquare } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Bell, TrendingUp, AlertCircle, MessageSquare, Loader2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
-import { parentChildrenList } from '../../mocks/parentData';
+import { parentService } from '../../services/parent.service';
 
 // --- Subcomponents (KISS / SRP) ---
 
@@ -39,21 +40,47 @@ const AnnouncementItem = ({ title, content, date, tag }: { title: string, conten
 // --- Main Component ---
 
 export default function ParentDashboard() {
-  const childrenList = parentChildrenList;
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const data = await parentService.getDashboard();
+        setDashboardData(data);
+      } catch (err) {
+        console.error('Failed to fetch dashboard', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  const childrenCount = dashboardData?.childrenCount || 0;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">Tiến độ học tập</h1>
-        {childrenList.length > 1 ? (
+        <h1 className="text-2xl font-bold text-slate-800">Tiến độ học tập ({dashboardData?.fullName})</h1>
+        {childrenCount > 1 ? (
           <select className="px-4 py-2 bg-white border border-slate-300 rounded-lg outline-none font-medium">
-            {childrenList.map(child => (
-               <option key={child.id}>{child.name} ({child.className})</option>
-            ))}
+             <option>Tất cả {childrenCount} bé</option>
+             {dashboardData?.children?.map((child: any) => (
+                <option key={child.id}>{child.studentName} ({child.className})</option>
+             ))}
           </select>
         ) : (
           <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-bold">
-            {childrenList[0]?.name} ({childrenList[0]?.className})
+            1 Bé đang học
           </div>
         )}
       </div>
@@ -67,8 +94,13 @@ export default function ParentDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ActivityItem title="Toán học - Phân số" type="Bài tập H5P" badge="Hoàn thành Tốt" />
-            <ActivityItem title="Tiếng Việt - Chính tả" type="Bài tự luận" badge="Hoàn thành Tốt" />
+            {dashboardData?.recentActivities?.length > 0 ? (
+                dashboardData.recentActivities.map((act: any, idx: number) => (
+                    <ActivityItem key={idx} title={act.title} type={act.type} badge={act.badge} />
+                ))
+            ) : (
+                <p className="text-slate-500 text-sm">Chưa có kết quả học tập nào gần đây.</p>
+            )}
           </CardContent>
         </Card>
 
@@ -81,10 +113,13 @@ export default function ParentDashboard() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">
-              <AlertItem 
-                title="Sắp đến hạn nộp bài!" 
-                description="Bé An còn 1 bài tập &quot;Lịch sử&quot; chưa làm. Hạn chót: tối nay 23:59." 
-              />
+              {dashboardData?.alerts?.length > 0 ? (
+                  dashboardData.alerts.map((alert: any, idx: number) => (
+                      <AlertItem key={idx} title={alert.title} description={alert.description} />
+                  ))
+              ) : (
+                  <p className="text-slate-500 text-sm">Không có nhắc nhở nào.</p>
+              )}
             </ul>
           </CardContent>
         </Card>
@@ -93,16 +128,17 @@ export default function ParentDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <MessageSquare className="h-5 w-5 mr-2 text-blue-500" />
-              Bảng tin từ Giáo viên Lớp 5A
+              Bảng tin từ Nhà trường
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <AnnouncementItem 
-              title="Lịch thi Học kỳ 1" 
-              content="Kính gửi quý phụ huynh, tuần sau các con sẽ bắt đầu thi học kỳ 1. Phụ huynh vui lòng đôn đốc các con ôn tập nhé." 
-              date="10/06/2026" 
-              tag="Ghim" 
-            />
+            {dashboardData?.announcements?.length > 0 ? (
+                dashboardData.announcements.map((ann: any, idx: number) => (
+                    <AnnouncementItem key={idx} title={ann.title} content={ann.content} date={ann.date} tag={ann.tag} />
+                ))
+            ) : (
+                <p className="text-slate-500 text-sm">Không có bảng tin mới nào.</p>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,15 +1,54 @@
 import { CheckCircle, XCircle, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
-
-import { adminTickets } from '../../mocks/adminData';
+import { ticketService } from '../../services/ticket.service';
 
 export default function AdminTickets() {
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
-  const tickets = adminTickets;
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [rejectNote, setRejectNote] = useState('');
+
+  const fetchTickets = async () => {
+    setIsLoading(true);
+    try {
+      const data = await ticketService.getPendingTickets();
+      setTickets(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  const handleProcess = async (ticketId: number, status: string) => {
+    if (status === 'TU_CHOI' && !rejectNote && selectedTicket) {
+      alert('Vui lòng nhập lý do từ chối!');
+      return;
+    }
+    
+    setIsProcessing(true);
+    try {
+      await ticketService.processTicket(ticketId, status, rejectNote);
+      alert(status === 'DA_DUYET' ? 'Đã duyệt yêu cầu thành công!' : 'Đã từ chối yêu cầu!');
+      setSelectedTicket(null);
+      setRejectNote('');
+      fetchTickets();
+    } catch (err) {
+      console.error(err);
+      alert('Có lỗi xảy ra khi xử lý phiếu');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -20,6 +59,7 @@ export default function AdminTickets() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Mã phiếu</TableHead>
                 <TableHead>Học sinh liên quan</TableHead>
                 <TableHead>Giáo viên yêu cầu</TableHead>
                 <TableHead>Loại yêu cầu</TableHead>
@@ -29,30 +69,26 @@ export default function AdminTickets() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tickets.map(ticket => (
+              {tickets.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                    Không có phiếu hỗ trợ nào đang chờ duyệt
+                  </TableCell>
+                </TableRow>
+              ) : tickets.map(ticket => (
                 <TableRow key={ticket.id}>
-                  <TableCell className="font-medium text-slate-800">{ticket.student}</TableCell>
-                  <TableCell>{ticket.teacher}</TableCell>
-                  <TableCell>{ticket.reason}</TableCell>
-                  <TableCell>{ticket.date}</TableCell>
+                  <TableCell className="font-medium text-slate-900">#{ticket.id}</TableCell>
+                  <TableCell className="font-medium text-slate-800">{ticket.studentName}</TableCell>
+                  <TableCell>{ticket.teacherName}</TableCell>
+                  <TableCell>{ticket.type === 'RESET_MAT_KHAU' ? 'Cấp lại mật khẩu' : ticket.type}</TableCell>
+                  <TableCell>{new Date(ticket.createdAt).toLocaleString('vi-VN')}</TableCell>
                   <TableCell>
-                    <Badge variant={ticket.status === 'CHO_DUYET' ? 'warning' : 'success'}>
-                      {ticket.status === 'CHO_DUYET' ? 'Chờ duyệt' : 'Đã duyệt'}
+                    <Badge variant={ticket.status === 'CHO_DUYET' ? 'warning' : ticket.status === 'DA_XU_LY' ? 'success' : 'destructive'}>
+                      {ticket.status === 'CHO_DUYET' ? 'Chờ duyệt' : ticket.status === 'DA_XU_LY' ? 'Đã duyệt' : 'Từ chối'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right space-x-2">
-                    {ticket.status === 'CHO_DUYET' ? (
-                      <>
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                          <CheckCircle className="w-4 h-4 mr-1" /> Duyệt
-                        </Button>
-                        <Button size="sm" variant="danger">
-                          <XCircle className="w-4 h-4" />
-                        </Button>
-                      </>
-                    ) : (
-                      <Button size="sm" variant="ghost" onClick={() => setSelectedTicket(ticket)}>Chi tiết</Button>
-                    )}
+                    <Button size="sm" variant="ghost" onClick={() => setSelectedTicket(ticket)}>Chi tiết</Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -66,7 +102,7 @@ export default function AdminTickets() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white w-[500px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h3 className="font-bold text-slate-800">Chi tiết Phiếu hỗ trợ</h3>
+              <h3 className="font-bold text-slate-800">Chi tiết Phiếu hỗ trợ #{selectedTicket.id}</h3>
               <button onClick={() => setSelectedTicket(null)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
@@ -81,33 +117,49 @@ export default function AdminTickets() {
                 </div>
                 <div className="flex justify-between pb-2 border-b border-slate-50">
                   <span className="text-slate-500 text-sm">Học sinh liên quan:</span>
-                  <span className="font-bold text-slate-800">{selectedTicket.student}</span>
+                  <span className="font-bold text-slate-800">{selectedTicket.studentName}</span>
                 </div>
                 <div className="flex justify-between pb-2 border-b border-slate-50">
                   <span className="text-slate-500 text-sm">Giáo viên yêu cầu:</span>
-                  <span className="font-medium text-slate-800">{selectedTicket.teacher}</span>
+                  <span className="font-medium text-slate-800">{selectedTicket.teacherName}</span>
                 </div>
                 <div className="flex justify-between pb-2 border-b border-slate-50">
                   <span className="text-slate-500 text-sm">Loại yêu cầu:</span>
-                  <span className="font-medium text-slate-800">{selectedTicket.reason}</span>
+                  <span className="font-medium text-slate-800">{selectedTicket.type === 'RESET_MAT_KHAU' ? 'Cấp lại mật khẩu' : selectedTicket.type}</span>
                 </div>
                 <div className="flex justify-between pb-2 border-b border-slate-50">
                   <span className="text-slate-500 text-sm">Thời gian:</span>
-                  <span className="text-slate-800">{selectedTicket.date}</span>
+                  <span className="text-slate-800">{new Date(selectedTicket.createdAt).toLocaleString('vi-VN')}</span>
                 </div>
                 
                 <div className="pt-2">
                   <span className="text-slate-500 text-sm block mb-1">Chi tiết lỗi/Mô tả từ GV:</span>
-                  <div className="p-3 bg-slate-50 border border-slate-100 rounded text-sm text-slate-700">
-                    Học sinh này quên mật khẩu đăng nhập hệ thống từ hôm qua. Xin Admin cấp lại mật khẩu mặc định mới nhất.
+                  <div className="p-3 bg-slate-50 border border-slate-100 rounded text-sm text-slate-700 min-h-[60px]">
+                    {selectedTicket.description || 'Không có mô tả thêm.'}
                   </div>
                 </div>
+
+                {selectedTicket.status === 'CHO_DUYET' && (
+                  <div className="pt-2">
+                    <span className="text-slate-500 text-sm block mb-1">Ghi chú từ chối (nếu có):</span>
+                    <input 
+                      type="text" 
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:border-primary"
+                      placeholder="Nhập lý do nếu bạn từ chối phiếu này..."
+                      value={rejectNote}
+                      onChange={(e) => setRejectNote(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 flex justify-end space-x-3 border-t border-slate-100 mt-4">
-                <Button variant="outline" onClick={() => setSelectedTicket(null)}>Đóng</Button>
+                <Button variant="outline" onClick={() => { setSelectedTicket(null); setRejectNote(''); }}>Đóng</Button>
                 {selectedTicket.status === 'CHO_DUYET' && (
-                  <Button className="bg-green-600 hover:bg-green-700" onClick={() => setSelectedTicket(null)}>Duyệt yêu cầu</Button>
+                  <>
+                    <Button variant="danger" isLoading={isProcessing} onClick={() => handleProcess(selectedTicket.id, 'TU_CHOI')}>Từ chối</Button>
+                    <Button className="bg-green-600 hover:bg-green-700" isLoading={isProcessing} onClick={() => handleProcess(selectedTicket.id, 'DA_DUYET')}>Duyệt yêu cầu</Button>
+                  </>
                 )}
               </div>
             </div>

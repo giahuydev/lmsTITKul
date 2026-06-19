@@ -17,6 +17,7 @@ public class TeacherProfile {
     @Column(name = "giao_vien_id")
     private Long id;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_dung_id", nullable = false, unique = true)
     private User user;

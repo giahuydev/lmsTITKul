@@ -3,16 +3,80 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { Plus, Trash2, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { adminSubjects, adminGrades } from '../../mocks/adminData';
+import { adminService } from '../../services/admin.service';
 
 export default function AdminSettings() {
   const [showGradeModal, setShowGradeModal] = useState(false);
   const [showSubjectModal, setShowSubjectModal] = useState(false);
+  const [config, setConfig] = useState({
+    schoolName: '',
+    academicYear: '',
+    currentSemester: 1,
+    logoUrl: '',
+    grades: '',
+    subjects: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [newGrade, setNewGrade] = useState('');
+  const [newSubject, setNewSubject] = useState('');
 
-  const subjects = adminSubjects;
-  const grades = adminGrades;
+  useEffect(() => {
+    fetchConfig();
+  }, []);
+
+  const fetchConfig = async () => {
+    try {
+      const data = await adminService.getSystemConfig();
+      setConfig(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      await adminService.updateSystemConfig(config);
+      alert('Lưu cấu hình thành công!');
+    } catch (err) {
+      console.error(err);
+      alert('Có lỗi xảy ra khi lưu cấu hình');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const gradesList = config.grades ? config.grades.split(',').map(s => s.trim()).filter(s => s) : [];
+  const subjectsList = config.subjects ? config.subjects.split(',').map(s => s.trim()).filter(s => s) : [];
+
+  const handleAddGrade = () => {
+    if (!newGrade) return;
+    const updatedGrades = [...gradesList, newGrade].join(',');
+    setConfig({ ...config, grades: updatedGrades });
+    setNewGrade('');
+    setShowGradeModal(false);
+  };
+
+  const handleRemoveGrade = (gradeToRemove: string) => {
+    const updatedGrades = gradesList.filter(g => g !== gradeToRemove).join(',');
+    setConfig({ ...config, grades: updatedGrades });
+  };
+
+  const handleAddSubject = () => {
+    if (!newSubject) return;
+    const updatedSubjects = [...subjectsList, newSubject].join(',');
+    setConfig({ ...config, subjects: updatedSubjects });
+    setNewSubject('');
+    setShowSubjectModal(false);
+  };
+
+  const handleRemoveSubject = (subjectToRemove: string) => {
+    const updatedSubjects = subjectsList.filter(s => s !== subjectToRemove).join(',');
+    setConfig({ ...config, subjects: updatedSubjects });
+  };
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -24,25 +88,33 @@ export default function AdminSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Tên trường" defaultValue="Trường Tiểu học Titkul Kids" />
-            <Input label="Hotline" defaultValue="1900 1234" />
+            <Input 
+              label="Tên trường" 
+              value={config.schoolName}
+              onChange={(e) => setConfig({...config, schoolName: e.target.value})}
+            />
+            <Input label="Hotline" defaultValue="1900 1234" disabled />
           </div>
-          <Input label="Địa chỉ" defaultValue="123 Đường ABC, Quận XYZ, TP.HCM" />
-          <Input label="Email liên hệ" type="email" defaultValue="contact@titkul.edu.vn" />
+          <Input label="Địa chỉ" defaultValue="123 Đường ABC, Quận XYZ, TP.HCM" disabled />
+          <Input label="Email liên hệ" type="email" defaultValue="contact@titkul.edu.vn" disabled />
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
-            <Input label="Năm học hiện tại" defaultValue="2025-2026" />
+            <Input 
+              label="Năm học hiện tại" 
+              value={config.academicYear}
+              onChange={(e) => setConfig({...config, academicYear: e.target.value})}
+            />
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Học kỳ hiện tại</label>
-              <select className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary focus:ring-1">
-                <option value="1">Học kỳ 1</option>
-                <option value="2">Học kỳ 2</option>
+              <select 
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary focus:ring-1"
+                value={config.currentSemester}
+                onChange={(e) => setConfig({...config, currentSemester: parseInt(e.target.value)})}
+              >
+                <option value={1}>Học kỳ 1</option>
+                <option value={2}>Học kỳ 2</option>
               </select>
             </div>
-          </div>
-
-          <div className="pt-4 flex justify-end">
-            <Button>Lưu thay đổi</Button>
           </div>
         </CardContent>
       </Card>
@@ -60,9 +132,9 @@ export default function AdminSettings() {
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {grades.map(g => (
+              {gradesList.map(g => (
                 <Badge key={g} variant="outline" className="px-3 py-1.5 flex items-center">
-                  {g} <Trash2 className="w-3 h-3 ml-2 text-slate-400 hover:text-red-500 cursor-pointer" />
+                  {g} <Trash2 className="w-3 h-3 ml-2 text-slate-400 hover:text-red-500 cursor-pointer" onClick={() => handleRemoveGrade(g)} />
                 </Badge>
               ))}
             </div>
@@ -76,9 +148,9 @@ export default function AdminSettings() {
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {subjects.map(s => (
+              {subjectsList.map(s => (
                 <Badge key={s} variant="outline" className="px-3 py-1.5 flex items-center bg-slate-50">
-                  {s} <Trash2 className="w-3 h-3 ml-2 text-slate-400 hover:text-red-500 cursor-pointer" />
+                  {s} <Trash2 className="w-3 h-3 ml-2 text-slate-400 hover:text-red-500 cursor-pointer" onClick={() => handleRemoveSubject(s)} />
                 </Badge>
               ))}
             </div>
@@ -97,10 +169,15 @@ export default function AdminSettings() {
               </button>
             </div>
             <div className="p-6 space-y-4">
-              <Input label="Tên Khối" placeholder="VD: Khối 6" />
+              <Input 
+                label="Tên Khối" 
+                placeholder="VD: Khối 6" 
+                value={newGrade}
+                onChange={(e) => setNewGrade(e.target.value)}
+              />
               <div className="pt-2 flex justify-end space-x-3">
                 <Button variant="outline" onClick={() => setShowGradeModal(false)}>Hủy bỏ</Button>
-                <Button onClick={() => setShowGradeModal(false)}>Thêm Khối</Button>
+                <Button onClick={handleAddGrade}>Thêm Khối</Button>
               </div>
             </div>
           </div>
@@ -118,15 +195,27 @@ export default function AdminSettings() {
               </button>
             </div>
             <div className="p-6 space-y-4">
-              <Input label="Tên Môn học" placeholder="VD: Tin học" />
+              <Input 
+                label="Tên Môn học" 
+                placeholder="VD: Tin học" 
+                value={newSubject}
+                onChange={(e) => setNewSubject(e.target.value)}
+              />
               <div className="pt-2 flex justify-end space-x-3">
                 <Button variant="outline" onClick={() => setShowSubjectModal(false)}>Hủy bỏ</Button>
-                <Button onClick={() => setShowSubjectModal(false)}>Thêm Môn</Button>
+                <Button onClick={handleAddSubject}>Thêm Môn</Button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Footer Actions */}
+      <div className="flex justify-end pt-4 pb-8">
+        <Button onClick={handleSave} isLoading={isLoading} className="px-8">
+          Lưu tất cả thay đổi
+        </Button>
+      </div>
     </div>
   );
 }

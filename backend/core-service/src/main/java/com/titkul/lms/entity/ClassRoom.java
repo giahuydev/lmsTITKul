@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "lop_hoc")
 @Data
@@ -24,6 +26,7 @@ public class ClassRoom {
     @Column(name = "nam_hoc", nullable = false, length = 10)
     private String academicYear;
 
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "giao_vien_chu_nhiem_id")
     private TeacherProfile homeroomTeacher;
@@ -34,4 +37,7 @@ public class ClassRoom {
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai", nullable = false)
     private ClassStatus status = ClassStatus.ACTIVE;
+
+    @Transient
+    private Integer currentStudentCount = 0;
 }

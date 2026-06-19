@@ -1,5 +1,6 @@
 package com.titkul.lms.controller;
 
+import com.titkul.lms.dto.EvaluateDTO;
 import com.titkul.lms.entity.Evaluation;
 import com.titkul.lms.entity.Submission;
 import com.titkul.lms.service.SubmissionService;
@@ -33,8 +34,8 @@ public class SubmissionController {
 
     @PostMapping("/submissions/{id}/evaluate")
     public ResponseEntity<Evaluation> evaluateSubmission(
-            @PathVariable Long id, 
-            @RequestBody Evaluation evaluation) {
-        return ResponseEntity.ok(submissionService.evaluateSubmission(id, evaluation));
+            @PathVariable Long id,
+            @RequestBody EvaluateDTO dto) {
+        return ResponseEntity.ok(submissionService.evaluateSubmission(id, dto));
     }
 }

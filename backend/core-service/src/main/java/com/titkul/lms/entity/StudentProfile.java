@@ -34,6 +34,10 @@ public class StudentProfile {
     @JoinColumn(name = "lop_hoc_id")
     private ClassRoom classRoom;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "phu_huynh_id")
+    private ParentProfile parent;
+
     @Column(name = "tong_xp", nullable = false)
     private Integer totalXp = 0;
 }

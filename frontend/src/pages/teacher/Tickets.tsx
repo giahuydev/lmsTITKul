@@ -1,15 +1,76 @@
 import { Plus, Clock, CheckCircle, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
-
-import { teacherTickets } from '../../mocks/teacherData';
+import { ticketService } from '../../services/ticket.service';
+import { teacherService } from '../../services/teacher.service';
 
 export default function TeacherTickets() {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const tickets = teacherTickets;
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    studentId: '',
+    type: 'RESET_MAT_KHAU',
+    description: ''
+  });
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const ticketsData = await ticketService.getMyTickets();
+      setTickets(ticketsData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchStudents = async () => {
+    try {
+      // Assuming teacherService has a method to get their students or classes
+      // For now, let's just fetch all classes and then students, or we can use adminService as fallback
+      // In a real app, there's an API for Teacher to get their own students
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    fetchStudents();
+  }, []);
+
+  const handleCreateTicket = async () => {
+    if (!formData.description) {
+      alert('Vui lòng nhập mô tả!');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      await ticketService.createTicket(
+        formData.studentId ? parseInt(formData.studentId) : null,
+        formData.type,
+        formData.description
+      );
+      alert('Gửi yêu cầu hỗ trợ thành công!');
+      setShowCreateModal(false);
+      setFormData({ studentId: '', type: 'RESET_MAT_KHAU', description: '' });
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('Có lỗi xảy ra khi gửi yêu cầu');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -37,20 +98,30 @@ export default function TeacherTickets() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tickets.map(ticket => (
+              {tickets.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-slate-500">
+                    Bạn chưa gửi yêu cầu hỗ trợ nào
+                  </TableCell>
+                </TableRow>
+              ) : tickets.map(ticket => (
                 <TableRow key={ticket.id}>
-                  <TableCell className="font-medium text-slate-900">{ticket.id}</TableCell>
-                  <TableCell>{ticket.student}</TableCell>
-                  <TableCell>{ticket.request}</TableCell>
-                  <TableCell>{ticket.date}</TableCell>
+                  <TableCell className="font-medium text-slate-900">#{ticket.id}</TableCell>
+                  <TableCell>{ticket.studentName || 'Không có'}</TableCell>
+                  <TableCell>{ticket.type === 'RESET_MAT_KHAU' ? 'Cấp lại mật khẩu' : ticket.type}</TableCell>
+                  <TableCell>{new Date(ticket.createdAt).toLocaleString('vi-VN')}</TableCell>
                   <TableCell>
-                    {ticket.status === 'PENDING' ? (
+                    {ticket.status === 'CHO_DUYET' ? (
                       <Badge variant="warning" className="flex items-center w-fit">
                          <Clock className="w-3 h-3 mr-1" /> Chờ xử lý
                       </Badge>
-                    ) : (
+                    ) : ticket.status === 'DA_XU_LY' ? (
                       <Badge variant="success" className="flex items-center w-fit">
-                         <CheckCircle className="w-3 h-3 mr-1" /> Đã giải quyết
+                         <CheckCircle className="w-3 h-3 mr-1" /> Đã duyệt
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive" className="flex items-center w-fit">
+                         <X className="w-3 h-3 mr-1" /> Bị từ chối
                       </Badge>
                     )}
                   </TableCell>
@@ -74,20 +145,26 @@ export default function TeacherTickets() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Loại yêu cầu</label>
-                <select className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary">
-                  <option>Cấp lại mật khẩu học sinh</option>
-                  <option>Sửa sai thông tin học sinh</option>
-                  <option>Hỗ trợ kỹ thuật khác</option>
+                <select 
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary"
+                  value={formData.type}
+                  onChange={e => setFormData({...formData, type: e.target.value})}
+                >
+                  <option value="RESET_MAT_KHAU">Cấp lại mật khẩu học sinh</option>
+                  <option value="SAI_THONG_TIN">Sửa sai thông tin học sinh</option>
+                  <option value="HO_TRO_KY_THUAT">Hỗ trợ kỹ thuật khác</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Học sinh liên quan (nếu có)</label>
-                <select className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary">
-                  <option>-- Chọn học sinh --</option>
-                  <option>Nguyễn Văn An (5A)</option>
-                  <option>Trần Thị Bình (5A)</option>
-                </select>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">ID Học sinh liên quan (nếu có)</label>
+                <input 
+                  type="text"
+                  placeholder="Nhập User ID của học sinh (nếu có)"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:border-primary"
+                  value={formData.studentId}
+                  onChange={e => setFormData({...formData, studentId: e.target.value})}
+                />
               </div>
 
               <div>
@@ -95,12 +172,14 @@ export default function TeacherTickets() {
                 <textarea 
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-primary text-sm h-24 resize-none"
                   placeholder="Nhập mô tả lý do để Admin dễ dàng hỗ trợ..."
+                  value={formData.description}
+                  onChange={e => setFormData({...formData, description: e.target.value})}
                 ></textarea>
               </div>
 
               <div className="pt-4 flex justify-end space-x-3 border-t border-slate-100 mt-2">
                 <Button variant="outline" onClick={() => setShowCreateModal(false)}>Hủy bỏ</Button>
-                <Button className="bg-primary hover:bg-primary/90" onClick={() => setShowCreateModal(false)}>Gửi yêu cầu</Button>
+                <Button className="bg-primary hover:bg-primary/90" isLoading={isSubmitting} onClick={handleCreateTicket}>Gửi yêu cầu</Button>
               </div>
             </div>
           </div>

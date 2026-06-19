@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronLeft, KeySquare, Award, X, Search, Phone, User as UserIcon } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/Card';
@@ -7,15 +7,72 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '.
 import { Badge } from '../../components/ui/Badge';
 import { Input } from '../../components/ui/Input';
 
-import { teacherClassStudents, teacherClasses } from '../../mocks/teacherData';
+import { classService } from '../../services/class.service';
+import { ticketService } from '../../services/ticket.service';
 
 export default function TeacherClassDetails() {
   const { classId } = useParams();
   const [resetStudent, setResetStudent] = useState<any>(null);
+  const [classInfo, setClassInfo] = useState<any>(null);
+  const [students, setStudents] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [ticketDescription, setTicketDescription] = useState('Phụ huynh báo quên mật khẩu, nhờ Admin cấp lại mật khẩu mặc định.');
 
-  // In a real app, fetch class details using classId. Here we mock it.
-  const classInfo = teacherClasses.find(c => c.id === Number(classId)) || teacherClasses[0];
-  const students = teacherClassStudents;
+  const fetchData = async () => {
+    if (!classId) return;
+    setIsLoading(true);
+    try {
+      // Get all classes to find this class info
+      const classes = await classService.getAllClasses();
+      const currentClass = classes.find((c: any) => c.id === Number(classId));
+      if (currentClass) {
+        // For Teacher view we can map the students count locally after fetching
+        const studentsData = await classService.getStudentsByClass(Number(classId));
+        setClassInfo({
+          ...currentClass,
+          studentsCount: studentsData.length,
+          role: currentClass.homeroomTeacher?.user?.fullName || 'Chưa phân công'
+        });
+        setStudents(studentsData);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [classId]);
+
+  const handleSendTicket = async () => {
+    if (!resetStudent) return;
+    setIsSubmitting(true);
+    try {
+      await ticketService.createTicket(
+        resetStudent.id,
+        'RESET_MAT_KHAU',
+        ticketDescription
+      );
+      alert('Gửi yêu cầu cấp lại mật khẩu thành công!');
+      setResetStudent(null);
+    } catch (err) {
+      console.error(err);
+      alert('Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="text-center py-8 text-slate-500">Đang tải dữ liệu lớp học...</div>;
+  }
+
+  if (!classInfo) {
+    return <div className="text-center py-8 text-slate-500">Không tìm thấy thông tin lớp học.</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -27,7 +84,7 @@ export default function TeacherClassDetails() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Chi tiết Lớp {classInfo.name}</h1>
-          <p className="text-sm text-slate-500">Sĩ số: {classInfo.students} Học sinh | Giáo viên: {classInfo.role}</p>
+          <p className="text-sm text-slate-500">Sĩ số: {classInfo.studentsCount} Học sinh | Giáo viên: {classInfo.role}</p>
         </div>
       </div>
 
@@ -54,28 +111,32 @@ export default function TeacherClassDetails() {
                 <TableHead>Ngày sinh</TableHead>
                 <TableHead>Đánh giá (TT27)</TableHead>
                 <TableHead>Chuyên cần</TableHead>
-                <TableHead>Thành tích</TableHead>
+                <TableHead>Thành tích (XP)</TableHead>
                 <TableHead className="text-right">Hỗ trợ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {students.map(student => (
+              {students.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-slate-500">Lớp học chưa có học sinh nào.</TableCell>
+                </TableRow>
+              ) : students.map(student => (
                 <TableRow key={student.id}>
                   <TableCell className="font-medium text-slate-500">{student.code}</TableCell>
                   <TableCell>
                     <div className="font-bold text-slate-800">{student.name}</div>
                     <div className="text-xs text-slate-500 flex items-center mt-1">
-                      <UserIcon className="w-3 h-3 mr-1" /> Phụ huynh: {student.parentName}
+                      <UserIcon className="w-3 h-3 mr-1" /> Phụ huynh: {student.parentName || 'Chưa cập nhật'}
                     </div>
                     <div className="text-xs text-slate-500 flex items-center mt-0.5">
-                      <Phone className="w-3 h-3 mr-1" /> {student.phone}
+                      <Phone className="w-3 h-3 mr-1" /> {student.phone || 'Chưa cập nhật'}
                     </div>
                   </TableCell>
                   <TableCell className="text-sm">{student.dob}</TableCell>
                   <TableCell>
                     <Badge variant={
                       student.evaluation === 'Hoàn thành Tốt' ? 'success' : 
-                      student.evaluation === 'Hoàn thành' ? 'outline' : 'danger'
+                      student.evaluation === 'Hoàn thành' ? 'outline' : 'warning'
                     }>
                       {student.evaluation}
                     </Badge>
@@ -90,11 +151,10 @@ export default function TeacherClassDetails() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center text-amber-500 font-bold text-sm">
-                      <Award className="w-4 h-4 mr-1" /> {student.badges}
+                      <Award className="w-4 h-4 mr-1" /> {student.badges} XP
                     </div>
                   </TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="sm">Chi tiết HS</Button>
                     <Button variant="outline" size="sm" className="text-orange-600 border-orange-200 hover:bg-orange-50" onClick={() => setResetStudent(student)}>
                       <KeySquare className="w-4 h-4 mr-1" /> Cấp lại MK
                     </Button>
@@ -128,13 +188,14 @@ export default function TeacherClassDetails() {
                 <textarea 
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-primary text-sm h-24 resize-none"
                   placeholder="VD: Phụ huynh báo quên mật khẩu..."
-                  defaultValue="Phụ huynh báo quên mật khẩu, nhờ Admin cấp lại mật khẩu mặc định."
+                  value={ticketDescription}
+                  onChange={(e) => setTicketDescription(e.target.value)}
                 ></textarea>
               </div>
 
               <div className="pt-4 flex justify-end space-x-3 border-t border-slate-100 mt-2">
                 <Button variant="outline" onClick={() => setResetStudent(null)}>Hủy bỏ</Button>
-                <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => setResetStudent(null)}>Gửi Ticket</Button>
+                <Button className="bg-orange-600 hover:bg-orange-700" isLoading={isSubmitting} onClick={handleSendTicket}>Gửi Ticket</Button>
               </div>
             </div>
           </div>

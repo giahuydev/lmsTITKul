@@ -1,8 +1,32 @@
-import { Bell, CheckCircle2 } from 'lucide-react';
-import { allNotifications } from '../../mocks/studentData';
+import { useState, useEffect } from 'react';
+import { Bell, CheckCircle2, Loader2 } from 'lucide-react';
+import { studentService } from '../../services/student.service';
 
 export default function StudentNotifications() {
-  const notifications = allNotifications;
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const data = await studentService.getNotifications();
+        setNotifications(data);
+      } catch (err) {
+        console.error('Failed to fetch notifications', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchNotifications();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto pb-12">

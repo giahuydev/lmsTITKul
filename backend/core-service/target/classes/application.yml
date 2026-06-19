@@ -17,7 +17,17 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
-
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: trangiahuy7676@gmail.com
+    password: fjshqbydcvecvppe
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 jwt:
   secret: h5p_shared_secret_titkul_lms_2026_super_secure_key_1234567890
   expiration: 86400000 # 24 hours

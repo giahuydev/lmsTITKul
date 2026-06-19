@@ -16,7 +16,7 @@ public class Evaluation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "danh_gia_id", columnDefinition = "BIGINT UNSIGNED")
+    @Column(name = "danh_gia_id")
     private Long id;
 
     @JsonIgnore

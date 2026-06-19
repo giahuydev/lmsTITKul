@@ -1,7 +1,29 @@
-import { Outlet, NavLink, Link } from 'react-router-dom';
-import { LogOut, Bell, Search } from 'lucide-react';
+import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
+import { Bell, Search } from 'lucide-react';
+import { useAuthStore } from '../stores/useAuthStore';
+import { useEffect } from 'react';
+import { userService } from '../services/user.service';
 
 export default function StudentLayout() {
+  const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const updateUser = useAuthStore((state) => state.updateUser);
+
+  useEffect(() => {
+    if (user?.requirePasswordChange) {
+      navigate('/force-change-password');
+      return;
+    }
+
+    if (user && !user.fullName) {
+      userService.getMyProfile()
+        .then(data => {
+          updateUser({ fullName: data.fullName, avatarUrl: data.avatarUrl || undefined });
+        })
+        .catch(err => console.error("Failed to fetch profile", err));
+    }
+  }, [user, navigate, updateUser]);
+
   return (
     <div className="flex h-screen font-sans bg-slate-50">
       {/* Sidebar Trái - Flat UI */}
@@ -72,12 +94,12 @@ export default function StudentLayout() {
                 <span className="font-bold text-amber-500">42</span>
              </div>
           </div>
-          <Link to="/login" className="flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors group cursor-pointer font-medium">
+          <Link to="/student/profile" className="flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors group cursor-pointer font-medium">
             <div className="flex items-center space-x-3">
-               <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" alt="Avatar" className="w-8 h-8 rounded-full border border-slate-200 bg-blue-50" />
-               <span>Học sinh An</span>
+               <img src={user?.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4"} alt="Avatar" className="w-8 h-8 rounded-full border border-slate-200 bg-blue-50" />
+               <span className="truncate max-w-[120px]">{user?.fullName || user?.username || 'Học sinh'}</span>
             </div>
-            <LogOut className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+            <img src="https://img.icons8.com/color/48/gender-neutral-user.png" className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" alt="Profile" />
           </Link>
         </div>
       </aside>

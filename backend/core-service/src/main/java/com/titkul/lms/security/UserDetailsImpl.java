@@ -21,6 +21,8 @@ public class UserDetailsImpl implements UserDetails {
     @JsonIgnore
     private String password;
     
+    private Boolean requirePasswordChange;
+    
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserDetailsImpl build(User user) {
@@ -30,6 +32,7 @@ public class UserDetailsImpl implements UserDetails {
                 user.getId(),
                 user.getUsername(),
                 user.getPasswordHash(),
+                user.getRequirePasswordChange(),
                 Collections.singletonList(authority)
         );
     }

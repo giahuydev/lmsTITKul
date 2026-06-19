@@ -16,7 +16,7 @@ public class Submission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "bai_nop_id", columnDefinition = "BIGINT UNSIGNED")
+    @Column(name = "bai_nop_id")
     private Long id;
 
     @JsonIgnore

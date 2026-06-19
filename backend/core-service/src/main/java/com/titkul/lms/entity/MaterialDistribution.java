@@ -14,7 +14,7 @@ public class MaterialDistribution {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "phan_phoi_id", columnDefinition = "BIGINT UNSIGNED")
+    @Column(name = "phan_phoi_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

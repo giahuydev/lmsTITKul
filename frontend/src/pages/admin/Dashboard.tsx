@@ -1,10 +1,39 @@
+import { useState, useEffect } from 'react';
 import { Users, BookOpen, UserCheck, AlertCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 
-import { adminKpis } from '../../mocks/adminData';
+import { adminService } from '../../services/admin.service';
 
 export default function AdminDashboard() {
-  const kpis = adminKpis;
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalTeachers: 0,
+    totalParents: 0,
+    totalClasses: 0,
+    activeClasses: 0,
+    trafficData: [] as number[],
+    systemWarnings: [] as string[]
+  });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const data = await adminService.getDashboardStats();
+      setStats(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const kpis = [
+    { title: 'Tổng số Học sinh', value: stats.totalStudents, icon: Users, bg: 'bg-blue-100', color: 'text-blue-600' },
+    { title: 'Giáo viên', value: stats.totalTeachers, icon: UserCheck, bg: 'bg-emerald-100', color: 'text-emerald-600' },
+    { title: 'Phụ huynh', value: stats.totalParents, icon: Users, bg: 'bg-purple-100', color: 'text-purple-600' },
+    { title: 'Lớp học (Đang hoạt động)', value: `${stats.activeClasses} / ${stats.totalClasses}`, icon: BookOpen, bg: 'bg-amber-100', color: 'text-amber-600' }
+  ];
 
   return (
     <div className="space-y-6">
@@ -31,11 +60,25 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Lưu lượng truy cập</CardTitle>
+            <CardTitle>Lưu lượng truy cập (7 ngày qua)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center bg-slate-50 rounded-lg border border-dashed border-slate-200">
-              <span className="text-slate-400">Biểu đồ đang cập nhật...</span>
+            <div className="h-64 flex items-end justify-between bg-slate-50 rounded-lg border border-slate-200 p-4 pt-10">
+              {stats.trafficData?.map((val, idx) => {
+                const max = Math.max(...(stats.trafficData || [1]), 1);
+                const heightPercent = (val / max) * 100;
+                const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+                return (
+                  <div key={idx} className="flex flex-col items-center w-full gap-2 group">
+                    <span className="text-xs text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity font-medium">{val}</span>
+                    <div 
+                      className="w-8 md:w-12 bg-indigo-500 hover:bg-indigo-600 rounded-t-md transition-all duration-300 relative"
+                      style={{ height: `${heightPercent}%` }}
+                    ></div>
+                    <span className="text-xs font-medium text-slate-600 mt-2">{days[idx]}</span>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -46,13 +89,18 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">
-              <li className="flex items-start p-3 bg-red-50 text-red-700 rounded-lg">
-                <AlertCircle className="h-5 w-5 mr-3 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium">5 Học sinh chưa có lớp</p>
-                  <p className="text-sm mt-1 text-red-600">Vui lòng phân bổ học sinh mới import vào lớp học.</p>
-                </div>
-              </li>
+              {stats.systemWarnings?.map((warning, idx) => {
+                const isError = warning.toLowerCase().includes('chưa');
+                return (
+                  <li key={idx} className={`flex items-start p-3 rounded-lg ${isError ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                    <AlertCircle className={`h-5 w-5 mr-3 shrink-0 mt-0.5 ${isError ? 'text-red-600' : 'text-emerald-600'}`} />
+                    <div>
+                      <p className="font-medium">{isError ? 'Cần chú ý' : 'Tuyệt vời'}</p>
+                      <p className={`text-sm mt-1 ${isError ? 'text-red-600' : 'text-emerald-600'}`}>{warning}</p>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </CardContent>
         </Card>

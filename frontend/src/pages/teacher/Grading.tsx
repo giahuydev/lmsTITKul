@@ -1,27 +1,87 @@
-import { useState } from 'react';
-import { Search, Filter } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useState as useLocalState } from 'react';
+import { Search, Filter, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
-import { teacherSubmissions } from '../../mocks/teacherData';
+import { teacherService } from '../../services/teacher.service';
+import type { ClassRoom } from '../../services/teacher.service';
 import { GradedDetailsModal } from './components/GradedDetailsModal';
 import { useGradingSystem } from './hooks/useGradingSystem';
-import type { SubmissionInfo } from '../../types';
+
+interface Submission {
+  id: number;
+  textContent: string;
+  status: string;
+  isLate: boolean;
+  submittedAt: string;
+  h5pScore: number | null;
+}
 
 export default function TeacherGrading() {
   const navigate = useNavigate();
-  const { 
-    selectedStudentId, 
-    viewGradedDetails, 
-    handleSelectStudent, 
-    handleViewDetails, 
-    closeDetails 
-  } = useGradingSystem();
+  const { viewGradedDetails, handleViewDetails, closeDetails } = useGradingSystem();
 
-  const submissions = teacherSubmissions as SubmissionInfo[];
+  const [classes, setClasses] = useState<ClassRoom[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+
+  const [isLoadingClasses, setIsLoadingClasses] = useState(true);
+  const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
+
+  // Bước 1: Lấy danh sách lớp
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const data = await teacherService.getClasses();
+        setClasses(data);
+        if (data.length > 0) setSelectedClassId(data[0].id);
+      } catch (err) {
+        console.error('Lỗi tải danh sách lớp', err);
+      } finally {
+        setIsLoadingClasses(false);
+      }
+    };
+    fetchClasses();
+  }, []);
+
+  // Bước 2: Khi chọn lớp, lấy danh sách bài tập
+  useEffect(() => {
+    if (!selectedClassId) return;
+    const fetchAssignments = async () => {
+      try {
+        const data = await teacherService.getAssignmentsByClass(selectedClassId);
+        setAssignments(data);
+        setSelectedAssignmentId(data.length > 0 ? data[0].id : null);
+        setSubmissions([]);
+      } catch (err) {
+        console.error('Lỗi tải bài tập', err);
+      }
+    };
+    fetchAssignments();
+  }, [selectedClassId]);
+
+  // Bước 3: Khi chọn bài tập, lấy danh sách bài nộp
+  useEffect(() => {
+    if (!selectedAssignmentId) return;
+    const fetchSubmissions = async () => {
+      setIsLoadingSubmissions(true);
+      try {
+        const data = await teacherService.getSubmissions(selectedAssignmentId);
+        setSubmissions(data);
+      } catch (err) {
+        console.error('Lỗi tải bài nộp', err);
+      } finally {
+        setIsLoadingSubmissions(false);
+      }
+    };
+    fetchSubmissions();
+  }, [selectedAssignmentId]);
 
   return (
     <div className="space-y-6">
@@ -34,68 +94,100 @@ export default function TeacherGrading() {
             <Input className="pl-9" placeholder="Tìm kiếm học sinh..." />
           </div>
           <div className="flex items-center space-x-2">
-            <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary font-bold text-indigo-700 bg-indigo-50">
-              <option value="5A">Lớp 5A</option>
-              <option value="5B">Lớp 5B</option>
-              <option value="5C">Lớp 5C</option>
-            </select>
+            {isLoadingClasses ? (
+              <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+            ) : (
+              <select
+                className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary font-bold text-indigo-700 bg-indigo-50"
+                value={selectedClassId ?? ''}
+                onChange={(e) => setSelectedClassId(Number(e.target.value))}
+              >
+                {classes.map((cls) => (
+                  <option key={cls.id} value={cls.id}>{cls.name}</option>
+                ))}
+              </select>
+            )}
             <Filter className="h-4 w-4 text-slate-400 ml-2" />
-            <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary">
-              <option value="all">Tất cả bài tập</option>
-              <option value="pending">Chờ chấm</option>
-              <option value="graded">Đã chấm</option>
+            <select
+              className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary"
+              value={selectedAssignmentId ?? ''}
+              onChange={(e) => setSelectedAssignmentId(Number(e.target.value))}
+            >
+              {assignments.length === 0 ? (
+                <option value="">-- Chưa có bài tập --</option>
+              ) : (
+                assignments.map((asgn) => (
+                  <option key={asgn.id} value={asgn.id}>{asgn.title}</option>
+                ))
+              )}
             </select>
           </div>
         </div>
+
         <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Học sinh</TableHead>
-                    <TableHead>Bài tập</TableHead>
-                    <TableHead>Loại</TableHead>
-                    <TableHead>Thời gian nộp</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                    <TableHead className="text-right">Thao tác</TableHead>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID Bài nộp</TableHead>
+                <TableHead>Loại</TableHead>
+                <TableHead>Thời gian nộp</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead className="text-right">Thao tác</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoadingSubmissions ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-10 text-slate-500">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    Đang tải bài nộp...
+                  </TableCell>
+                </TableRow>
+              ) : submissions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-10 text-slate-400">
+                    Chưa có học sinh nộp bài cho bài tập này.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                submissions.map((sub) => (
+                  <TableRow key={sub.id}>
+                    <TableCell className="font-medium">#{sub.id}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{sub.h5pScore !== null ? 'H5P Auto' : 'Tự luận'}</Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-slate-500">
+                      {sub.submittedAt ? new Date(sub.submittedAt).toLocaleString('vi-VN') : '—'}
+                    </TableCell>
+                    <TableCell>
+                      {sub.status === 'DA_NOP' && (
+                        <Badge variant={sub.isLate ? 'danger' : 'warning'}>
+                          {sub.isLate ? 'Nộp trễ' : 'Chờ chấm'}
+                        </Badge>
+                      )}
+                      {sub.status === 'DA_CHAM' && <Badge variant="success">Đã chấm</Badge>}
+                      {sub.status === 'YEU_CAU_LAM_LAI' && <Badge variant="danger">Làm lại</Badge>}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {sub.status === 'DA_CHAM' ? (
+                        <Button variant="ghost" size="sm">Xem chi tiết</Button>
+                      ) : sub.h5pScore !== null ? (
+                        <Button variant="ghost" size="sm">Xem tiến độ</Button>
+                      ) : (
+                        <Button variant="outline" size="sm" onClick={() => navigate(`/teacher/grading/${sub.id}`)}>
+                          Chấm bài
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {submissions.map(sub => (
-                    <TableRow key={sub.id} className={selectedStudentId === sub.id ? 'bg-primary/5' : ''}>
-                      <TableCell className="font-medium">{sub.student}</TableCell>
-                      <TableCell className="truncate max-w-[150px]">{sub.task}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{sub.type === 'H5P' ? 'H5P Auto' : 'Tự luận'}</Badge>
-                      </TableCell>
-                      <TableCell className="text-sm text-slate-500">{sub.date}</TableCell>
-                      <TableCell>
-                        {sub.status === 'DA_NOP' && (
-                          <Badge variant={sub.late ? 'danger' : 'warning'}>
-                            {sub.late ? 'Nộp trễ' : 'Chờ chấm'}
-                          </Badge>
-                        )}
-                        {sub.status === 'DA_CHAM' && <Badge variant="success">Đã chấm ({sub.score})</Badge>}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {sub.status === 'DA_CHAM' ? (
-                          <Button variant="ghost" size="sm" onClick={() => handleViewDetails(sub)}>Xem chi tiết</Button>
-                        ) : sub.type === 'H5P' ? (
-                          <Button variant="ghost" size="sm" onClick={() => handleSelectStudent(sub.id)}>Xem tiến độ</Button>
-                        ) : (
-                          <Button variant="outline" size="sm" onClick={() => navigate(`/teacher/grading/${sub.id}`)}>Chấm bài</Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
       </Card>
 
-      <GradedDetailsModal 
-        submission={viewGradedDetails} 
-        onClose={closeDetails} 
-      />
+      <GradedDetailsModal submission={viewGradedDetails} onClose={closeDetails} />
     </div>
   );
 }

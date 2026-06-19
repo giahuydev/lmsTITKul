@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "hoc_lieu")
 @Data
@@ -12,24 +14,24 @@ public class Material {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "hoc_lieu_id", columnDefinition = "BIGINT UNSIGNED")
+    @Column(name = "hoc_lieu_id")
     private Long id;
 
     @Column(name = "tieu_de", nullable = false, length = 300)
     private String title;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "loai_hoc_lieu", nullable = false)
-    private MaterialType materialType;
+    private String materialType;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "nguon_goc", nullable = false)
-    private MaterialOrigin origin;
+    private String origin;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bai_hoc_id", referencedColumnName = "bai_hoc_id")
     private LessonCategory lessonCategory;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "giao_vien_id", referencedColumnName = "giao_vien_id")
     private TeacherProfile teacher;

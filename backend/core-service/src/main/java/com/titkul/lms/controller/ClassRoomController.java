@@ -1,0 +1,67 @@
+package com.titkul.lms.controller;
+
+import com.titkul.lms.entity.ClassRoom;
+import com.titkul.lms.service.ClassRoomService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@CrossOrigin(origins = "*", maxAge = 3600)
+@RestController
+@RequestMapping("/api/v1/classes")
+@RequiredArgsConstructor
+public class ClassRoomController {
+
+    private final ClassRoomService classRoomService;
+
+    @GetMapping
+    public ResponseEntity<List<ClassRoom>> getAllClasses() {
+        return ResponseEntity.ok(classRoomService.getAllClasses());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ClassRoom> getClassById(@PathVariable Long id) {
+        return ResponseEntity.ok(classRoomService.getClassById(id));
+    }
+
+    @GetMapping("/{id}/students")
+    public ResponseEntity<List<com.titkul.lms.dto.ClassStudentDto>> getStudentsByClass(@PathVariable Long id) {
+        return ResponseEntity.ok(classRoomService.getStudentsByClassId(id));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createClass(@jakarta.validation.Valid @RequestBody com.titkul.lms.dto.ClassRoomDto dto) {
+        try {
+            ClassRoom classRoom = classRoomService.createClass(dto);
+            return ResponseEntity.ok(classRoom);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateClass(@PathVariable Long id, @jakarta.validation.Valid @RequestBody com.titkul.lms.dto.ClassRoomDto dto) {
+        try {
+            ClassRoom classRoom = classRoomService.updateClass(id, dto);
+            return ResponseEntity.ok(classRoom);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> toggleStatus(@PathVariable Long id) {
+        try {
+            ClassRoom classRoom = classRoomService.toggleStatus(id);
+            return ResponseEntity.ok(classRoom);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+}

@@ -18,5 +18,6 @@ public class JwtResponse {
         private String role;
         private String status;
         private String username;
+        private Boolean requirePasswordChange;
     }
 }

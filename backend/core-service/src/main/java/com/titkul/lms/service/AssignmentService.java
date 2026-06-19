@@ -45,8 +45,8 @@ public class AssignmentService {
         }
 
         if (dto.getTeacherId() != null) {
-            TeacherProfile teacher = teacherProfileRepository.findById(dto.getTeacherId())
-                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy Giáo viên với ID: " + dto.getTeacherId()));
+            TeacherProfile teacher = teacherProfileRepository.findByUserId(dto.getTeacherId())
+                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy Giáo viên với User ID: " + dto.getTeacherId()));
             assignment.setTeacher(teacher);
         } else {
             throw new IllegalArgumentException("teacherId không được để trống!");

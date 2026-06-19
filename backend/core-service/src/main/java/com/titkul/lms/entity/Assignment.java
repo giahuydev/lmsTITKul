@@ -15,7 +15,7 @@ public class Assignment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "bai_tap_id", columnDefinition = "BIGINT UNSIGNED")
+    @Column(name = "bai_tap_id")
     private Long id;
 
     @JsonIgnore
@@ -40,7 +40,7 @@ public class Assignment {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "loai_bai_tap", nullable = false)
+    @Column(name = "loai_bai_tap", nullable = false, columnDefinition = "VARCHAR(20)")
     private AssignmentType type;
 
     @Column(name = "thoi_diem_bat_dau")
@@ -61,4 +61,12 @@ public class Assignment {
 
     @Column(name = "ngay_tao", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @JsonIgnore
+    public String getSubject() {
+        if (material != null && material.getLessonCategory() != null) {
+            return material.getLessonCategory().getSubject();
+        }
+        return "Môn chung";
+    }
 }

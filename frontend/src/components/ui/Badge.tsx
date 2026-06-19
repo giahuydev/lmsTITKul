@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../../layouts/DashboardLayout';
+import { cn } from '../../lib/utils';
 
 interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'success' | 'warning' | 'danger' | 'outline';

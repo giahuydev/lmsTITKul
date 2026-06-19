@@ -1,19 +1,42 @@
-import { Download, Award } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Download, Award, Loader2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
-
-import { parentGrades } from '../../mocks/parentData';
+import { parentService } from '../../services/parent.service';
 
 export default function ParentGrades() {
-  const grades = parentGrades;
+  const [grades, setGrades] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGrades = async () => {
+      try {
+        const data = await parentService.getGrades();
+        setGrades(data);
+      } catch (err) {
+        console.error('Failed to fetch grades', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchGrades();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-slate-800">Sổ đánh giá & Thành tích</h1>
-        <Button variant="outline">
+        <Button variant="outline" onClick={() => window.print()} className="print:hidden">
           <Download className="h-4 w-4 mr-2" />
           Xuất báo cáo PDF
         </Button>
@@ -29,6 +52,7 @@ export default function ParentGrades() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Học sinh</TableHead>
                     <TableHead>Môn học</TableHead>
                     <TableHead>Bài tập</TableHead>
                     <TableHead>Hình thức</TableHead>
@@ -37,8 +61,9 @@ export default function ParentGrades() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {grades.map(grade => (
+                  {grades.length > 0 ? grades.map(grade => (
                     <TableRow key={grade.id}>
+                      <TableCell className="font-medium text-blue-600">{grade.studentName}</TableCell>
                       <TableCell className="font-medium text-slate-800">{grade.subject}</TableCell>
                       <TableCell>{grade.assignment}</TableCell>
                       <TableCell>
@@ -53,7 +78,11 @@ export default function ParentGrades() {
                         )}
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )) : (
+                    <TableRow>
+                        <TableCell colSpan={6} className="text-center py-6 text-slate-500">Chưa có dữ liệu đánh giá nào.</TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

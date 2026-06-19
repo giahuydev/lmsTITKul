@@ -1,11 +1,34 @@
+import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { subjectChapters } from '../../mocks/studentData';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { studentService } from '../../services/student.service';
+
 export default function SubjectTree() {
   const { subjectId } = useParams();
+  const [chapters, setChapters] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Dữ liệu Mock cho Cây môn học
-  const chapters = subjectChapters;
+  useEffect(() => {
+    const fetchTree = async () => {
+      try {
+        const data = await studentService.getSubjectTree();
+        setChapters(data);
+      } catch (err) {
+        console.error('Failed to fetch subject tree', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTree();
+  }, [subjectId]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto pb-20">

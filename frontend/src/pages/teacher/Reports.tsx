@@ -1,19 +1,36 @@
-import { useState } from 'react';
-import { FileSpreadsheet, Medal, Award, Calendar, KeySquare, Trophy, AlertCircle, X, ChevronRight, Activity } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FileSpreadsheet, Medal, Award, Calendar, KeySquare, Trophy, AlertCircle, X, ChevronRight, Activity, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
 
-import { teacherStudents } from '../../mocks/teacherData';
+import { teacherService } from '../../services/teacher.service';
 
 export default function TeacherReports() {
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [selectedStudentName, setSelectedStudentName] = useState('');
+  
+  const [reportData, setReportData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const students = teacherStudents;
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const data = await teacherService.getReports();
+        setReportData(data);
+      } catch (err) {
+        console.error('Failed to fetch reports', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchReports();
+  }, []);
+
+  const students = reportData?.students || [];
 
   const handleOpenReward = (name: string) => {
     setSelectedStudentName(name);
@@ -24,6 +41,14 @@ export default function TeacherReports() {
     setSelectedStudentName(name);
     setShowProgressModal(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-5xl relative">

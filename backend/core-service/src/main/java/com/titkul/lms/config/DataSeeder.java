@@ -45,6 +45,28 @@ public class DataSeeder implements CommandLineRunner {
             userRepository.save(teacherUser);
         }
 
+        if (!userRepository.existsByUsername("AD001")) {
+            User adminUser = new User();
+            adminUser.setUsername("AD001");
+            adminUser.setPasswordHash(passwordEncoder.encode("Password123!"));
+            adminUser.setRole(Role.ADMIN);
+            adminUser.setStatus(UserStatus.ACTIVE);
+            adminUser.setRequirePasswordChange(false);
+            userRepository.save(adminUser);
+            System.out.println("====== SEEDED TEST ADMIN: AD001 / Password123! ======");
+        }
+
+        if (!userRepository.existsByUsername("PH001")) {
+            User parentUser = new User();
+            parentUser.setUsername("PH001");
+            parentUser.setPasswordHash(passwordEncoder.encode("Password123!"));
+            parentUser.setRole(Role.PHU_HUYNH);
+            parentUser.setStatus(UserStatus.ACTIVE);
+            parentUser.setRequirePasswordChange(false);
+            parentUser = userRepository.save(parentUser);
+            System.out.println("====== SEEDED TEST PARENT: PH001 / Password123! ======");
+        }
+
         if (classRoomRepository.count() == 0) {
             User teacherUser = userRepository.findByUsername("GV001").orElseThrow();
             

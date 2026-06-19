@@ -1,13 +1,27 @@
-import { useState } from 'react';
-import { Clock, CheckCircle, AlertCircle, FileText, Upload, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Clock, CheckCircle, AlertCircle, FileText, Upload, X, Loader2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
-import { assignmentTasks } from '../../mocks/studentData';
+import { studentService } from '../../services/student.service';
 
 export default function StudentAssignments() {
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const tasks = assignmentTasks;
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        const data = await studentService.getAssignments();
+        setTasks(data);
+      } catch (err) {
+        console.error('Failed to fetch assignments', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAssignments();
+  }, []);
 
   const handleOpenSubmit = (task: any) => {
     setSelectedTask(task);
@@ -25,7 +39,15 @@ export default function StudentAssignments() {
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        {tasks.map((task) => (
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20 text-blue-500">
+             <Loader2 className="w-10 h-10 animate-spin" />
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center text-slate-500">
+             Chưa có bài tập nào.
+          </div>
+        ) : tasks.map((task) => (
           <div key={task.id} className={`bg-white border rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between transition-shadow hover:shadow-md ${
             task.status === 'YC_LAM_LAI' ? 'border-red-200 bg-red-50/30' : 'border-slate-200'
           }`}>
