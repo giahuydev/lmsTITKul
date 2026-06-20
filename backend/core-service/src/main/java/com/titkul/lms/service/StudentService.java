@@ -83,7 +83,7 @@ public class StudentService {
                 .build();
     }
 
-    public List<java.util.Map<String, Object>> getAssignments(String username) {
+    public List<com.titkul.lms.dto.AssignmentResponseDto> getAssignments(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
@@ -122,16 +122,16 @@ public class StudentService {
                 else timeRemaining = duration.toMinutes() + " phút";
             }
 
-            java.util.Map<String, Object> map = new java.util.HashMap<>();
-            map.put("id", assignment.getId());
-            map.put("title", assignment.getTitle());
-            map.put("subject", "Bài tập");
-            map.put("type", assignment.getType().name());
-            map.put("status", status);
-            map.put("deadline", assignment.getDeadline() != null ? assignment.getDeadline().format(formatter) : "Không thời hạn");
-            map.put("timeRemaining", timeRemaining);
-            map.put("isLate", isLate);
-            return map;
+            return com.titkul.lms.dto.AssignmentResponseDto.builder()
+                    .id(assignment.getId())
+                    .title(assignment.getTitle())
+                    .subject("Bài tập")
+                    .type(assignment.getType().name())
+                    .status(status)
+                    .deadline(assignment.getDeadline() != null ? assignment.getDeadline().format(formatter) : "Không thời hạn")
+                    .timeRemaining(timeRemaining)
+                    .isLate(isLate)
+                    .build();
         }).collect(Collectors.toList());
     }
 

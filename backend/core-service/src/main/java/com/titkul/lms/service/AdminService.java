@@ -1,5 +1,7 @@
 package com.titkul.lms.service;
 
+import com.titkul.lms.constant.AppConstants;
+
 import com.titkul.lms.dto.ImportRecordDTO;
 import com.titkul.lms.dto.ImportResultDTO;
 import com.titkul.lms.dto.ParsedStudentExcelRow;
@@ -44,7 +46,7 @@ public class AdminService {
         int successCount = 0;
         int failureCount = 0;
         
-        String defaultPasswordHash = passwordEncoder.encode("Password123!");
+        String defaultPasswordHash = passwordEncoder.encode(AppConstants.DEFAULT_PASSWORD);
 
         Map<String, ClassRoom> classCache = new HashMap<>();
         Map<String, ParentProfile> parentCache = new HashMap<>();
@@ -210,7 +212,7 @@ public class AdminService {
         int successCount = 0;
         int failureCount = 0;
         
-        String defaultPasswordHash = passwordEncoder.encode("Password123!");
+        String defaultPasswordHash = passwordEncoder.encode(AppConstants.DEFAULT_PASSWORD);
 
         for (com.titkul.lms.dto.ParsedTeacherExcelRow row : parsedRows) {
             if (!row.isValid()) {
@@ -255,219 +257,4 @@ public class AdminService {
         return result;
     }
 
-    @Transactional
-    public User createUser(com.titkul.lms.dto.CreateUserDto dto) {
-        if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new RuntimeException("Tên đăng nhập (Username) đã tồn tại.");
-        }
-
-        String defaultPasswordHash = passwordEncoder.encode("Password123!");
-        User user = new User();
-        user.setUsername(dto.getUsername());
-        user.setPasswordHash(defaultPasswordHash);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRequirePasswordChange(true);
-
-        if (dto.getRole().equals("GIAO_VIEN")) {
-            user.setRole(Role.GIAO_VIEN);
-            if (dto.getPhone() != null) user.setPhone(dto.getPhone());
-            user = userRepository.save(user);
-
-            TeacherProfile tp = new TeacherProfile();
-            tp.setUser(user);
-            tp.setFullName(dto.getFullName());
-            tp.setDepartment(dto.getDepartment());
-            tp.setDateOfBirth(dto.getDateOfBirth());
-            teacherProfileRepository.save(tp);
-        } else if (dto.getRole().equals("HOC_SINH")) {
-            user.setRole(Role.HOC_SINH);
-            user = userRepository.save(user);
-
-            ClassRoom classRoom = null;
-            if (dto.getClassId() != null) {
-                classRoom = classRoomRepository.findById(dto.getClassId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Lớp học"));
-            }
-
-            ParentProfile parentProfile = null;
-            if (dto.getParentPhone() != null && !dto.getParentPhone().trim().isEmpty()) {
-                Optional<User> existingParent = userRepository.findByUsername(dto.getParentPhone());
-                if (existingParent.isPresent()) {
-                    parentProfile = parentProfileRepository.findByUserId(existingParent.get().getId())
-                        .orElseThrow(() -> new RuntimeException("SĐT đã dùng nhưng không phải Phụ huynh."));
-                } else {
-                    User pUser = new User();
-                    pUser.setUsername(dto.getParentPhone());
-                    pUser.setPhone(dto.getParentPhone());
-                    pUser.setPasswordHash(defaultPasswordHash);
-                    pUser.setRole(Role.PHU_HUYNH);
-                    pUser.setStatus(UserStatus.ACTIVE);
-                    pUser.setRequirePasswordChange(true);
-                    pUser = userRepository.save(pUser);
-                    
-                    parentProfile = new ParentProfile();
-                    parentProfile.setUser(pUser);
-                    parentProfile.setFullName(dto.getParentName() != null ? dto.getParentName() : "Phụ huynh của " + dto.getFullName());
-                    parentProfile = parentProfileRepository.save(parentProfile);
-                }
-            }
-
-            StudentProfile sp = new StudentProfile();
-            sp.setUser(user);
-            sp.setStudentCode(dto.getUsername());
-            sp.setFullName(dto.getFullName());
-            sp.setDateOfBirth(dto.getDateOfBirth());
-            sp.setClassRoom(classRoom);
-            sp.setParent(parentProfile);
-            studentProfileRepository.save(sp);
-        } else {
-            throw new RuntimeException("Vai trò không hợp lệ: " + dto.getRole());
-        }
-
-        return user;
-    }
-
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public List<com.titkul.lms.dto.AdminUserDto> getAllUsers() {
-        return userRepository.findAll().stream().map(user -> {
-            com.titkul.lms.dto.AdminUserDto dto = new com.titkul.lms.dto.AdminUserDto();
-            dto.setId(user.getId());
-            dto.setUsername(user.getUsername());
-            dto.setEmail(user.getEmail());
-            dto.setPhone(user.getPhone());
-            dto.setRole(user.getRole().name());
-            dto.setStatus(user.getStatus().name());
-            dto.setRequirePasswordChange(user.getRequirePasswordChange());
-            dto.setLastLogin(user.getLastLogin());
-            dto.setCreatedAt(user.getCreatedAt());
-
-            if (user.getRole() == Role.HOC_SINH) {
-                studentProfileRepository.findByUserId(user.getId()).ifPresent(p -> {
-                    dto.setFullName(p.getFullName());
-                    if (p.getClassRoom() != null) {
-                        dto.setClassName(p.getClassRoom().getName());
-                        dto.setClassId(p.getClassRoom().getId());
-                        dto.getClassIds().add(p.getClassRoom().getId());
-                    }
-                });
-            } else if (user.getRole() == Role.GIAO_VIEN) {
-                teacherProfileRepository.findByUserId(user.getId()).ifPresent(p -> {
-                    dto.setFullName(p.getFullName());
-                });
-            } else if (user.getRole() == Role.PHU_HUYNH) {
-                parentProfileRepository.findByUserId(user.getId()).ifPresent(p -> {
-                    dto.setFullName(p.getFullName());
-                    java.util.List<StudentProfile> children = studentProfileRepository.findByParentId(p.getId());
-                    if (children != null) {
-                        children.forEach(child -> {
-                            if (child.getClassRoom() != null) {
-                                dto.getClassIds().add(child.getClassRoom().getId());
-                            }
-                        });
-                    }
-                });
-            }
-            return dto;
-        }).toList();
-    }
-
-    public User toggleUserStatus(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
-
-        if (user.getStatus() == UserStatus.ACTIVE) {
-            user.setStatus(UserStatus.LOCKED);
-        } else {
-            user.setStatus(UserStatus.ACTIVE);
-        }
-        return userRepository.save(user);
-    }
-    
-    public User updateUser(Long userId, com.titkul.lms.entity.User updateDto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
-        
-        if (updateDto.getPhone() != null && !updateDto.getPhone().isEmpty()) {
-            user.setPhone(updateDto.getPhone());
-        }
-        if (updateDto.getStatus() != null) {
-            user.setStatus(updateDto.getStatus());
-        }
-        return userRepository.save(user);
-    }
-    
-    public void transferClass(Long userId, Long newClassId) {
-        StudentProfile profile = studentProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
-        ClassRoom newClass = classRoomRepository.findById(newClassId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
-        profile.setClassRoom(newClass);
-        studentProfileRepository.save(profile);
-    }
-
-    public SystemConfig getSystemConfig() {
-        return systemConfigRepository.findAll().stream().findFirst().orElseGet(() -> {
-            SystemConfig config = new SystemConfig();
-            config.setId(1L);
-            return config;
-        });
-    }
-
-    public SystemConfig updateSystemConfig(SystemConfig newConfig) {
-        SystemConfig config = getSystemConfig();
-        config.setSchoolName(newConfig.getSchoolName());
-        config.setAcademicYear(newConfig.getAcademicYear());
-        config.setAcademicYearLegacy(newConfig.getAcademicYear());
-        config.setCurrentSemester(newConfig.getCurrentSemester());
-        config.setLogoUrl(newConfig.getLogoUrl());
-        
-        if (newConfig.getGrades() != null) {
-            config.setGrades(newConfig.getGrades());
-        }
-        if (newConfig.getSubjects() != null) {
-            config.setSubjects(newConfig.getSubjects());
-        }
-        
-        return systemConfigRepository.save(config);
-    }
-
-    public com.titkul.lms.dto.AdminDashboardDto getDashboardStats() {
-        long totalStudents = studentProfileRepository.count();
-        long totalTeachers = teacherProfileRepository.count();
-        long totalParents = parentProfileRepository.count();
-        long totalClasses = classRoomRepository.count();
-        long activeClasses = classRoomRepository.countByStatus(com.titkul.lms.entity.ClassStatus.ACTIVE);
-
-        java.util.List<String> warnings = new ArrayList<>();
-        // Đếm số lượng học sinh chưa có lớp
-        long studentsWithoutClass = studentProfileRepository.findAll().stream()
-                .filter(s -> s.getClassRoom() == null).count();
-        if (studentsWithoutClass > 0) {
-            warnings.add(studentsWithoutClass + " Học sinh chưa được phân lớp. Vui lòng phân bổ học sinh mới import vào lớp học.");
-        }
-        
-        // Đếm số lượng lớp học chưa có GVCN
-        long classesWithoutTeacher = classRoomRepository.findAll().stream()
-                .filter(c -> c.getHomeroomTeacher() == null).count();
-        if (classesWithoutTeacher > 0) {
-            warnings.add(classesWithoutTeacher + " Lớp học chưa có Giáo viên chủ nhiệm.");
-        }
-        
-        if (warnings.isEmpty()) {
-            warnings.add("Hệ thống hoạt động ổn định, không có cảnh báo nào.");
-        }
-
-        // Mock Traffic Data (Trong thực tế sẽ query từ Log Database hoặc Redis)
-        java.util.List<Integer> mockTraffic = java.util.Arrays.asList(120, 200, 150, 300, 250, 400, 380);
-
-        return com.titkul.lms.dto.AdminDashboardDto.builder()
-                .totalStudents(totalStudents)
-                .totalTeachers(totalTeachers)
-                .totalParents(totalParents)
-                .totalClasses(totalClasses)
-                .activeClasses(activeClasses)
-                .trafficData(mockTraffic)
-                .systemWarnings(warnings)
-                .build();
-    }
 }
