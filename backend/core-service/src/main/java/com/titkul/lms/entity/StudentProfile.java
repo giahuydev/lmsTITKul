@@ -14,11 +14,11 @@ public class StudentProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "hoc_sinh_id")
+    @Column(name = "hoc_sinh_id", columnDefinition = "BIGINT UNSIGNED")
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nguoi_dung_id", nullable = false, unique = true)
+    @JoinColumn(name = "nguoi_dung_id", nullable = false, unique = true, columnDefinition = "BIGINT UNSIGNED")
     private User user;
 
     @Column(name = "ma_hoc_sinh", nullable = false, unique = true, length = 30)
@@ -31,11 +31,11 @@ public class StudentProfile {
     private LocalDate dateOfBirth;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lop_hoc_id")
+    @JoinColumn(name = "lop_hoc_id", columnDefinition = "BIGINT UNSIGNED")
     private ClassRoom classRoom;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "phu_huynh_id")
+    @JoinColumn(name = "phu_huynh_id", columnDefinition = "BIGINT UNSIGNED")
     private ParentProfile parent;
 
     @Column(name = "tong_xp", nullable = false)

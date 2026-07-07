@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { ArrowLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ export default function ForgotPassword() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Lỗi đổi mật khẩu');
-      alert('Đổi mật khẩu thành công! Bạn có thể đăng nhập.');
+      toast.success('Đổi mật khẩu thành công! Bạn có thể đăng nhập.');
       navigate('/login');
     } catch (err: any) {
       setError(err.message);

@@ -24,9 +24,6 @@ public class SubmissionService {
 
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         if (now.isAfter(assignment.getDeadline())) {
-            if (assignment.getIsHardLock()) {
-                throw new IllegalArgumentException("Bài tập này đã quá hạn và bị khóa (Hard Lock). Không thể nộp bài!");
-            }
             submission.setIsLate(true);
             submission.setStatus(com.titkul.lms.entity.SubmissionStatus.NOP_TRE);
         } else {

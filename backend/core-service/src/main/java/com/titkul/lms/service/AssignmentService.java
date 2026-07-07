@@ -8,6 +8,9 @@ import com.titkul.lms.entity.TeacherProfile;
 import com.titkul.lms.repository.AssignmentRepository;
 import com.titkul.lms.repository.ClassRoomRepository;
 import com.titkul.lms.repository.TeacherProfileRepository;
+import com.titkul.lms.repository.LessonRepository;
+import com.titkul.lms.repository.ContentNodeRepository;
+import com.titkul.lms.repository.SemesterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,14 +23,17 @@ public class AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final ClassRoomRepository classRoomRepository;
     private final TeacherProfileRepository teacherProfileRepository;
+    private final LessonRepository lessonRepository;
+    private final ContentNodeRepository contentNodeRepository;
+    private final SemesterRepository semesterRepository;
 
     public Assignment createAssignment(AssignmentRequestDTO dto) {
         Assignment assignment = new Assignment();
         assignment.setTitle(dto.getTitle());
         assignment.setDescription(dto.getDescription());
         assignment.setDeadline(dto.getDeadline());
-        if (dto.getIsHardLock() != null) {
-            assignment.setIsHardLock(dto.getIsHardLock());
+        if (dto.getMaxResubmitCount() != null) {
+            assignment.setMaxResubmitCount(dto.getMaxResubmitCount());
         }
         
         if (dto.getType() != null) {
@@ -50,6 +56,16 @@ public class AssignmentService {
             assignment.setTeacher(teacher);
         } else {
             throw new IllegalArgumentException("teacherId không được để trống!");
+        }
+
+        if (dto.getLessonId() != null) {
+            assignment.setLesson(lessonRepository.findById(dto.getLessonId()).orElse(null));
+        }
+        if (dto.getContentNodeId() != null) {
+            assignment.setContentNode(contentNodeRepository.findById(dto.getContentNodeId()).orElse(null));
+        }
+        if (dto.getSemesterId() != null) {
+            assignment.setSemester(semesterRepository.findById(dto.getSemesterId()).orElse(null));
         }
 
         return assignmentRepository.save(assignment);

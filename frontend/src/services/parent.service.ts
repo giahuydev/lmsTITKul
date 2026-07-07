@@ -14,5 +14,25 @@ export const parentService = {
   getGrades: async () => {
     const response = await api.get('/parents/me/grades');
     return response.data;
+  },
+
+  getAssignments: async (childId: number) => {
+    const response = await api.get(`/parents/me/children/${childId}/assignments`);
+    return response.data;
+  },
+
+  getNotifications: async () => {
+    const response = await api.get('/parents/me/notifications');
+    return response.data;
+  },
+
+  getRewards: async (childId: number) => {
+    const response = await api.get(`/parents/me/children/${childId}/rewards`);
+    return response.data;
+  },
+
+  getSubjectTree: async (childId: number) => {
+    const response = await api.get(`/parents/me/children/${childId}/subject-tree`);
+    return response.data;
   }
 };

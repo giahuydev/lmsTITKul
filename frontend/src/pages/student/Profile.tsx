@@ -5,7 +5,9 @@ import { Input } from '../../components/ui/Input';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { useNavigate } from 'react-router-dom';
 import { userService, type StudentDashboardDto } from '../../services/user.service';
+import { authService } from '../../services/auth.service';
 import { useAuthStore } from '../../stores/useAuthStore';
+import toast from 'react-hot-toast';
 
 export default function StudentProfile() {
   const navigate = useNavigate();
@@ -36,22 +38,13 @@ export default function StudentProfile() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:8080/api/v1/auth/change-password', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ oldPassword, newPassword })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Lỗi đổi mật khẩu');
-      alert('Đổi mật khẩu thành công!');
+      await authService.changePassword(oldPassword, newPassword);
+      toast.success('Đổi mật khẩu thành công!');
       setShowPasswordModal(false);
       setOldPassword('');
       setNewPassword('');
     } catch (err: any) {
-      setError(err.message);
+      toast.error(err.response?.data?.message || 'Lỗi đổi mật khẩu');
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,8 @@ import com.titkul.lms.entity.Role;
 import com.titkul.lms.entity.TeacherProfile;
 import com.titkul.lms.entity.User;
 import com.titkul.lms.entity.UserStatus;
+import com.titkul.lms.entity.AcademicYear;
+import com.titkul.lms.repository.AcademicYearRepository;
 import com.titkul.lms.repository.ClassRoomRepository;
 import com.titkul.lms.repository.TeacherProfileRepository;
 import com.titkul.lms.repository.UserRepository;
@@ -21,6 +23,7 @@ public class DataSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final TeacherProfileRepository teacherProfileRepository;
     private final ClassRoomRepository classRoomRepository;
+    private final AcademicYearRepository academicYearRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -63,30 +66,43 @@ public class DataSeeder implements CommandLineRunner {
             parentUser.setRole(Role.PHU_HUYNH);
             parentUser.setStatus(UserStatus.ACTIVE);
             parentUser.setRequirePasswordChange(false);
-            parentUser = userRepository.save(parentUser);
+            userRepository.save(parentUser);
             System.out.println("====== SEEDED TEST PARENT: PH001 / Password123! ======");
         }
 
+        // Ensure GV001 always has a TeacherProfile, regardless of classroom count
+        User teacherUser = userRepository.findByUsername("GV001").orElseThrow();
+        TeacherProfile teacherProfile = teacherProfileRepository.findByUserId(teacherUser.getId())
+                .orElseGet(() -> {
+                    TeacherProfile p = new TeacherProfile();
+                    p.setUser(teacherUser);
+                    p.setTeacherCode("GV001");
+                    p.setFullName("Nguyễn Văn GV");
+                    p.setDepartment("Toán");
+                    return teacherProfileRepository.save(p);
+                });
+
         if (classRoomRepository.count() == 0) {
-            User teacherUser = userRepository.findByUsername("GV001").orElseThrow();
-            
-            TeacherProfile teacherProfile = new TeacherProfile();
-            teacherProfile.setUser(teacherUser);
-            teacherProfile.setFullName("Nguyễn Văn GV");
-            teacherProfile.setDepartment("Toán");
-            teacherProfile = teacherProfileRepository.save(teacherProfile);
+            AcademicYear academicYear = academicYearRepository.findByName("2026-2027")
+                    .orElseGet(() -> {
+                        AcademicYear newYear = new AcademicYear();
+                        newYear.setName("2026-2027");
+                        newYear.setStartDate(java.time.LocalDate.of(2026, 9, 5));
+                        newYear.setEndDate(java.time.LocalDate.of(2027, 5, 31));
+                        return academicYearRepository.save(newYear);
+                    });
 
             ClassRoom classRoom = new ClassRoom();
             classRoom.setName("Lớp 5A");
             classRoom.setGrade((short) 5);
-            classRoom.setAcademicYear("2026-2027");
+            classRoom.setAcademicYear(academicYear);
             classRoom.setHomeroomTeacher(teacherProfile);
             classRoom.setMaxCapacity((short) 40);
             classRoomRepository.save(classRoom);
-            
-            System.out.println("====== SEEDED TEST TEACHER: GV001 / Password123! ======");
-            System.out.println("====== SEEDED TEST CLASSROOM ID: " + classRoom.getId() + " ======");
-            System.out.println("====== SEEDED TEST TEACHER ID: " + teacherProfile.getId() + " ======");
+
+            System.out.println("====== SEEDED TEST CLASSROOM: Lớp 5A ======");
         }
+
+        System.out.println("====== SEEDED TEST TEACHER: GV001 / Password123! ======");
     }
 }

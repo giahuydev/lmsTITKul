@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
+import toast from 'react-hot-toast';
 import { Input } from '../../components/ui/Input';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { ShieldAlert } from 'lucide-react';
@@ -53,11 +54,12 @@ export default function ForceChangePassword() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Lỗi đổi mật khẩu');
 
-      alert('Đổi mật khẩu thành công! Chào mừng bạn đến với Titkul LMS.');
+      toast.success('Đổi mật khẩu thành công! Chào mừng bạn đến với Titkul LMS.');
 
       // Cập nhật lại AuthStore để tắt cờ
       if (user && token) {
-        setAuth(token, { ...user, requirePasswordChange: false });
+        const refreshToken = useAuthStore.getState().refreshToken || '';
+        setAuth(token, refreshToken, { ...user, requirePasswordChange: false });
 
         // Chuyển hướng theo Role
         switch (user.role) {

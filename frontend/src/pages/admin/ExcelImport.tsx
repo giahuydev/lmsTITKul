@@ -1,98 +1,14 @@
-import { useState, useRef } from 'react';
 import { Upload, FileType, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
-
-interface PreviewRow {
-  className: string;
-  studentCode: string;
-  studentName: string;
-  parentName: string;
-  parentPhone: string;
-  isValid: boolean;
-  errors: string[];
-}
+import { useExcelImport } from './hooks/useExcelImport';
 
 export default function ExcelImport() {
-  const [file, setFile] = useState<File | null>(null);
-  const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadResult, setUploadResult] = useState<any>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
-
-    setFile(selectedFile);
-    setUploadResult(null);
-
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const bstr = evt.target?.result;
-      const wb = XLSX.read(bstr, { type: 'binary' });
-      const wsname = wb.SheetNames[0];
-      const ws = wb.Sheets[wsname];
-      const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][];
-
-      // Skip header row
-      const rows = data.slice(1).filter(row => row.length > 0);
-      
-      const parsedPreview: PreviewRow[] = rows.map((row) => {
-        const errors = [];
-        if (!row[0]) errors.push('Thiếu lớp');
-        if (!row[1]) errors.push('Thiếu mã HS');
-        if (!row[2]) errors.push('Thiếu tên HS');
-        if (!row[4]) errors.push('Thiếu tên PH');
-        if (!row[5]) errors.push('Thiếu SĐT PH');
-        
-        return {
-          className: row[0] || '',
-          studentCode: row[1] || '',
-          studentName: row[2] || '',
-          parentName: row[4] || '',
-          parentPhone: row[5] || '',
-          isValid: errors.length === 0,
-          errors
-        };
-      });
-      
-      setPreviewData(parsedPreview);
-    };
-    reader.readAsBinaryString(selectedFile);
-  };
-
-  const handleUploadToServer = async () => {
-    if (!file) return;
-    
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-      const response = await fetch('http://localhost:8080/api/v1/admin/import/users', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: formData
-      });
-      
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Lỗi khi upload file');
-      }
-      
-      setUploadResult(data);
-    } catch (error) {
-      console.error('Upload error', error);
-      alert('Có lỗi xảy ra khi tải file lên!');
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  const {
+    previewData, isUploading, uploadResult, fileInputRef, hasErrors,
+    handleFileSelect, handleUpload, triggerFileInput,
+  } = useExcelImport();
 
   return (
     <div className="space-y-6">
@@ -101,18 +17,23 @@ export default function ExcelImport() {
           <CardTitle>Nhập danh sách Học sinh & Phụ huynh</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-lg p-10 bg-slate-50 hover:bg-slate-100 transition-colors">
+          <div
+            className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-lg p-10 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
+            onClick={triggerFileInput}
+          >
             <FileType className="w-12 h-12 text-slate-400 mb-4" />
             <h3 className="text-lg font-medium text-slate-700">Tải file Excel (.xlsx) lên đây</h3>
-            <p className="text-sm text-slate-500 mb-4">Mẫu file gồm 7 cột: Lớp, Mã HS, Tên HS, Ngày sinh, Tên PH, SĐT PH, Email PH</p>
-            <input 
-              type="file" 
-              accept=".xlsx, .xls" 
-              className="hidden" 
+            <p className="text-sm text-slate-500 mb-4">
+              Mẫu file gồm 7 cột: Lớp, Mã HS, Tên HS, Ngày sinh, Tên PH, SĐT PH, Email PH
+            </p>
+            <input
+              type="file"
+              accept=".xlsx, .xls"
+              className="hidden"
               ref={fileInputRef}
-              onChange={handleFileUpload}
+              onChange={handleFileSelect}
             />
-            <Button onClick={() => fileInputRef.current?.click()} variant="outline">
+            <Button variant="outline" onClick={(e) => { e.stopPropagation(); triggerFileInput(); }}>
               <Upload className="w-4 h-4 mr-2" /> Chọn file
             </Button>
           </div>
@@ -123,7 +44,7 @@ export default function ExcelImport() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Bản xem trước ({previewData.length} dòng)</CardTitle>
-            <Button onClick={handleUploadToServer} disabled={isUploading || previewData.some(r => !r.isValid)}>
+            <Button onClick={handleUpload} disabled={isUploading || hasErrors}>
               {isUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
               Tiến hành Import
             </Button>
@@ -170,23 +91,12 @@ export default function ExcelImport() {
 
       {uploadResult && (
         <Card>
-          <CardHeader>
-            <CardTitle>Kết quả Import</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Kết quả Import</CardTitle></CardHeader>
           <CardContent>
             <div className="flex space-x-6 mb-6">
-              <div className="bg-slate-50 p-4 rounded-lg flex-1">
-                <p className="text-sm text-slate-500">Tổng số dòng</p>
-                <p className="text-2xl font-bold text-slate-800">{uploadResult.totalRows}</p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg flex-1">
-                <p className="text-sm text-green-600">Thành công</p>
-                <p className="text-2xl font-bold text-green-700">{uploadResult.successCount}</p>
-              </div>
-              <div className="bg-red-50 p-4 rounded-lg flex-1">
-                <p className="text-sm text-red-600">Thất bại</p>
-                <p className="text-2xl font-bold text-red-700">{uploadResult.failureCount}</p>
-              </div>
+              <StatBox label="Tổng số dòng" value={uploadResult.totalRows} color="bg-slate-50" textColor="text-slate-800" />
+              <StatBox label="Thành công" value={uploadResult.successCount} color="bg-green-50" textColor="text-green-700" labelColor="text-green-600" />
+              <StatBox label="Thất bại" value={uploadResult.failureCount} color="bg-red-50" textColor="text-red-700" labelColor="text-red-600" />
             </div>
 
             {uploadResult.failures?.length > 0 && (
@@ -217,6 +127,17 @@ export default function ExcelImport() {
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+function StatBox({ label, value, color, textColor, labelColor = 'text-slate-500' }: {
+  label: string; value: number; color: string; textColor: string; labelColor?: string;
+}) {
+  return (
+    <div className={`${color} p-4 rounded-lg flex-1`}>
+      <p className={`text-sm ${labelColor}`}>{label}</p>
+      <p className={`text-2xl font-bold ${textColor}`}>{value}</p>
     </div>
   );
 }

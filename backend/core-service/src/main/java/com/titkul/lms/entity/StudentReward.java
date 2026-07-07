@@ -1,46 +1,49 @@
 package com.titkul.lms.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import java.time.LocalDate;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "phan_thuong_hoc_sinh")
+@Table(name = "khen_thuong_hoc_sinh")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class StudentReward {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "phan_thuong_id")
+    @Column(name = "khen_thuong_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hoc_sinh_id", nullable = false)
     private StudentProfile student;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "loai_thuong", nullable = false, length = 20)
-    private RewardType type;
-
-    @Column(name = "ten_thuong", nullable = false, length = 100)
-    private String name;
-
-    @Column(name = "mo_ta", length = 500)
-    private String description;
-
-    @Column(name = "icon_url", length = 200)
-    private String iconUrl;
-
-    @Column(name = "ngay_dat_duoc")
-    private LocalDate unlockedDate;
-
-    // Các thông tin thêm dành cho Thư khen
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "giao_vien_tang_id")
+    @JoinColumn(name = "huy_hieu_id", nullable = false)
+    private Badge badge;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "giao_vien_id")
     private TeacherProfile teacher;
 
-    @Column(name = "mon_hoc", length = 100)
-    private String subject;
+    @Column(name = "thu_khen", columnDefinition = "TEXT")
+    private String complimentLetter;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "nguon_cap", nullable = false)
+    private Source source = Source.THU_CONG;
+
+    @Column(name = "thoi_diem_trao", nullable = false, updatable = false)
+    private LocalDateTime awardedAt = LocalDateTime.now();
+
+    @Column(name = "da_gui_email", nullable = false)
+    private Boolean emailSent = false;
+
+    public enum Source {
+        THU_CONG, HE_THONG
+    }
 }

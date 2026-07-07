@@ -16,8 +16,8 @@ public class ClassRoomDto {
     @Max(value = 12, message = "Khối lớp không hợp lệ")
     private Short grade;
 
-    @NotBlank(message = "Niên khóa không được để trống")
-    private String academicYear;
+    @NotNull(message = "Niên khóa không được để trống")
+    private Integer academicYearId;
 
     @NotNull(message = "Sĩ số tối đa không được để trống")
     @Min(value = 1, message = "Sĩ số tối đa phải lớn hơn 0")

@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { authService } from '../../services/auth.service';
-import { User, Lock, Sparkles, Paperclip } from 'lucide-react';
+import { User, Lock, Sparkles, Volume2, Loader2, Star, Eye, EyeOff } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { ForgotPasswordModal } from './components/ForgotPasswordModal';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,6 +15,28 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isShaking, setIsShaking] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) setGreeting("Chào buổi sáng! ☀️");
+    else if (hour >= 12 && hour < 18) setGreeting("Buổi chiều vui vẻ! 🌤️");
+    else if (hour >= 18 && hour < 23) setGreeting("Học buổi tối nào! 🌙");
+    else setGreeting("Khuya rồi, đi ngủ sớm nhé! 🦉");
+  }, []);
+
+  const playAudioHint = () => {
+    window.speechSynthesis.cancel();
+    const text = "Chào mừng bạn đến với Titkul L M S! Hãy nhập tên đăng nhập và mật mã bí mật để bắt đầu nhé!";
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'vi-VN';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,104 +44,170 @@ export default function Login() {
     setError('');
 
     try {
-      // 1. Gửi request Login
       const authData = await authService.login({ username, password });
+      setAuth(authData.accessToken, authData.refreshToken, authData.user);
 
-      // 2. Lưu vào Zustand (Sử dụng accessToken và user từ authData)
-      setAuth(authData.accessToken, authData.user);
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#a864fd', '#29cdff', '#78ff44', '#ff718d', '#fdff6a']
+      });
 
-      // 3. Chuyển hướng
-      if (authData.user.requirePasswordChange) {
-        navigate('/force-change-password');
-      } else {
-        switch (authData.user.role) {
-          case 'ADMIN': navigate('/admin'); break;
-          case 'GIAO_VIEN': navigate('/teacher'); break;
-          case 'HOC_SINH': navigate('/student'); break;
-          case 'PHU_HUYNH': navigate('/parent'); break;
-          default: navigate('/');
+      setTimeout(() => {
+        if (authData.user.requirePasswordChange) {
+          navigate('/force-change-password');
+        } else {
+          switch (authData.user.role) {
+            case 'ADMIN': navigate('/admin'); break;
+            case 'GIAO_VIEN': navigate('/teacher'); break;
+            case 'HOC_SINH': navigate('/student'); break;
+            case 'PHU_HUYNH': navigate('/parent'); break;
+            default: navigate('/');
+          }
         }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }, 1000);
+
     } catch (err: any) {
-      // Xử lý lỗi chuẩn từ Backend (errorCode, message, details)
-      const errorMessage = err.response?.data?.message || 'Biệt danh hoặc mật mã chưa đúng rồi!';
       const details = err.response?.data?.details;
+      let errorMessage = 'Ôi, tên đăng nhập hoặc mật mã chưa đúng rồi! Thử lại nhé 🐢';
 
       if (details && details.length > 0) {
-        setError(`${errorMessage}: ${details[0].issue}`);
-      } else {
-        setError(errorMessage);
+        errorMessage = `Ôi, ${details[0].issue} chưa đúng rồi! Thử lại nhé 🐢`;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
       }
-    } finally {
+
+      setError(errorMessage);
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full mx-auto">
-      <div className="mb-8 text-center">
-        <h1 className="text-[34px] font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] pb-1">
-          Đến giờ học rồi!
-        </h1>
-        <p className="text-slate-600 mt-2 font-semibold text-[14px]">Gõ biệt danh và mật mã bí mật của bạn vào đây nhé! 🚀</p>
+    <>
+      <div className="w-full">
+        <div className="mb-10 text-center lg:text-left">
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2">
+            {greeting}
+          </h2>
+          <p className="text-slate-500 font-medium text-base">
+            Vui lòng nhập thông tin để truy cập vào hệ thống
+          </p>
+        </div>
+
+        <form onSubmit={handleLogin} className={`space-y-6 ${isShaking ? 'animate-shake' : ''}`} autoComplete="off">
+          {error && (
+            <div className="px-4 py-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-[14px] font-bold flex items-center gap-3 shadow-sm animate-in fade-in zoom-in-95 duration-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 flex items-center ml-1">
+                Tên đăng nhập
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  placeholder="Biệt danh / Mã số"
+                  className="w-full pl-11 pr-4 h-14 bg-slate-50 border-2 border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 rounded-2xl text-base font-medium text-slate-900 transition-all outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 flex items-center justify-between ml-1">
+                <span>Mật mã bí mật</span>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(true)}
+                  className="text-indigo-600 hover:text-indigo-800 transition-colors text-sm font-bold"
+                >
+                  Quên mật mã?
+                </button>
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="w-full pl-11 pr-12 h-14 bg-slate-50 border-2 border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 rounded-2xl text-lg tracking-[0.2em] font-medium text-slate-900 transition-all outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col mt-2">
+            <label className="flex items-center gap-3 cursor-pointer group w-fit py-1">
+              <div className="relative flex items-center justify-center w-6 h-6 shrink-0">
+                <input type="checkbox" className="peer sr-only" />
+                <div className="w-6 h-6 rounded-lg bg-white border-2 border-slate-200 peer-checked:bg-yellow-400 peer-checked:border-yellow-400 transition-all shadow-sm flex items-center justify-center group-hover:border-slate-300">
+                  <Star className="w-3.5 h-3.5 text-white fill-white opacity-0 peer-checked:opacity-100 transition-opacity drop-shadow-sm" />
+                </div>
+              </div>
+              <span className="text-[15px] text-slate-600 font-bold group-hover:text-slate-900 transition-colors">
+                Ghi nhớ tớ nha!
+              </span>
+            </label>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-14 text-lg font-bold mt-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_8px_20px_rgba(79,70,229,0.25)] hover:shadow-[0_12px_25px_rgba(79,70,229,0.35)] active:translate-y-1 active:shadow-[0_4px_10px_rgba(79,70,229,0.2)] transition-all group overflow-hidden relative"
+          >
+            {/* Shine effect */}
+            <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+            
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2 relative z-10">
+                <Loader2 className="w-5 h-5 animate-spin" /> Đang xử lý...
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2 relative z-10">
+                Bắt đầu ngay <Sparkles className="w-5 h-5 text-indigo-200" />
+              </span>
+            )}
+          </Button>
+          
+          <div className="flex justify-center mt-6">
+            <button
+              type="button"
+              onClick={playAudioHint}
+              className="flex items-center gap-2 text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-100 px-5 py-2.5 rounded-full font-bold transition-all text-sm shadow-sm active:scale-95 w-fit"
+            >
+              <Volume2 size={18} className="text-indigo-500" /> Nghe hướng dẫn
+            </button>
+          </div>
+        </form>
       </div>
 
-      <form onSubmit={handleLogin} className="space-y-6" autoComplete="off">
-        {error && (
-          <div className="p-4 rounded-3xl bg-red-50/90 border-2 border-red-100 text-red-600 text-[15px] font-bold flex items-start gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-            {error}
-          </div>
-        )}
-
-        <div className="space-y-5">
-          <Input
-            label={<><User size={18} className="text-[#8b5cf6]" /> Biệt danh</>}
-            placeholder="Tên của bạn là gì nhỉ?..."
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            autoComplete="new-password"
-            className="h-[52px] text-[16px]"
-          />
-
-          <Input
-            label={<><Lock size={18} className="text-[#8b5cf6]" /> Mật mã bí mật</>}
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="new-password"
-            className="h-[52px] text-[20px] tracking-[0.2em]"
-          />
-        </div>
-
-        <div className="flex items-center justify-between mt-4">
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <div className="relative flex items-center justify-center w-[22px] h-[22px]">
-              <input type="checkbox" className="peer w-full h-full appearance-none rounded-md bg-white border-2 border-white/60 checked:bg-purple-500 checked:border-purple-500 transition-all cursor-pointer outline-none focus-visible:ring-4 focus-visible:ring-purple-500/30 shadow-sm" />
-              <svg className="absolute w-3.5 h-3.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            </div>
-            <span className="text-[14px] text-slate-700 font-bold group-hover:text-slate-900 transition-colors flex items-center gap-1.5"><Paperclip size={14} className="text-slate-500" /> Nhớ mặt tớ nha!</span>
-          </label>
-        </div>
-
-        <Button type="submit" variant="kids" className="w-full h-[56px] text-[17px] font-black mt-8 uppercase tracking-widest group rounded-full" isLoading={isLoading}>
-          <span className="flex items-center gap-2.5 drop-shadow-md">
-            <Sparkles size={20} className="group-hover:animate-spin text-yellow-200" /> BẮT ĐẦU HỌC NÀO!
-          </span>
-        </Button>
-
-        <div className="text-center mt-6">
-          <Link to="/forgot-password" className="text-[14px] font-bold text-slate-500 hover:text-purple-600 transition-colors underline decoration-2 underline-offset-4">
-            Quên mật mã à? Nhờ người lớn giúp bạn nha!
-          </Link>
-        </div>
-      </form>
-    </div>
+      <ForgotPasswordModal 
+        isOpen={showForgotModal} 
+        onClose={() => setShowForgotModal(false)} 
+      />
+    </>
   );
 }

@@ -11,5 +11,8 @@ public class AssignmentRequestDTO {
     private Long teacherId;
     private String type;
     private LocalDateTime deadline;
-    private Boolean isHardLock;
+    private Integer maxResubmitCount;
+    private Integer lessonId;
+    private Integer contentNodeId;
+    private Integer semesterId;
 }

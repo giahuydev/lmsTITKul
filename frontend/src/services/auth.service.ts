@@ -18,6 +18,7 @@ export interface UserResponse {
 
 export interface AuthResponse {
   accessToken: string;
+  refreshToken: string;
   tokenType: string;
   expiresIn: number;
   user: UserResponse;
@@ -26,6 +27,18 @@ export interface AuthResponse {
 export const authService = {
   login: async (payload: LoginPayload): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/login', payload);
+    return response.data;
+  },
+  forgotPassword: async (payload: { email: string }) => {
+    const response = await api.post('/auth/forgot-password', payload);
+    return response.data;
+  },
+  resetPassword: async (payload: { email: string; otp: string; newPassword: string }) => {
+    const response = await api.post('/auth/reset-password', payload);
+    return response.data;
+  },
+  changePassword: async (oldPassword: string, newPassword: string) => {
+    const response = await api.post('/auth/change-password', { oldPassword, newPassword });
     return response.data;
   }
 };

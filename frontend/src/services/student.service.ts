@@ -3,17 +3,17 @@ import { api } from '../lib/axios';
 export interface Material {
   id: number;
   title: string;
-  description: string;
-  materialType: string;
-  origin: string;
-  h5pId: string;
+  type: 'TAI_LIEU' | 'BAI_GIANG_H5P' | 'BAI_TAP_H5P';
+  origin: 'THU_VIEN_GOC' | 'GIAO_VIEN_TAO';
+  fileUrl: string | null;
+  h5pContentId: string | null;
   xpReward: number;
   allowRetry: boolean;
 }
 
 export const studentService = {
   getMaterials: async (): Promise<Material[]> => {
-    const response = await api.get<Material[]>('/materials');
+    const response = await api.get<Material[]>('/hoc-lieu');
     return response.data;
   },
   

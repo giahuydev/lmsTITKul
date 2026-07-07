@@ -2,8 +2,8 @@ export type Role = 'admin' | 'teacher' | 'parent' | 'student';
 
 export type Status = 'ACTIVE' | 'FROZEN' | 'PENDING' | 'RESOLVED' | 'DA_NOP' | 'DA_CHAM' | 'CHUA_NOP';
 
-export type SubmissionType = 'H5P' | 'Tu_Luan';
-
+export type SubmissionType = 'H5P' | 'TU_LUAN' | 'TU_DO' | 'CA_NHAN';
+export type ContentType = 'H5P' | 'FILE' | 'NATIVE' | 'JSON_TEXT';
 export interface ClassInfo {
   id: number;
   name: string;

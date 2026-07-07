@@ -6,7 +6,6 @@ import com.titkul.lms.entity.TeacherProfile;
 import com.titkul.lms.entity.User;
 import com.titkul.lms.repository.AssignmentRepository;
 import com.titkul.lms.repository.ClassRoomRepository;
-import com.titkul.lms.repository.MaterialRepository;
 import com.titkul.lms.repository.TeacherProfileRepository;
 import com.titkul.lms.repository.UserRepository;
 import com.titkul.lms.repository.StudentProfileRepository;
@@ -22,7 +21,6 @@ public class TeacherService {
     private final UserRepository userRepository;
     private final TeacherProfileRepository teacherProfileRepository;
     private final ClassRoomRepository classRoomRepository;
-    private final MaterialRepository materialRepository;
     private final AssignmentRepository assignmentRepository;
     private final StudentProfileRepository studentProfileRepository;
 
@@ -35,7 +33,6 @@ public class TeacherService {
 
         List<ClassRoom> homeroomClasses = classRoomRepository.findByHomeroomTeacher_Id(profile.getId());
         String homeroomClassStr = homeroomClasses.isEmpty() ? "Không có" : homeroomClasses.get(0).getName();
-        long totalMaterials = materialRepository.countByTeacher_Id(profile.getId());
         long totalAssignments = assignmentRepository.countByTeacher_Id(profile.getId());
 
         return TeacherDashboardDto.builder()
@@ -43,7 +40,6 @@ public class TeacherService {
                 .classesCount(1)
                 .homeroomClass(homeroomClassStr)
                 .department(profile.getDepartment())
-                .totalMaterials(totalMaterials)
                 .totalAssignments(totalAssignments)
                 .build();
     }

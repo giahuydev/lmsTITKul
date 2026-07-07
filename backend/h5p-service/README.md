@@ -31,6 +31,14 @@
 $ npm install
 ```
 
+`h5p-core/` và `h5p-editor/` (asset JS/CSS tĩnh của H5P.org, không thuộc repo này) cần tải riêng:
+
+```bash
+git clone https://github.com/h5p/h5p-php-library.git h5p-core
+git clone https://github.com/h5p/h5p-editor-php-library.git h5p-editor
+rm -rf h5p-core/.git h5p-editor/.git
+```
+
 ## Compile and run the project
 
 ```bash

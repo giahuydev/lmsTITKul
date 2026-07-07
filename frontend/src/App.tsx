@@ -37,6 +37,10 @@ import TeacherProfile from './pages/teacher/Profile';
 import ParentDashboard from './pages/parent/Dashboard';
 import ParentChildren from './pages/parent/Children';
 import ParentGrades from './pages/parent/Grades';
+import ParentAssignments from './pages/parent/Assignments';
+import ParentNotifications from './pages/parent/Notifications';
+import ParentRewards from './pages/parent/Rewards';
+import ParentSubjectTree from './pages/parent/SubjectTree';
 import ParentProfile from './pages/parent/Profile';
 
 // Pages - Student (Bright Theme)
@@ -49,9 +53,13 @@ import StudentAssignments from './pages/student/Assignments';
 import StudentNotifications from './pages/student/Notifications';
 import StudentProfile from './pages/student/Profile';
 
+import { Toaster } from 'react-hot-toast';
+
 function App() {
   return (
-    <BrowserRouter>
+    <>
+      <Toaster position="top-center" reverseOrder={false} />
+      <BrowserRouter>
       <Routes>
         {/* Auth Routes */}
         <Route element={<AuthLayout />}>
@@ -91,6 +99,7 @@ function App() {
           <Route path="materials" element={<TeacherMaterials />} />
           <Route path="materials/:materialId" element={<TeacherMaterialDetail />} />
           <Route path="editor" element={<TeacherEditorMock />} />
+          <Route path="editor/:contentId" element={<TeacherEditorMock />} />
           <Route path="assignments" element={<TeacherAssignments />} />
           <Route path="grading" element={<TeacherGrading />} />
           <Route path="grading/:submissionId" element={<TeacherGradingDetail />} />
@@ -104,6 +113,10 @@ function App() {
           <Route index element={<ParentDashboard />} />
           <Route path="children" element={<ParentChildren />} />
           <Route path="grades" element={<ParentGrades />} />
+          <Route path="assignments" element={<ParentAssignments />} />
+          <Route path="notifications" element={<ParentNotifications />} />
+          <Route path="rewards" element={<ParentRewards />} />
+          <Route path="subject-tree" element={<ParentSubjectTree />} />
           <Route path="profile" element={<ParentProfile />} />
         </Route>
 
@@ -111,6 +124,7 @@ function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
+    </>
   );
 }
 

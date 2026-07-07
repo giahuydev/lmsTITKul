@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { teacherService } from '../../services/teacher.service';
-import type { ClassRoom, Material } from '../../services/teacher.service';
+import type { ClassRoom } from '../../services/teacher.service';
 import { useAuthStore } from '../../stores/useAuthStore';
 
 export default function TeacherAssignments() {
@@ -15,11 +15,10 @@ export default function TeacherAssignments() {
   const [taskTitle, setTaskTitle] = useState('');
   const [selectedClassId, setSelectedClassId] = useState<number | ''>('');
   const [deadline, setDeadline] = useState('');
-  const [isHardLock, setIsHardLock] = useState(false);
+  const [maxResubmitCount, setMaxResubmitCount] = useState<number>(0);
   const [assignmentType, setAssignmentType] = useState('TU_LUAN');
 
   const [classes, setClasses] = useState<ClassRoom[]>([]);
-  const [materials, setMaterials] = useState<Material[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -28,15 +27,11 @@ export default function TeacherAssignments() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [classData, materialData] = await Promise.all([
-          teacherService.getClasses(),
-          teacherService.getMaterials(),
-        ]);
+        const classData = await teacherService.getClasses();
         setClasses(classData);
-        setMaterials(materialData);
         if (classData.length > 0) setSelectedClassId(classData[0].id);
       } catch (err) {
-        console.error('Lỗi tải dữ liệu', err);
+        console.error('Lỗi tải danh sách lớp', err);
       } finally {
         setIsLoadingData(false);
       }
@@ -68,7 +63,7 @@ export default function TeacherAssignments() {
         teacherId: user?.userId ?? 0,
         type: assignmentType,
         deadline: new Date(deadline).toISOString(),
-        isHardLock,
+        maxResubmitCount,
       });
       setSubmitStatus('success');
       setTaskTitle('');
@@ -197,16 +192,17 @@ export default function TeacherAssignments() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Hạn chót (Deadline)" type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
             <div className="flex items-center gap-3 pt-6">
-              <input
-                type="checkbox"
-                id="hardlock"
-                className="w-4 h-4"
-                checked={isHardLock}
-                onChange={(e) => setIsHardLock(e.target.checked)}
-              />
-              <label htmlFor="hardlock" className="text-sm font-medium text-slate-700 cursor-pointer">
-                Hard Lock (Cấm nộp sau deadline)
+              <label htmlFor="maxResubmit" className="text-sm font-medium text-slate-700 cursor-pointer w-48">
+                Số lần nộp lại tối đa (0 = không giới hạn)
               </label>
+              <input
+                type="number"
+                id="maxResubmit"
+                className="w-20 px-3 py-1.5 border border-slate-300 rounded-lg outline-none focus:border-primary text-sm"
+                value={maxResubmitCount}
+                min={0}
+                onChange={(e) => setMaxResubmitCount(Number(e.target.value))}
+              />
             </div>
           </div>
         </CardContent>

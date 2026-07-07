@@ -14,6 +14,7 @@ public class ClassRoomService {
     private final ClassRoomRepository classRoomRepository;
     private final com.titkul.lms.repository.TeacherProfileRepository teacherProfileRepository;
     private final com.titkul.lms.repository.StudentProfileRepository studentProfileRepository;
+    private final com.titkul.lms.repository.AcademicYearRepository academicYearRepository;
 
     public List<ClassRoom> getAllClasses() {
         List<ClassRoom> classes = classRoomRepository.findAll();
@@ -52,14 +53,17 @@ public class ClassRoomService {
     }
 
     public ClassRoom createClass(com.titkul.lms.dto.ClassRoomDto dto) {
-        if (classRoomRepository.existsByNameAndAcademicYear(dto.getName(), dto.getAcademicYear())) {
+        com.titkul.lms.entity.AcademicYear academicYear = academicYearRepository.findById(dto.getAcademicYearId())
+                .orElseThrow(() -> new RuntimeException("Niên khóa không tồn tại"));
+
+        if (classRoomRepository.existsByNameAndAcademicYear(dto.getName(), academicYear)) {
             throw new RuntimeException("Lớp học đã tồn tại trong niên khóa này");
         }
 
         ClassRoom classRoom = new ClassRoom();
         classRoom.setName(dto.getName());
         classRoom.setGrade(dto.getGrade());
-        classRoom.setAcademicYear(dto.getAcademicYear());
+        classRoom.setAcademicYear(academicYear);
         classRoom.setMaxCapacity(dto.getMaxCapacity());
         classRoom.setStatus(com.titkul.lms.entity.ClassStatus.ACTIVE);
 
@@ -76,15 +80,18 @@ public class ClassRoomService {
         ClassRoom classRoom = classRoomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Lớp học không tồn tại"));
 
-        if (!classRoom.getName().equals(dto.getName()) || !classRoom.getAcademicYear().equals(dto.getAcademicYear())) {
-            if (classRoomRepository.existsByNameAndAcademicYear(dto.getName(), dto.getAcademicYear())) {
+        com.titkul.lms.entity.AcademicYear academicYear = academicYearRepository.findById(dto.getAcademicYearId())
+                .orElseThrow(() -> new RuntimeException("Niên khóa không tồn tại"));
+
+        if (!classRoom.getName().equals(dto.getName()) || !classRoom.getAcademicYear().getId().equals(dto.getAcademicYearId())) {
+            if (classRoomRepository.existsByNameAndAcademicYear(dto.getName(), academicYear)) {
                 throw new RuntimeException("Tên lớp đã tồn tại trong niên khóa này");
             }
         }
 
         classRoom.setName(dto.getName());
         classRoom.setGrade(dto.getGrade());
-        classRoom.setAcademicYear(dto.getAcademicYear());
+        classRoom.setAcademicYear(academicYear);
         classRoom.setMaxCapacity(dto.getMaxCapacity());
 
         if (dto.getHomeroomTeacherId() != null) {

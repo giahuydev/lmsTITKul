@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
 import { ticketService } from '../../services/ticket.service';
+import toast from 'react-hot-toast';
 
 export default function AdminTickets() {
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
@@ -31,20 +32,21 @@ export default function AdminTickets() {
 
   const handleProcess = async (ticketId: number, status: string) => {
     if (status === 'TU_CHOI' && !rejectNote && selectedTicket) {
-      alert('Vui lòng nhập lý do từ chối!');
+      toast.error('Vui lòng nhập lý do từ chối!');
       return;
     }
     
     setIsProcessing(true);
     try {
       await ticketService.processTicket(ticketId, status, rejectNote);
-      alert(status === 'DA_DUYET' ? 'Đã duyệt yêu cầu thành công!' : 'Đã từ chối yêu cầu!');
+      toast.success(status === 'DA_DUYET' ? 'Đã duyệt yêu cầu thành công!' : 'Đã từ chối yêu cầu!');
       setSelectedTicket(null);
       setRejectNote('');
       fetchTickets();
+      window.dispatchEvent(new Event('ticketsUpdated'));
     } catch (err) {
       console.error(err);
-      alert('Có lỗi xảy ra khi xử lý phiếu');
+      toast.error('Có lỗi xảy ra khi xử lý phiếu');
     } finally {
       setIsProcessing(false);
     }
@@ -83,8 +85,8 @@ export default function AdminTickets() {
                   <TableCell>{ticket.type === 'RESET_MAT_KHAU' ? 'Cấp lại mật khẩu' : ticket.type}</TableCell>
                   <TableCell>{new Date(ticket.createdAt).toLocaleString('vi-VN')}</TableCell>
                   <TableCell>
-                    <Badge variant={ticket.status === 'CHO_DUYET' ? 'warning' : ticket.status === 'DA_XU_LY' ? 'success' : 'destructive'}>
-                      {ticket.status === 'CHO_DUYET' ? 'Chờ duyệt' : ticket.status === 'DA_XU_LY' ? 'Đã duyệt' : 'Từ chối'}
+                    <Badge variant={ticket.status === 'CHO_DUYET' ? 'warning' : ticket.status === 'DA_DUYET' ? 'success' : 'danger'}>
+                      {ticket.status === 'CHO_DUYET' ? 'Chờ duyệt' : ticket.status === 'DA_DUYET' ? 'Đã duyệt' : 'Từ chối'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right space-x-2">

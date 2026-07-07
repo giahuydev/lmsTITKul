@@ -13,7 +13,7 @@ public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "thong_bao_id")
+    @Column(name = "thong_bao_id", columnDefinition = "BIGINT UNSIGNED")
     private Long id;
 
     @Column(name = "tieu_de", nullable = false, length = 200)
@@ -36,6 +36,6 @@ public class Notification {
     private boolean pinned = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nguoi_nhan_id", nullable = false)
+    @JoinColumn(name = "nguoi_nhan_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private User recipient;
 }

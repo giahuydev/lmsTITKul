@@ -60,6 +60,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                     .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                     .requestMatchers("/api/v1/auth/**").permitAll()
+                    // Service-to-service, xác thực bằng header X-Internal-Secret trong HocLieuController.
+                    .requestMatchers("/api/v1/internal/**").permitAll()
                     .anyRequest().authenticated()
                 );
 

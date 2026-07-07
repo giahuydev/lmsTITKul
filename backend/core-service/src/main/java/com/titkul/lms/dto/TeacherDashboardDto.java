@@ -10,6 +10,5 @@ public class TeacherDashboardDto {
     private int classesCount;
     private String homeroomClass;
     private String department;
-    private long totalMaterials;
     private long totalAssignments;
 }

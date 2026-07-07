@@ -30,8 +30,18 @@ public class Assignment {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hoc_lieu_id", referencedColumnName = "hoc_lieu_id")
-    private Material material;
+    @JoinColumn(name = "bai_hoc_id")
+    private Lesson lesson;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dang_bai_id")
+    private ContentNode contentNode;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hoc_ky_id", nullable = false)
+    private Semester semester;
 
     @Column(name = "tieu_de", nullable = false, length = 300)
     private String title;
@@ -56,17 +66,11 @@ public class Assignment {
     @Column(name = "trang_thai", nullable = false)
     private AssignmentStatus status = AssignmentStatus.CHO_DANG;
 
-    @Column(name = "hard_lock", nullable = false)
-    private Boolean isHardLock = false;
+    @Column(name = "so_lan_nop_lai_toi_da", nullable = false)
+    private Integer maxResubmitCount = 1;
 
     @Column(name = "ngay_tao", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @JsonIgnore
-    public String getSubject() {
-        if (material != null && material.getLessonCategory() != null) {
-            return material.getLessonCategory().getSubject();
-        }
-        return "Môn chung";
-    }
+
 }

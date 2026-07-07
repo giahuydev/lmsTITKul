@@ -6,6 +6,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { ticketService } from '../../services/ticket.service';
 import { teacherService } from '../../services/teacher.service';
+import toast from 'react-hot-toast';
 
 export default function TeacherTickets() {
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -45,11 +46,15 @@ export default function TeacherTickets() {
   useEffect(() => {
     fetchData();
     fetchStudents();
+    
+    // Đánh dấu đã xem các thông báo
+    localStorage.setItem('lastSeenTickets', Date.now().toString());
+    window.dispatchEvent(new Event('ticketsUpdated'));
   }, []);
 
   const handleCreateTicket = async () => {
     if (!formData.description) {
-      alert('Vui lòng nhập mô tả!');
+      toast.error('Vui lòng nhập mô tả!');
       return;
     }
     
@@ -60,13 +65,13 @@ export default function TeacherTickets() {
         formData.type,
         formData.description
       );
-      alert('Gửi yêu cầu hỗ trợ thành công!');
+      toast.success('Gửi yêu cầu hỗ trợ thành công!');
       setShowCreateModal(false);
       setFormData({ studentId: '', type: 'RESET_MAT_KHAU', description: '' });
       fetchData();
     } catch (err) {
       console.error(err);
-      alert('Có lỗi xảy ra khi gửi yêu cầu');
+      toast.error('Có lỗi xảy ra khi gửi yêu cầu');
     } finally {
       setIsSubmitting(false);
     }
@@ -95,12 +100,13 @@ export default function TeacherTickets() {
                 <TableHead>Loại yêu cầu</TableHead>
                 <TableHead>Ngày gửi</TableHead>
                 <TableHead>Trạng thái</TableHead>
+                <TableHead>Ghi chú từ Admin</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {tickets.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-slate-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">
                     Bạn chưa gửi yêu cầu hỗ trợ nào
                   </TableCell>
                 </TableRow>
@@ -115,14 +121,23 @@ export default function TeacherTickets() {
                       <Badge variant="warning" className="flex items-center w-fit">
                          <Clock className="w-3 h-3 mr-1" /> Chờ xử lý
                       </Badge>
-                    ) : ticket.status === 'DA_XU_LY' ? (
+                    ) : ticket.status === 'DA_DUYET' ? (
                       <Badge variant="success" className="flex items-center w-fit">
                          <CheckCircle className="w-3 h-3 mr-1" /> Đã duyệt
                       </Badge>
                     ) : (
-                      <Badge variant="destructive" className="flex items-center w-fit">
+                      <Badge variant="danger" className="flex items-center w-fit">
                          <X className="w-3 h-3 mr-1" /> Bị từ chối
                       </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {ticket.adminNote ? (
+                      <span className="text-sm text-slate-600 line-clamp-2" title={ticket.adminNote}>
+                        {ticket.adminNote}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-slate-400 italic">Không có</span>
                     )}
                   </TableCell>
                 </TableRow>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Bell, ArrowRight, Loader2 } from 'lucide-react';
+import { Clock, Bell, ArrowRight, Loader2, BookOpen, Flame, Sparkles, CheckSquare } from 'lucide-react';
 import { studentService } from '../../services/student.service';
+import { cn } from '../../lib/utils';
 
 export default function StudentDashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null);
@@ -22,71 +23,89 @@ export default function StudentDashboard() {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto pb-12">
-      {/* Banner Flat UI */}
-      <div className="bg-blue-600 rounded-3xl p-8 mb-8 text-white shadow-sm flex items-center justify-between overflow-hidden relative">
-        <div className="relative z-10">
-          <h1 className="text-3xl font-black mb-3">Chào em, hôm nay mình học gì?</h1>
-          <p className="text-blue-100 mb-6 font-medium">Hãy chọn một môn học bên dưới để tiếp tục lộ trình nhé.</p>
-          <div className="flex flex-wrap gap-3">
-            <div className="inline-flex bg-blue-700/50 px-4 py-2 rounded-xl font-bold border border-blue-500/50 items-center">
-              <img src="https://img.icons8.com/color/48/fire-element--v1.png" className="w-5 h-5 mr-2" alt="Chuỗi ngày" />
-              Chuỗi 5 ngày!
+    <div className="pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Hero Banner - Premium Gradient */}
+      <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-[32px] p-10 mb-10 text-white shadow-[0_20px_40px_-15px_rgba(79,70,229,0.4)] flex items-center justify-between overflow-hidden relative group">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        <div className="absolute right-0 top-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 group-hover:translate-x-1/4 transition-transform duration-1000"></div>
+        
+        <div className="relative z-10 max-w-2xl">
+          <h1 className="text-4xl lg:text-5xl font-black mb-4 tracking-tight">Chào em, hôm nay mình học gì?</h1>
+          <p className="text-indigo-100/90 mb-8 text-lg font-medium max-w-lg leading-relaxed">Hãy chọn một môn học bên dưới để tiếp tục hành trình khám phá tri thức nhé!</p>
+          
+          <div className="flex flex-wrap gap-4 items-center">
+            {/* Chuỗi ngày */}
+            <div className="inline-flex bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl font-bold border border-white/20 items-center shadow-inner">
+              <Flame className="w-6 h-6 text-orange-400 mr-2.5 fill-orange-400" />
+              <span className="text-white">Chuỗi 5 ngày!</span>
             </div>
+            
             {/* Thanh Level / XP */}
-            <div className="inline-flex flex-col bg-white/10 px-4 py-2 rounded-xl border border-white/20 min-w-[200px]">
-               <div className="flex justify-between text-xs font-bold mb-1">
-                  <span>Level 5: Sóc Nhanh Nhẹn</span>
+            <div className="inline-flex flex-col bg-black/20 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/10 min-w-[240px]">
+               <div className="flex justify-between items-center text-sm font-bold mb-2 text-indigo-50">
+                  <span className="flex items-center"><Sparkles className="w-4 h-4 text-amber-300 mr-1.5" /> Level 5: Sóc Nhanh</span>
                   <span>{dashboardData?.totalXp || 0} / 2,000 XP</span>
                </div>
-               <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden">
-                  <div className="bg-amber-400 h-full w-[62%] rounded-full shadow-[0_0_10px_#fbbf24]"></div>
+               <div className="w-full h-2.5 bg-black/40 rounded-full overflow-hidden shadow-inner">
+                  <div className="bg-gradient-to-r from-amber-400 to-amber-300 h-full w-[62%] rounded-full relative">
+                    <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
+                  </div>
                </div>
             </div>
           </div>
         </div>
-        <img src="https://img.icons8.com/color/240/turtle.png" alt="Mascot" className="w-48 hidden lg:block relative z-10 animate-bounce" />
-        <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+        
+        {/* Decorative Element instead of external Mascot */}
+        <div className="hidden lg:flex w-48 h-48 bg-white/10 backdrop-blur-xl rounded-[40px] rotate-12 items-center justify-center border border-white/20 shadow-2xl relative z-10 group-hover:rotate-6 transition-transform duration-700">
+          <BookOpen className="w-24 h-24 text-white/80" strokeWidth={1.5} />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Main Content (Môn học) */}
-        <div className="lg:col-span-2 space-y-6">
-          <h2 className="text-2xl font-black text-slate-800">Danh sách môn học</h2>
+        <div className="xl:col-span-2 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-black text-slate-800 tracking-tight">Danh sách môn học</h2>
+          </div>
           
           {isLoading ? (
-            <div className="flex justify-center items-center py-20 text-blue-500">
-               <Loader2 className="w-10 h-10 animate-spin" />
+            <div className="flex justify-center items-center py-20 bg-white rounded-[24px] border border-slate-200 shadow-sm">
+               <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
             </div>
           ) : !dashboardData?.subjects || dashboardData.subjects.length === 0 ? (
-            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center text-slate-500">
-               Chưa có bài học nào được giao.
+            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-[24px] p-12 text-center flex flex-col items-center">
+               <BookOpen className="w-12 h-12 text-slate-300 mb-4" />
+               <p className="text-slate-500 font-medium text-lg">Chưa có bài học nào được giao.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {dashboardData.subjects.map((sub: any) => (
-                <div key={sub.id} className="rounded-2xl p-6 border transition-all hover:shadow-md bg-white border-slate-200 flex flex-col group cursor-pointer hover:-translate-y-1">
-                  <div className="flex justify-between items-start mb-6">
-                      <div>
-                        <h3 className="text-xl font-bold text-slate-800 mb-1">{sub.name}</h3>
-                        <p className="text-sm text-slate-500 line-clamp-2">{sub.desc || 'Khám phá tri thức'}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {dashboardData.subjects.map((sub: any, idx: number) => (
+                <div key={sub.id} className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1 transition-all duration-300 flex flex-col group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-[100px] -z-10 group-hover:bg-indigo-100 transition-colors"></div>
+                  
+                  <div className="flex justify-between items-start mb-8">
+                      <div className="pr-4">
+                        <h3 className="text-xl font-bold text-slate-800 mb-1.5">{sub.name}</h3>
+                        <p className="text-[15px] text-slate-500 font-medium line-clamp-2">{sub.desc || 'Khám phá tri thức mới mỗi ngày'}</p>
                       </div>
-                      <img src={sub.icon || "https://img.icons8.com/color/96/book-stack.png"} alt="Icon" className="w-14 h-14 ml-2 shrink-0 group-hover:scale-110 transition-transform" />
+                      <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                        <BookOpen className="w-7 h-7" />
+                      </div>
                   </div>
 
-                  <div className="mb-6 mt-auto">
-                      <div className="flex justify-between text-xs font-bold text-slate-500 mb-2">
+                  <div className="mb-8 mt-auto">
+                      <div className="flex justify-between text-sm font-bold text-slate-600 mb-2.5">
                         <span>Tiến trình học</span>
-                        <span className="text-amber-500">{sub.progress}%</span>
+                        <span className="text-indigo-600">{sub.progress}%</span>
                       </div>
-                      <div className="w-full h-2 rounded-full overflow-hidden bg-slate-100">
-                        <div className="bg-green-400 h-full rounded-full" style={{ width: `${sub.progress}%` }}></div>
+                      <div className="w-full h-3 rounded-full overflow-hidden bg-slate-100 shadow-inner">
+                        <div className="bg-indigo-500 h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${sub.progress}%` }}></div>
                       </div>
                   </div>
 
                   <Link to={`/student/subject/${sub.id}`} className="block">
-                      <button className="w-full py-3 rounded-xl font-bold transition-colors flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-100 hover:border-blue-600">
-                        Tiếp tục học <ArrowRight className="w-4 h-4 ml-2" />
+                      <button className="w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center bg-slate-50 text-slate-700 group-hover:bg-indigo-600 group-hover:text-white group-active:scale-[0.98]">
+                        Tiếp tục học <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
                       </button>
                   </Link>
                 </div>
@@ -96,46 +115,56 @@ export default function StudentDashboard() {
         </div>
 
         {/* Sidebar Widgets (To-do & Notifications) */}
-        <div className="space-y-6">
+        <div className="space-y-8">
            {/* Widget: Bài tập sắp đến hạn */}
-           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-              <div className="flex items-center justify-between mb-5">
+           <div className="bg-white rounded-[24px] p-7 border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
                  <h2 className="text-lg font-black text-slate-800 flex items-center">
-                    <Clock className="w-5 h-5 text-orange-500 mr-2" /> Cần làm ngay
+                    <Clock className="w-5 h-5 text-orange-500 mr-2.5 stroke-[2.5px]" /> Cần làm ngay
                  </h2>
-                 <Link to="/student/tasks" className="text-sm font-bold text-blue-600 hover:text-blue-800">Tất cả</Link>
+                 <Link to="/student/tasks" className="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors">Tất cả</Link>
               </div>
               <div className="space-y-3">
                  {dashboardData?.upcomingTasks?.map((task: any) => (
-                    <Link to="/student/tasks" key={task.id} className="block p-3 rounded-xl border border-slate-100 hover:border-orange-200 hover:bg-orange-50 transition-colors group">
-                       <div className="flex justify-between items-start mb-1">
-                          <h3 className="font-bold text-slate-700 group-hover:text-orange-700 text-sm line-clamp-1">{task.title}</h3>
-                       </div>
-                       <div className="flex justify-between items-center text-xs font-semibold">
-                          <span className="text-slate-500">{task.subject}</span>
-                          <span className="text-orange-600 bg-orange-100 px-2 py-0.5 rounded">{task.time}</span>
+                    <Link to="/student/tasks" key={task.id} className="block p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:border-orange-200 hover:bg-orange-50 hover:shadow-sm transition-all active:scale-[0.98] group">
+                       <h3 className="font-bold text-slate-700 group-hover:text-orange-800 text-[15px] line-clamp-1 mb-2">{task.title}</h3>
+                       <div className="flex justify-between items-center text-sm font-semibold">
+                          <span className="text-slate-500 group-hover:text-orange-600/80">{task.subject}</span>
+                          <span className="text-orange-700 bg-orange-100 px-2.5 py-1 rounded-lg">{task.time}</span>
                        </div>
                     </Link>
                  ))}
-                 {(!dashboardData?.upcomingTasks || dashboardData.upcomingTasks.length === 0) && <p className="text-sm text-slate-500 text-center py-2">Em không có bài tập nào sắp đến hạn!</p>}
+                 {(!dashboardData?.upcomingTasks || dashboardData.upcomingTasks.length === 0) && (
+                   <div className="py-6 text-center">
+                     <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                       <CheckSquare className="w-6 h-6 text-green-500" />
+                     </div>
+                     <p className="text-[15px] font-medium text-slate-500">Em không có bài tập nào sắp đến hạn!</p>
+                   </div>
+                 )}
               </div>
            </div>
 
            {/* Widget: Thông báo mới */}
-           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-              <div className="flex items-center justify-between mb-5">
+           <div className="bg-white rounded-[24px] p-7 border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
                  <h2 className="text-lg font-black text-slate-800 flex items-center">
-                    <Bell className="w-5 h-5 text-blue-500 mr-2" /> Thông báo mới
+                    <Bell className="w-5 h-5 text-indigo-500 mr-2.5 stroke-[2.5px]" /> Thông báo mới
                  </h2>
-                 <Link to="/student/notifications" className="text-sm font-bold text-blue-600 hover:text-blue-800">Tất cả</Link>
+                 <Link to="/student/notifications" className="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors">Tất cả</Link>
               </div>
               <div className="space-y-3">
                  {dashboardData?.recentNotifications?.map((noti: any) => (
-                    <Link to="/student/notifications" key={noti.id} className="block p-3 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50 transition-colors group relative overflow-hidden">
-                       {noti.isNew && <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>}
-                       <h3 className={`text-sm line-clamp-2 ${noti.isNew ? 'font-bold text-slate-800' : 'font-semibold text-slate-600'}`}>{noti.title}</h3>
+                    <Link to="/student/notifications" key={noti.id} className="block p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:border-indigo-200 hover:bg-indigo-50 hover:shadow-sm transition-all active:scale-[0.98] group relative overflow-hidden">
+                       {noti.isNew && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500"></div>}
+                       <h3 className={cn("text-[15px] line-clamp-2", noti.isNew ? "font-bold text-slate-800" : "font-semibold text-slate-600 group-hover:text-indigo-700")}>
+                         {noti.title}
+                       </h3>
                     </Link>
                  ))}
+                 {(!dashboardData?.recentNotifications || dashboardData.recentNotifications.length === 0) && (
+                   <p className="text-[15px] text-slate-500 text-center py-4 font-medium">Không có thông báo mới.</p>
+                 )}
               </div>
            </div>
         </div>

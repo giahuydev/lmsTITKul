@@ -14,7 +14,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "nguoi_dung_id")
+    @Column(name = "nguoi_dung_id", columnDefinition = "BIGINT UNSIGNED")
     private Long id;
 
     @Column(name = "ten_dang_nhap", nullable = false, unique = true, length = 100)

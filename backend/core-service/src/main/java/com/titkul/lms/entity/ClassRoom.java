@@ -14,7 +14,7 @@ public class ClassRoom {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "lop_hoc_id")
+    @Column(name = "lop_hoc_id", columnDefinition = "BIGINT UNSIGNED")
     private Long id;
 
     @Column(name = "ten_lop", nullable = false, length = 20)
@@ -23,12 +23,13 @@ public class ClassRoom {
     @Column(name = "khoi_lop", nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Short grade;
 
-    @Column(name = "nam_hoc", nullable = false, length = 10)
-    private String academicYear;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nam_hoc_id", nullable = false, columnDefinition = "INT UNSIGNED")
+    private AcademicYear academicYear;
 
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "giao_vien_chu_nhiem_id")
+    @JoinColumn(name = "giao_vien_chu_nhiem_id", columnDefinition = "BIGINT UNSIGNED")
     private TeacherProfile homeroomTeacher;
 
     @Column(name = "si_so_toi_da", nullable = false, columnDefinition = "TINYINT UNSIGNED")

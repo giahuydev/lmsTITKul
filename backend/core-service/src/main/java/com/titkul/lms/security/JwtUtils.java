@@ -40,6 +40,16 @@ public class JwtUtils {
                 .compact();
     }
 
+    public String generateJwtTokenFromUsername(String username, String role) {
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("role", role.replace("ROLE_", ""))
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
     public String getUserNameFromJwtToken(String token) {
         return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody().getSubject();
     }

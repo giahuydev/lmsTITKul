@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import toast from 'react-hot-toast';
 import { Badge } from '../../components/ui/Badge';
 import { Plus, Trash2, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -40,10 +41,10 @@ export default function AdminSettings() {
     setIsLoading(true);
     try {
       await adminService.updateSystemConfig(config);
-      alert('Lưu cấu hình thành công!');
+      toast.success('Lưu cấu hình thành công!');
     } catch (err) {
       console.error(err);
-      alert('Có lỗi xảy ra khi lưu cấu hình');
+      toast.error('Có lỗi xảy ra khi lưu cấu hình');
     } finally {
       setIsLoading(false);
     }

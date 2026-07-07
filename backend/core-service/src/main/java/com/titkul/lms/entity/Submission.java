@@ -29,14 +29,23 @@ public class Submission {
     @JoinColumn(name = "hoc_sinh_id", referencedColumnName = "hoc_sinh_id", nullable = false)
     private StudentProfile student;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dang_bai_id")
+    private ContentNode contentNode;
+
     @Column(name = "noi_dung_text", columnDefinition = "TEXT")
     private String textContent;
 
     @Column(name = "file_dinh_kem", length = 500)
     private String attachmentUrl;
 
-    @Column(name = "diem_h5p", precision = 5, scale = 2)
-    private BigDecimal h5pScore;
+    @Column(name = "diem_tu_dong", precision = 5, scale = 2)
+    private BigDecimal autoScore;
+
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "chi_tiet_bai_lam")
+    private String interactionDetails;
 
     @Column(name = "xp_nhan_duoc", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer xpEarned = 0;

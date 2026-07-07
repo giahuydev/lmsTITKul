@@ -5,6 +5,7 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
+import toast from 'react-hot-toast';
 import { Input } from '../../components/ui/Input';
 
 import { classService } from '../../services/class.service';
@@ -56,11 +57,11 @@ export default function TeacherClassDetails() {
         'RESET_MAT_KHAU',
         ticketDescription
       );
-      alert('Gửi yêu cầu cấp lại mật khẩu thành công!');
+      toast.success('Gửi yêu cầu cấp lại mật khẩu thành công!');
       setResetStudent(null);
     } catch (err) {
       console.error(err);
-      alert('Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại.');
+      toast.error('Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại.');
     } finally {
       setIsSubmitting(false);
     }

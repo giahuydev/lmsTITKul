@@ -6,6 +6,7 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
+import toast from 'react-hot-toast';
 
 import { classService, type ClassRoom } from '../../services/class.service';
 import { adminService } from '../../services/admin.service';
@@ -38,8 +39,8 @@ export default function ClassDetails() {
       setStudents(stus);
       setAllClasses(clsList);
     } catch (err) {
+      toast.error('Không thể tải dữ liệu lớp học');
       console.error(err);
-      alert('Không thể tải dữ liệu lớp học');
     } finally {
       setIsLoading(false);
     }
@@ -60,12 +61,12 @@ export default function ClassDetails() {
     setIsTransferring(true);
     try {
       await adminService.transferClass(selectedStudent.id, parseInt(transferClassId));
-      alert('Chuyển lớp thành công!');
+      toast.success('Chuyển lớp thành công!');
       setShowTransferModal(false);
       fetchData(); // Reload data
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || 'Có lỗi xảy ra khi chuyển lớp');
+      toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi chuyển lớp');
     } finally {
       setIsTransferring(false);
     }

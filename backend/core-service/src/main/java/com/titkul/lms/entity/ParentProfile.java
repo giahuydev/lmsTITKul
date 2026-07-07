@@ -12,11 +12,11 @@ public class ParentProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "phu_huynh_id")
+    @Column(name = "phu_huynh_id", columnDefinition = "BIGINT UNSIGNED")
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nguoi_dung_id", nullable = false, unique = true)
+    @JoinColumn(name = "nguoi_dung_id", nullable = false, unique = true, columnDefinition = "BIGINT UNSIGNED")
     private User user;
 
     @Column(name = "ho_ten", nullable = false, length = 100)

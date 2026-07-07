@@ -14,10 +14,15 @@ export interface ClassRoom {
 export interface Material {
   id: number;
   title: string;
-  materialType: 'TAI_LIEU' | 'BAI_GIANG_H5P' | 'BAI_TAP_H5P';
-  origin: string;
+  type: 'TAI_LIEU' | 'BAI_GIANG_H5P' | 'BAI_TAP_H5P';
+  origin: 'THU_VIEN_GOC' | 'GIAO_VIEN_TAO';
+  fileUrl: string | null;
+  h5pContentId: string | null;
   xpReward: number;
   allowRetry: boolean;
+  maxRetryCount: number | null;
+  createdAt: string;
+  teacherUserId: number | null;
 }
 
 export interface Assignment {
@@ -27,7 +32,7 @@ export interface Assignment {
   type: string;
   deadline: string;
   status: string;
-  isHardLock: boolean;
+  maxResubmitCount: number;
   createdAt: string;
 }
 
@@ -50,7 +55,7 @@ export interface AssignmentCreateDTO {
   teacherId: number;
   type: string;
   deadline: string;
-  isHardLock: boolean;
+  maxResubmitCount: number;
 }
 
 export interface EvaluateDTO {
@@ -70,10 +75,21 @@ export const teacherService = {
     return response.data;
   },
 
-  // Lấy danh sách học liệu để chọn giao bài
-  getMaterials: async (): Promise<Material[]> => {
-    const response = await api.get<Material[]>('/materials');
+  // Lấy danh sách học liệu (Kho học liệu). Truyền giaoVienId để lọc "kho cá nhân của tôi".
+  getMaterials: async (giaoVienId?: number): Promise<Material[]> => {
+    const response = await api.get<Material[]>('/hoc-lieu', {
+      params: giaoVienId ? { giaoVienId } : undefined,
+    });
     return response.data;
+  },
+
+  getMaterialById: async (id: number | string): Promise<Material> => {
+    const response = await api.get<Material>(`/hoc-lieu/${id}`);
+    return response.data;
+  },
+
+  deleteMaterial: async (id: number | string): Promise<void> => {
+    await api.delete(`/hoc-lieu/${id}`);
   },
 
   // Giao bài tập mới
@@ -102,5 +118,10 @@ export const teacherService = {
   getAllTeachers: async (): Promise<any[]> => {
     const response = await api.get('/teachers');
     return response.data;
-  }
+  },
+
+  getReports: async (): Promise<any> => {
+    const response = await api.get('/teachers/me/reports');
+    return response.data;
+  },
 };
