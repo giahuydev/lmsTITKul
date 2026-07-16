@@ -1,6 +1,6 @@
 package com.titkul.lms.entity;
 
-public enum Role {
+public enum VaiTro {
     ADMIN,
     GIAO_VIEN,
     HOC_SINH,

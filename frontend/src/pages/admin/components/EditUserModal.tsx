@@ -5,7 +5,7 @@ import { Input } from '../../../components/ui/Input';
 interface EditUserModalProps {
   user: any;
   activeTab: string;
-  formData: { phone: string; status: string };
+  formData: { soDienThoai: string; trangThai: string };
   setFormData: (data: any) => void;
   onConfirm: () => void;
   onClose: () => void;
@@ -39,19 +39,19 @@ export function EditUserModal({
           </div>
           
           {(activeTab === 'teacher' || activeTab === 'parent') && (
-            <Input 
-              label="Số điện thoại" 
-              value={formData.phone} 
-              onChange={(e) => setFormData({...formData, phone: e.target.value})}
+            <Input
+              label="Số điện thoại"
+              value={formData.soDienThoai}
+              onChange={(e) => setFormData({...formData, soDienThoai: e.target.value})}
             />
           )}
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">Trạng thái</label>
-            <select 
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white text-base focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" 
-              value={formData.status}
-              onChange={(e) => setFormData({...formData, status: e.target.value})}
+            <select
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white text-base focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+              value={formData.trangThai}
+              onChange={(e) => setFormData({...formData, trangThai: e.target.value})}
             >
               <option value="ACTIVE">Hoạt động</option>
               <option value="LOCKED">Bị khóa</option>

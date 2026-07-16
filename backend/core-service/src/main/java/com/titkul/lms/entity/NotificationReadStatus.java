@@ -20,7 +20,7 @@ public class NotificationReadStatus {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_dung_id", nullable = false)
-    private User user;
+    private NguoiDung user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "thong_bao_id", nullable = false)

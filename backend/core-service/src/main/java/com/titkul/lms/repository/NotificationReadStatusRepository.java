@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface NotificationReadStatusRepository extends JpaRepository<NotificationReadStatus, Long> {
-    Optional<NotificationReadStatus> findByUser_IdAndNotification_Id(Long userId, Long notificationId);
+    Optional<NotificationReadStatus> findByUser_NguoiDungIdAndNotification_Id(Long userId, Long notificationId);
 
-    List<NotificationReadStatus> findByUser_Id(Long userId);
+    List<NotificationReadStatus> findByUser_NguoiDungId(Long userId);
 }

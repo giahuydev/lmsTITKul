@@ -9,7 +9,7 @@ public class HocLieuInternalDTO {
     private String tieuDe;
     private String loaiHocLieu; // TAI_LIEU / BAI_GIANG_H5P / BAI_TAP_H5P
     private String nguonGoc;    // THU_VIEN_GOC / GIAO_VIEN_TAO
-    private Long giaoVienId;    // User id (nguoi_dung_id) của GV, không phải giao_vien_id
+    private Long giaoVienId;    // NguoiDung id (nguoi_dung_id) của GV, không phải giao_vien_id
     private Short khoiLop;      // Khối lớp — chỉ gửi khi tạo mới, null thì giữ nguyên giá trị cũ
     private Integer monHocId;   // Môn học — chỉ gửi khi tạo mới, null thì giữ nguyên giá trị cũ
 }

@@ -20,7 +20,7 @@ public class HoSoGiaoVien {
     @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_dung_id", nullable = false, unique = true, columnDefinition = "BIGINT UNSIGNED")
-    private User nguoiDung;
+    private NguoiDung nguoiDung;
 
     @Column(name = "ma_giao_vien", unique = true, length = 30)
     private String maGiaoVien;

@@ -23,7 +23,7 @@ public class ParentService {
     private static final List<NotificationAudience> PARENT_AUDIENCE =
             List.of(NotificationAudience.TAT_CA, NotificationAudience.PHU_HUYNH);
 
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final HoSoPhuHuynhRepository parentProfileRepository;
     private final DanhGiaBaiLamRepository evaluationRepository;
     private final BaiTapRepository assignmentRepository;
@@ -35,7 +35,7 @@ public class ParentService {
 
     @Transactional(readOnly = true)
     public ParentDashboardDto getDashboard(String username) {
-        User user = resolveUser(username);
+        NguoiDung user = resolveUser(username);
         HoSoPhuHuynh profile = resolveProfile(user);
 
         List<HoSoHocSinh> children = profile.getDanhSachHocSinh() != null ? profile.getDanhSachHocSinh() : Collections.emptyList();
@@ -143,14 +143,14 @@ public class ParentService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getNotifications(String username) {
-        User user = resolveUser(username);
+        NguoiDung user = resolveUser(username);
         HoSoPhuHuynh profile = resolveProfile(user);
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
         return resolveVisibleNotifications(profile).stream()
                 .map(n -> {
                     boolean read = notificationReadStatusRepository
-                            .findByUser_IdAndNotification_Id(user.getId(), n.getId())
+                            .findByUser_NguoiDungIdAndNotification_Id(user.getNguoiDungId(), n.getId())
                             .map(NotificationReadStatus::isRead)
                             .orElse(false);
                     Map<String, Object> map = new LinkedHashMap<>();
@@ -168,20 +168,20 @@ public class ParentService {
 
     @Transactional
     public void markNotificationRead(String username, Long notificationId) {
-        User user = resolveUser(username);
+        NguoiDung user = resolveUser(username);
         markNotificationReadForUser(user, notificationId);
     }
 
     @Transactional
     public void markAllNotificationsRead(String username) {
-        User user = resolveUser(username);
+        NguoiDung user = resolveUser(username);
         HoSoPhuHuynh profile = resolveProfile(user);
         resolveVisibleNotifications(profile).forEach(n -> markNotificationReadForUser(user, n.getId()));
     }
 
-    private void markNotificationReadForUser(User user, Long notificationId) {
+    private void markNotificationReadForUser(NguoiDung user, Long notificationId) {
         NotificationReadStatus status = notificationReadStatusRepository
-                .findByUser_IdAndNotification_Id(user.getId(), notificationId)
+                .findByUser_NguoiDungIdAndNotification_Id(user.getNguoiDungId(), notificationId)
                 .orElseGet(NotificationReadStatus::new);
         if (status.getId() == null) {
             status.setUser(user);
@@ -233,9 +233,9 @@ public class ParentService {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Học sinh không thuộc phụ huynh này"));
 
-        User childUser = child.getNguoiDung();
-        childUser.setPasswordHash(passwordEncoder.encode(newPassword));
-        childUser.setRequirePasswordChange(true);
+        NguoiDung childUser = child.getNguoiDung();
+        childUser.setMatKhauHash(passwordEncoder.encode(newPassword));
+        childUser.setBatBuocDoiMk(true);
         userRepository.save(childUser);
     }
 
@@ -253,13 +253,13 @@ public class ParentService {
 
     // ── Private helpers ───────────────────────────────────────────────────────────
 
-    private User resolveUser(String username) {
-        return userRepository.findByUsername(username)
+    private NguoiDung resolveUser(String username) {
+        return userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
     }
 
-    private HoSoPhuHuynh resolveProfile(User user) {
-        return parentProfileRepository.findByNguoiDungId(user.getId())
+    private HoSoPhuHuynh resolveProfile(NguoiDung user) {
+        return parentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ phụ huynh"));
     }
 

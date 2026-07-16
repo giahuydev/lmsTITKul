@@ -31,7 +31,7 @@ export function useUsersViewModel() {
 
   // Selected + form state
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [editFormData, setEditFormData] = useState({ phone: '', status: '' });
+  const [editFormData, setEditFormData] = useState({ soDienThoai: '', trangThai: '' });
   const [createFormData, setCreateFormData] = useState(INITIAL_CREATE_FORM);
   const [transferClassId, setTransferClassId] = useState('');
   const [transferReason, setTransferReason] = useState('DOI_LOP');
@@ -143,7 +143,7 @@ export function useUsersViewModel() {
 
   const openEditModal = (user: any) => {
     setSelectedUser(user);
-    setEditFormData({ phone: user.phone ?? '', status: user.status });
+    setEditFormData({ soDienThoai: user.phone ?? '', trangThai: user.status });
     setShowEditModal(true);
   };
 

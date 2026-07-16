@@ -1,9 +1,9 @@
 package com.titkul.lms.service;
 
 import com.titkul.lms.entity.LoginSession;
-import com.titkul.lms.entity.User;
+import com.titkul.lms.entity.NguoiDung;
 import com.titkul.lms.repository.LoginSessionRepository;
-import com.titkul.lms.repository.UserRepository;
+import com.titkul.lms.repository.NguoiDungRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,10 +20,10 @@ public class RefreshTokenService {
     private Long refreshTokenDurationMs;
 
     private final LoginSessionRepository loginSessionRepository;
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
 
     public LoginSession createRefreshToken(Long userId, String deviceName, String ipAddress) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        NguoiDung user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         
         LoginSession session = LoginSession.builder()
                 .user(user)

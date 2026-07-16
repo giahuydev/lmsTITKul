@@ -1,15 +1,15 @@
 package com.titkul.lms.config;
 
 import com.titkul.lms.entity.LopHoc;
-import com.titkul.lms.entity.Role;
+import com.titkul.lms.entity.VaiTro;
 import com.titkul.lms.entity.HoSoGiaoVien;
-import com.titkul.lms.entity.User;
-import com.titkul.lms.entity.UserStatus;
+import com.titkul.lms.entity.NguoiDung;
+import com.titkul.lms.entity.TrangThaiNguoiDung;
 import com.titkul.lms.entity.NamHoc;
 import com.titkul.lms.repository.NamHocRepository;
 import com.titkul.lms.repository.LopHocRepository;
 import com.titkul.lms.repository.HoSoGiaoVienRepository;
-import com.titkul.lms.repository.UserRepository;
+import com.titkul.lms.repository.NguoiDungRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final HoSoGiaoVienRepository teacherProfileRepository;
     private final LopHocRepository classRoomRepository;
@@ -27,52 +27,52 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (!userRepository.existsByUsername("HS001")) {
-            User user = new User();
-            user.setUsername("HS001");
-            user.setPasswordHash(passwordEncoder.encode("Password123!"));
-            user.setRole(Role.HOC_SINH);
-            user.setStatus(UserStatus.ACTIVE);
-            user.setRequirePasswordChange(false);
+        if (!userRepository.existsByTenDangNhap("HS001")) {
+            NguoiDung user = new NguoiDung();
+            user.setTenDangNhap("HS001");
+            user.setMatKhauHash(passwordEncoder.encode("Password123!"));
+            user.setVaiTro(VaiTro.HOC_SINH);
+            user.setTrangThai(TrangThaiNguoiDung.ACTIVE);
+            user.setBatBuocDoiMk(false);
             userRepository.save(user);
             System.out.println("====== SEEDED TEST USER: HS001 / Password123! ======");
         }
 
-        if (!userRepository.existsByUsername("GV001")) {
-            User teacherUser = new User();
-            teacherUser.setUsername("GV001");
-            teacherUser.setPasswordHash(passwordEncoder.encode("Password123!"));
-            teacherUser.setRole(Role.GIAO_VIEN);
-            teacherUser.setStatus(UserStatus.ACTIVE);
-            teacherUser.setRequirePasswordChange(false);
+        if (!userRepository.existsByTenDangNhap("GV001")) {
+            NguoiDung teacherUser = new NguoiDung();
+            teacherUser.setTenDangNhap("GV001");
+            teacherUser.setMatKhauHash(passwordEncoder.encode("Password123!"));
+            teacherUser.setVaiTro(VaiTro.GIAO_VIEN);
+            teacherUser.setTrangThai(TrangThaiNguoiDung.ACTIVE);
+            teacherUser.setBatBuocDoiMk(false);
             userRepository.save(teacherUser);
         }
 
-        if (!userRepository.existsByUsername("AD001")) {
-            User adminUser = new User();
-            adminUser.setUsername("AD001");
-            adminUser.setPasswordHash(passwordEncoder.encode("Password123!"));
-            adminUser.setRole(Role.ADMIN);
-            adminUser.setStatus(UserStatus.ACTIVE);
-            adminUser.setRequirePasswordChange(false);
+        if (!userRepository.existsByTenDangNhap("AD001")) {
+            NguoiDung adminUser = new NguoiDung();
+            adminUser.setTenDangNhap("AD001");
+            adminUser.setMatKhauHash(passwordEncoder.encode("Password123!"));
+            adminUser.setVaiTro(VaiTro.ADMIN);
+            adminUser.setTrangThai(TrangThaiNguoiDung.ACTIVE);
+            adminUser.setBatBuocDoiMk(false);
             userRepository.save(adminUser);
             System.out.println("====== SEEDED TEST ADMIN: AD001 / Password123! ======");
         }
 
-        if (!userRepository.existsByUsername("PH001")) {
-            User parentUser = new User();
-            parentUser.setUsername("PH001");
-            parentUser.setPasswordHash(passwordEncoder.encode("Password123!"));
-            parentUser.setRole(Role.PHU_HUYNH);
-            parentUser.setStatus(UserStatus.ACTIVE);
-            parentUser.setRequirePasswordChange(false);
+        if (!userRepository.existsByTenDangNhap("PH001")) {
+            NguoiDung parentUser = new NguoiDung();
+            parentUser.setTenDangNhap("PH001");
+            parentUser.setMatKhauHash(passwordEncoder.encode("Password123!"));
+            parentUser.setVaiTro(VaiTro.PHU_HUYNH);
+            parentUser.setTrangThai(TrangThaiNguoiDung.ACTIVE);
+            parentUser.setBatBuocDoiMk(false);
             userRepository.save(parentUser);
             System.out.println("====== SEEDED TEST PARENT: PH001 / Password123! ======");
         }
 
         // Ensure GV001 always has a HoSoGiaoVien, regardless of classroom count
-        User teacherUser = userRepository.findByUsername("GV001").orElseThrow();
-        HoSoGiaoVien teacherProfile = teacherProfileRepository.findByNguoiDungId(teacherUser.getId())
+        NguoiDung teacherUser = userRepository.findByTenDangNhap("GV001").orElseThrow();
+        HoSoGiaoVien teacherProfile = teacherProfileRepository.findByNguoiDung_NguoiDungId(teacherUser.getNguoiDungId())
                 .orElseGet(() -> {
                     HoSoGiaoVien p = new HoSoGiaoVien();
                     p.setNguoiDung(teacherUser);

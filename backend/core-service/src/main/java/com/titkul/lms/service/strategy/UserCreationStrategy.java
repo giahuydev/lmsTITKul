@@ -1,10 +1,10 @@
 package com.titkul.lms.service.strategy;
 
 import com.titkul.lms.dto.CreateUserDto;
-import com.titkul.lms.entity.Role;
-import com.titkul.lms.entity.User;
+import com.titkul.lms.entity.VaiTro;
+import com.titkul.lms.entity.NguoiDung;
 
 public interface UserCreationStrategy {
     boolean supports(String roleStr);
-    User createUser(CreateUserDto dto, String defaultPasswordHash);
+    NguoiDung createUser(CreateUserDto dto, String defaultPasswordHash);
 }

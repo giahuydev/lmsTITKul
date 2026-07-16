@@ -9,7 +9,7 @@ import java.util.Optional;
 @Repository
 public interface HoSoHocSinhRepository extends JpaRepository<HoSoHocSinh, Long> {
     Optional<HoSoHocSinh> findByMaHocSinh(String maHocSinh);
-    Optional<HoSoHocSinh> findByNguoiDungId(Long nguoiDungId);
+    Optional<HoSoHocSinh> findByNguoiDung_NguoiDungId(Long nguoiDungId);
     java.util.List<HoSoHocSinh> findByPhuHuynh_PhuHuynhId(Long phuHuynhId);
     java.util.List<HoSoHocSinh> findByLopHoc_LopHocId(Long lopHocId);
     long countByLopHoc_LopHocId(Long lopHocId);

@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface HoSoGiaoVienRepository extends JpaRepository<HoSoGiaoVien, Long> {
-    java.util.Optional<HoSoGiaoVien> findByNguoiDungId(Long nguoiDungId);
+    java.util.Optional<HoSoGiaoVien> findByNguoiDung_NguoiDungId(Long nguoiDungId);
 }

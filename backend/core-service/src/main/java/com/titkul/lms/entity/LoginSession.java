@@ -20,7 +20,7 @@ public class LoginSession {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_dung_id", nullable = false)
-    private User user;
+    private NguoiDung user;
 
     @Column(name = "refresh_token", nullable = false, length = 512, unique = true)
     private String refreshToken;

@@ -5,9 +5,9 @@ import com.titkul.lms.dto.SupportTicketDto;
 import com.titkul.lms.dto.SupportTicketRequest;
 import com.titkul.lms.entity.SupportTicket;
 import com.titkul.lms.entity.SupportTicketStatus;
-import com.titkul.lms.entity.User;
+import com.titkul.lms.entity.NguoiDung;
 import com.titkul.lms.repository.SupportTicketRepository;
-import com.titkul.lms.repository.UserRepository;
+import com.titkul.lms.repository.NguoiDungRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,14 +22,14 @@ import java.util.stream.Collectors;
 public class SupportTicketService {
 
     private final SupportTicketRepository ticketRepository;
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public SupportTicketDto createTicket(String teacherUsername, SupportTicketRequest request) {
-        User teacher = userRepository.findByUsername(teacherUsername)
+        NguoiDung teacher = userRepository.findByTenDangNhap(teacherUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
-        User student = userRepository.findById(request.getStudentId())
+        NguoiDung student = userRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
 
         SupportTicket ticket = new SupportTicket();
@@ -45,9 +45,9 @@ public class SupportTicketService {
 
     @Transactional(readOnly = true)
     public List<SupportTicketDto> getTicketsByTeacherUsername(String teacherUsername) {
-        User teacher = userRepository.findByUsername(teacherUsername)
+        NguoiDung teacher = userRepository.findByTenDangNhap(teacherUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
-        return ticketRepository.findByTeacherIdOrderByCreatedAtDesc(teacher.getId())
+        return ticketRepository.findByTeacher_NguoiDungIdOrderByCreatedAtDesc(teacher.getNguoiDungId())
                 .stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
@@ -61,7 +61,7 @@ public class SupportTicketService {
     public SupportTicketDto processTicket(Long ticketId, String adminUsername, ProcessTicketRequest request) {
         SupportTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu hỗ trợ"));
-        User admin = userRepository.findByUsername(adminUsername)
+        NguoiDung admin = userRepository.findByTenDangNhap(adminUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Admin"));
 
         if (ticket.getStatus() != SupportTicketStatus.CHO_DUYET) {
@@ -74,11 +74,11 @@ public class SupportTicketService {
         ticket.setProcessedAt(LocalDateTime.now());
 
         if (request.getStatus() == SupportTicketStatus.DA_DUYET && "RESET_MAT_KHAU".equals(ticket.getType())) {
-            User student = ticket.getStudent();
+            NguoiDung student = ticket.getStudent();
             // Reset mật khẩu về mặc định (ví dụ: số điện thoại hoặc mã học sinh, hoặc chuỗi cố định)
             // Lấy username của học sinh làm mật khẩu mặc định luôn
-            student.setPasswordHash(passwordEncoder.encode(student.getUsername()));
-            student.setRequirePasswordChange(true);
+            student.setMatKhauHash(passwordEncoder.encode(student.getTenDangNhap()));
+            student.setBatBuocDoiMk(true);
             userRepository.save(student);
         }
 
@@ -89,10 +89,10 @@ public class SupportTicketService {
     private SupportTicketDto mapToDto(SupportTicket ticket) {
         SupportTicketDto dto = new SupportTicketDto();
         dto.setId(ticket.getId());
-        dto.setTeacherId(ticket.getTeacher().getId());
-        dto.setTeacherName(ticket.getTeacher().getUsername()); // Should map to profile name if available
-        dto.setStudentId(ticket.getStudent().getId());
-        dto.setStudentName(ticket.getStudent().getUsername()); // Should map to profile name if available
+        dto.setTeacherId(ticket.getTeacher().getNguoiDungId());
+        dto.setTeacherName(ticket.getTeacher().getTenDangNhap()); // Should map to profile name if available
+        dto.setStudentId(ticket.getStudent().getNguoiDungId());
+        dto.setStudentName(ticket.getStudent().getTenDangNhap()); // Should map to profile name if available
         dto.setType(ticket.getType());
         dto.setDescription(ticket.getDescription());
         dto.setStatus(ticket.getStatus().name());

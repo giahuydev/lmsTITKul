@@ -44,7 +44,7 @@ public class ClassTransferHistory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_thuc_hien_id", nullable = false)
-    private User performedBy;
+    private NguoiDung performedBy;
 
     @Column(name = "thoi_diem_chuyen", nullable = false, updatable = false)
     private LocalDateTime transferredAt = LocalDateTime.now();

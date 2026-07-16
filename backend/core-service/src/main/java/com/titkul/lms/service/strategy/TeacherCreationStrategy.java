@@ -1,12 +1,12 @@
 package com.titkul.lms.service.strategy;
 
 import com.titkul.lms.dto.CreateUserDto;
-import com.titkul.lms.entity.Role;
+import com.titkul.lms.entity.VaiTro;
 import com.titkul.lms.entity.HoSoGiaoVien;
-import com.titkul.lms.entity.User;
-import com.titkul.lms.entity.UserStatus;
+import com.titkul.lms.entity.NguoiDung;
+import com.titkul.lms.entity.TrangThaiNguoiDung;
 import com.titkul.lms.repository.HoSoGiaoVienRepository;
-import com.titkul.lms.repository.UserRepository;
+import com.titkul.lms.repository.NguoiDungRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TeacherCreationStrategy implements UserCreationStrategy {
 
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final HoSoGiaoVienRepository teacherProfileRepository;
 
     @Override
@@ -25,23 +25,23 @@ public class TeacherCreationStrategy implements UserCreationStrategy {
 
     @Override
     @Transactional
-    public User createUser(CreateUserDto dto, String defaultPasswordHash) {
+    public NguoiDung createUser(CreateUserDto dto, String defaultPasswordHash) {
         if (dto.getPhone() == null || dto.getPhone().isBlank()) {
             throw new IllegalArgumentException("Số điện thoại là bắt buộc để tạo tài khoản Giáo viên.");
         }
 
         String username = "GV" + dto.getPhone();
-        if (userRepository.existsByUsername(username)) {
+        if (userRepository.existsByTenDangNhap(username)) {
             throw new RuntimeException("Đã tồn tại tài khoản Giáo viên với số điện thoại này.");
         }
 
-        User user = new User();
-        user.setUsername(username);
-        user.setPasswordHash(defaultPasswordHash);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRequirePasswordChange(true);
-        user.setRole(Role.GIAO_VIEN);
-        user.setPhone(dto.getPhone());
+        NguoiDung user = new NguoiDung();
+        user.setTenDangNhap(username);
+        user.setMatKhauHash(defaultPasswordHash);
+        user.setTrangThai(TrangThaiNguoiDung.ACTIVE);
+        user.setBatBuocDoiMk(true);
+        user.setVaiTro(VaiTro.GIAO_VIEN);
+        user.setSoDienThoai(dto.getPhone());
 
         user = userRepository.save(user);
 

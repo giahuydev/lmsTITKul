@@ -16,7 +16,7 @@ import com.titkul.lms.entity.KhenThuongHocSinh;
 import com.titkul.lms.entity.NguonCap;
 import com.titkul.lms.entity.MonHoc;
 import com.titkul.lms.entity.HoSoGiaoVien;
-import com.titkul.lms.entity.User;
+import com.titkul.lms.entity.NguoiDung;
 import com.titkul.lms.repository.BaiTapRepository;
 import com.titkul.lms.repository.HuyHieuRepository;
 import com.titkul.lms.repository.LopHocRepository;
@@ -25,7 +25,7 @@ import com.titkul.lms.repository.NotificationRepository;
 import com.titkul.lms.repository.KhenThuongHocSinhRepository;
 import com.titkul.lms.repository.MonHocRepository;
 import com.titkul.lms.repository.HoSoGiaoVienRepository;
-import com.titkul.lms.repository.UserRepository;
+import com.titkul.lms.repository.NguoiDungRepository;
 import com.titkul.lms.repository.HoSoHocSinhRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TeacherService {
 
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final HoSoGiaoVienRepository teacherProfileRepository;
     private final LopHocRepository classRoomRepository;
     private final BaiTapRepository assignmentRepository;
@@ -54,10 +54,10 @@ public class TeacherService {
     private final EmailService emailService;
 
     public TeacherDashboardDto getDashboard(String username) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDungId(user.getId())
+        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
 
         List<LopHoc> homeroomClasses = classRoomRepository.findByGiaoVienChuNhiem_GiaoVienId(profile.getGiaoVienId());
@@ -75,10 +75,10 @@ public class TeacherService {
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<java.util.Map<String, Object>> getClasses(String username) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDungId(user.getId())
+        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
 
         List<LopHoc> homeroomClasses = classRoomRepository.findByGiaoVienChuNhiem_GiaoVienId(profile.getGiaoVienId());
@@ -96,7 +96,7 @@ public class TeacherService {
     }
 
     public java.util.Map<String, Object> getClassDetails(String username, Long classId) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
         return java.util.Map.of(
@@ -113,9 +113,9 @@ public class TeacherService {
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Map<String, Object> getReports(String username, Long classId, Integer semesterId) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDungId(user.getId())
+        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
 
         Long targetClassId = classId;
@@ -214,9 +214,9 @@ public class TeacherService {
 
     @Transactional
     public Notification createAnnouncement(String username, AnnouncementCreateDTO dto) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDungId(user.getId())
+        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
 
         LopHoc classRoom;
@@ -250,11 +250,11 @@ public class TeacherService {
     }
 
     public List<Map<String, Object>> getMyAnnouncements(String username) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-        return notificationRepository.findBySender_IdOrderByPostedAtDesc(user.getId()).stream()
+        return notificationRepository.findBySender_NguoiDungIdOrderByPostedAtDesc(user.getNguoiDungId()).stream()
                 .map(n -> {
                     Map<String, Object> map = new LinkedHashMap<>();
                     map.put("id", n.getId());
@@ -270,9 +270,9 @@ public class TeacherService {
 
     @Transactional
     public KhenThuongHocSinh awardBadge(String username, Long studentId, TraoHuyHieuRequest dto) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDungId(user.getId())
+        HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
         HoSoHocSinh student = studentProfileRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));

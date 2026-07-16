@@ -2,7 +2,7 @@ package com.titkul.lms.controller;
 
 import com.titkul.lms.dto.ProcessTicketRequest;
 import com.titkul.lms.dto.SupportTicketDto;
-import com.titkul.lms.entity.User;
+import com.titkul.lms.entity.NguoiDung;
 import com.titkul.lms.service.SupportTicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

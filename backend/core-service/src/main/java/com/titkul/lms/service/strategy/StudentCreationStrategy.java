@@ -13,7 +13,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class StudentCreationStrategy implements UserCreationStrategy {
 
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final HoSoHocSinhRepository studentProfileRepository;
     private final HoSoPhuHuynhRepository parentProfileRepository;
     private final LopHocRepository classRoomRepository;
@@ -25,7 +25,7 @@ public class StudentCreationStrategy implements UserCreationStrategy {
 
     @Override
     @Transactional
-    public User createUser(CreateUserDto dto, String defaultPasswordHash) {
+    public NguoiDung createUser(CreateUserDto dto, String defaultPasswordHash) {
         if (dto.getStudentCode() == null || dto.getStudentCode().isBlank()) {
             throw new IllegalArgumentException("Mã học sinh là bắt buộc để tạo tài khoản Học sinh.");
         }
@@ -43,33 +43,33 @@ public class StudentCreationStrategy implements UserCreationStrategy {
         }
 
         String username = "HS" + dto.getStudentCode();
-        if (userRepository.existsByUsername(username)) {
+        if (userRepository.existsByTenDangNhap(username)) {
             throw new RuntimeException("Đã tồn tại tài khoản Học sinh với mã này.");
         }
 
-        User user = new User();
-        user.setUsername(username);
-        user.setPasswordHash(defaultPasswordHash);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRequirePasswordChange(true);
-        user.setRole(Role.HOC_SINH);
+        NguoiDung user = new NguoiDung();
+        user.setTenDangNhap(username);
+        user.setMatKhauHash(defaultPasswordHash);
+        user.setTrangThai(TrangThaiNguoiDung.ACTIVE);
+        user.setBatBuocDoiMk(true);
+        user.setVaiTro(VaiTro.HOC_SINH);
 
         user = userRepository.save(user);
 
         HoSoPhuHuynh parentProfile = null;
         if (dto.getParentPhone() != null && !dto.getParentPhone().trim().isEmpty()) {
-            Optional<User> existingParent = userRepository.findByUsername(dto.getParentPhone());
+            Optional<NguoiDung> existingParent = userRepository.findByTenDangNhap(dto.getParentPhone());
             if (existingParent.isPresent()) {
-                parentProfile = parentProfileRepository.findByNguoiDungId(existingParent.get().getId())
+                parentProfile = parentProfileRepository.findByNguoiDung_NguoiDungId(existingParent.get().getNguoiDungId())
                     .orElseThrow(() -> new RuntimeException("SĐT đã dùng nhưng không phải Phụ huynh."));
             } else {
-                User pUser = new User();
-                pUser.setUsername(dto.getParentPhone());
-                pUser.setPhone(dto.getParentPhone());
-                pUser.setPasswordHash(defaultPasswordHash);
-                pUser.setRole(Role.PHU_HUYNH);
-                pUser.setStatus(UserStatus.ACTIVE);
-                pUser.setRequirePasswordChange(true);
+                NguoiDung pUser = new NguoiDung();
+                pUser.setTenDangNhap(dto.getParentPhone());
+                pUser.setSoDienThoai(dto.getParentPhone());
+                pUser.setMatKhauHash(defaultPasswordHash);
+                pUser.setVaiTro(VaiTro.PHU_HUYNH);
+                pUser.setTrangThai(TrangThaiNguoiDung.ACTIVE);
+                pUser.setBatBuocDoiMk(true);
                 pUser = userRepository.save(pUser);
 
                 parentProfile = new HoSoPhuHuynh();

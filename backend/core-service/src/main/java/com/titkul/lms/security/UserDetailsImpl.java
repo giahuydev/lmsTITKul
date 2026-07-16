@@ -1,8 +1,8 @@
 package com.titkul.lms.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.titkul.lms.entity.User;
-import com.titkul.lms.entity.UserStatus;
+import com.titkul.lms.entity.NguoiDung;
+import com.titkul.lms.entity.TrangThaiNguoiDung;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,19 +24,19 @@ public class UserDetailsImpl implements UserDetails {
 
     private Boolean requirePasswordChange;
 
-    private UserStatus status;
+    private TrangThaiNguoiDung status;
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public static UserDetailsImpl build(User user) {
-        GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().name());
+    public static UserDetailsImpl build(NguoiDung user) {
+        GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getVaiTro().name());
 
         return new UserDetailsImpl(
-                user.getId(),
-                user.getUsername(),
-                user.getPasswordHash(),
-                user.getRequirePasswordChange(),
-                user.getStatus(),
+                user.getNguoiDungId(),
+                user.getTenDangNhap(),
+                user.getMatKhauHash(),
+                user.getBatBuocDoiMk(),
+                user.getTrangThai(),
                 Collections.singletonList(authority)
         );
     }
@@ -48,7 +48,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return status != UserStatus.LOCKED;
+        return status != TrangThaiNguoiDung.LOCKED;
     }
 
     @Override
@@ -58,6 +58,6 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return status != UserStatus.DISABLED;
+        return status != TrangThaiNguoiDung.DISABLED;
     }
 }

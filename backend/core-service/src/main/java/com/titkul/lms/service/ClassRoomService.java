@@ -34,15 +34,15 @@ public class ClassRoomService {
     public List<com.titkul.lms.dto.ClassStudentDto> getStudentsByClassId(Long classId) {
         return studentProfileRepository.findByLopHoc_LopHocId(classId).stream().map(student -> {
             com.titkul.lms.dto.ClassStudentDto dto = new com.titkul.lms.dto.ClassStudentDto();
-            dto.setId(student.getNguoiDung().getId());
+            dto.setId(student.getNguoiDung().getNguoiDungId());
             dto.setCode(student.getMaHocSinh());
             dto.setName(student.getHoTen());
             if (student.getPhuHuynh() != null && student.getPhuHuynh().getNguoiDung() != null) {
                 dto.setParentName(student.getPhuHuynh().getHoTen());
-                dto.setPhone(student.getPhuHuynh().getNguoiDung().getPhone() != null ? student.getPhuHuynh().getNguoiDung().getPhone() : "");
+                dto.setPhone(student.getPhuHuynh().getNguoiDung().getSoDienThoai() != null ? student.getPhuHuynh().getNguoiDung().getSoDienThoai() : "");
             } else {
                 dto.setParentName("");
-                dto.setPhone(student.getNguoiDung().getPhone() != null ? student.getNguoiDung().getPhone() : "");
+                dto.setPhone(student.getNguoiDung().getSoDienThoai() != null ? student.getNguoiDung().getSoDienThoai() : "");
             }
             dto.setDob(student.getNgaySinh() != null ? student.getNgaySinh().toString() : "");
             dto.setEvaluation("Chưa đánh giá");

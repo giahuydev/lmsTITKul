@@ -20,7 +20,7 @@ public class AuthSession {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_dung_id", nullable = false)
-    private User user;
+    private NguoiDung user;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "loai_xac_thuc", nullable = false)

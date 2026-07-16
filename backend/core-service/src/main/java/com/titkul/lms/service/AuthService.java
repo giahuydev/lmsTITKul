@@ -2,7 +2,7 @@ package com.titkul.lms.service;
 
 import com.titkul.lms.dto.JwtResponse;
 import com.titkul.lms.entity.LoginSession;
-import com.titkul.lms.entity.User;
+import com.titkul.lms.entity.NguoiDung;
 import com.titkul.lms.security.JwtUtils;
 import com.titkul.lms.security.UserDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,7 +49,7 @@ public class AuthService {
         return new JwtResponse(jwt, refreshToken.getRefreshToken(), "Bearer", jwtExpirationMs / 1000, userDto);
     }
 
-    public String generateTokenFromUser(User user) {
-        return jwtUtils.generateJwtTokenFromUsername(user.getUsername(), user.getRole().name());
+    public String generateTokenFromUser(NguoiDung user) {
+        return jwtUtils.generateJwtTokenFromUsername(user.getTenDangNhap(), user.getVaiTro().name());
     }
 }

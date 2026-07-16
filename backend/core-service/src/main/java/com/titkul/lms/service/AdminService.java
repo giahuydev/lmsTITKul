@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class AdminService {
 
     private final ExcelImportService excelImportService;
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final HoSoGiaoVienRepository teacherProfileRepository;
     private final HoSoHocSinhRepository studentProfileRepository;
     private final HoSoPhuHuynhRepository parentProfileRepository;
@@ -53,7 +53,7 @@ public class AdminService {
             try {
                 LopHoc classRoom = resolveClassRoom(row.getClassName(), classCache);
 
-                if (userRepository.existsByUsername(row.getStudentCode())) {
+                if (userRepository.existsByTenDangNhap(row.getStudentCode())) {
                     throw new RuntimeException("Mã học sinh (Username) đã tồn tại trong hệ thống.");
                 }
 
@@ -83,7 +83,7 @@ public class AdminService {
                 continue;
             }
             try {
-                if (userRepository.existsByUsername(row.getTeacherCode())) {
+                if (userRepository.existsByTenDangNhap(row.getTeacherCode())) {
                     throw new RuntimeException("Mã giáo viên đã tồn tại.");
                 }
                 createTeacher(row, defaultPasswordHash);
@@ -142,20 +142,20 @@ public class AdminService {
         String phone = row.getParentPhone();
         if (cache.containsKey(phone)) return cache.get(phone);
 
-        Optional<User> existingUser = userRepository.findByUsername(phone);
+        Optional<NguoiDung> existingUser = userRepository.findByTenDangNhap(phone);
         HoSoPhuHuynh profile;
 
         if (existingUser.isPresent()) {
-            profile = parentProfileRepository.findByNguoiDungId(existingUser.get().getId())
+            profile = parentProfileRepository.findByNguoiDung_NguoiDungId(existingUser.get().getNguoiDungId())
                     .orElseThrow(() -> new RuntimeException("Dữ liệu lỗi: SĐT đã tồn tại nhưng không phải phụ huynh."));
         } else {
-            User pUser = new User();
-            pUser.setUsername(phone);
-            pUser.setPhone(phone);
-            pUser.setPasswordHash(passwordHash);
-            pUser.setRole(Role.PHU_HUYNH);
-            pUser.setStatus(UserStatus.ACTIVE);
-            pUser.setRequirePasswordChange(true);
+            NguoiDung pUser = new NguoiDung();
+            pUser.setTenDangNhap(phone);
+            pUser.setSoDienThoai(phone);
+            pUser.setMatKhauHash(passwordHash);
+            pUser.setVaiTro(VaiTro.PHU_HUYNH);
+            pUser.setTrangThai(TrangThaiNguoiDung.ACTIVE);
+            pUser.setBatBuocDoiMk(true);
             String email = row.getParentEmail();
             if (email != null && !email.trim().isEmpty()) pUser.setEmail(email.trim());
             pUser = userRepository.save(pUser);
@@ -172,12 +172,12 @@ public class AdminService {
     }
 
     private void createStudent(ParsedStudentExcelRow row, LopHoc cls, HoSoPhuHuynh parent, String passwordHash) {
-        User sUser = new User();
-        sUser.setUsername(row.getStudentCode());
-        sUser.setPasswordHash(passwordHash);
-        sUser.setRole(Role.HOC_SINH);
-        sUser.setStatus(UserStatus.ACTIVE);
-        sUser.setRequirePasswordChange(true);
+        NguoiDung sUser = new NguoiDung();
+        sUser.setTenDangNhap(row.getStudentCode());
+        sUser.setMatKhauHash(passwordHash);
+        sUser.setVaiTro(VaiTro.HOC_SINH);
+        sUser.setTrangThai(TrangThaiNguoiDung.ACTIVE);
+        sUser.setBatBuocDoiMk(true);
         sUser.setEmail("hs" + row.getStudentCode().toLowerCase() + "@titkul.edu.vn");
         sUser = userRepository.save(sUser);
 
@@ -192,13 +192,13 @@ public class AdminService {
     }
 
     private void createTeacher(ParsedTeacherExcelRow row, String passwordHash) {
-        User user = new User();
-        user.setUsername(row.getTeacherCode());
-        user.setPasswordHash(passwordHash);
-        user.setRole(Role.GIAO_VIEN);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRequirePasswordChange(true);
-        if (row.getPhone() != null && !row.getPhone().trim().isEmpty()) user.setPhone(row.getPhone());
+        NguoiDung user = new NguoiDung();
+        user.setTenDangNhap(row.getTeacherCode());
+        user.setMatKhauHash(passwordHash);
+        user.setVaiTro(VaiTro.GIAO_VIEN);
+        user.setTrangThai(TrangThaiNguoiDung.ACTIVE);
+        user.setBatBuocDoiMk(true);
+        if (row.getPhone() != null && !row.getPhone().trim().isEmpty()) user.setSoDienThoai(row.getPhone());
         user = userRepository.save(user);
 
         HoSoGiaoVien profile = new HoSoGiaoVien();
@@ -236,7 +236,7 @@ public class AdminService {
                     "success", result.getSuccessCount(),
                     "failure", result.getFailureCount()
             )));
-            userRepository.findByUsername("AD001").ifPresent(batch::setExecutedBy);
+            userRepository.findByTenDangNhap("AD001").ifPresent(batch::setExecutedBy);
             importBatchRepository.save(batch);
         } catch (Exception ex) {
             log.warn("Failed to save import batch log", ex);

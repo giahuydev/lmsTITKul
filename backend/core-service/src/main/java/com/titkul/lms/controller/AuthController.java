@@ -3,7 +3,7 @@ package com.titkul.lms.controller;
 import com.titkul.lms.dto.*;
 import com.titkul.lms.entity.LoginSession;
 import com.titkul.lms.repository.LoginSessionRepository;
-import com.titkul.lms.repository.UserRepository;
+import com.titkul.lms.repository.NguoiDungRepository;
 import com.titkul.lms.service.AuthService;
 import com.titkul.lms.service.EmailService;
 import com.titkul.lms.service.OtpService;
@@ -32,7 +32,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final OtpService otpService;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
@@ -87,7 +87,7 @@ public class AuthController {
         }
         return userRepository.findByEmail(request.getEmail())
                 .map(user -> {
-                    user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+                    user.setMatKhauHash(passwordEncoder.encode(request.getNewPassword()));
                     userRepository.save(user);
                     return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công. Bạn có thể đăng nhập ngay bây giờ."));
                 })
@@ -100,10 +100,10 @@ public class AuthController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(Map.of("message", "Vui lòng đăng nhập."));
         }
-        return userRepository.findByUsername(authentication.getName())
+        return userRepository.findByTenDangNhap(authentication.getName())
                 .map(user -> {
-                    user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
-                    user.setRequirePasswordChange(false);
+                    user.setMatKhauHash(passwordEncoder.encode(request.getNewPassword()));
+                    user.setBatBuocDoiMk(false);
                     userRepository.save(user);
                     return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công."));
                 })
@@ -117,9 +117,9 @@ public class AuthController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(Map.of("message", "Vui lòng đăng nhập."));
         }
-        return userRepository.findByUsername(authentication.getName())
+        return userRepository.findByTenDangNhap(authentication.getName())
                 .map(user -> {
-                    if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+                    if (!passwordEncoder.matches(request.getOldPassword(), user.getMatKhauHash())) {
                         return ResponseEntity.badRequest().body(Map.of("message", "Mật khẩu hiện tại không chính xác."));
                     }
                     if (user.getEmail() == null || user.getEmail().isBlank()) {
@@ -143,13 +143,13 @@ public class AuthController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(Map.of("message", "Vui lòng đăng nhập."));
         }
-        return userRepository.findByUsername(authentication.getName())
+        return userRepository.findByTenDangNhap(authentication.getName())
                 .map(user -> {
                     if (!otpService.validateOtp(user.getEmail(), request.getOtp())) {
                         return ResponseEntity.badRequest().body(Map.of("message", "Mã OTP không hợp lệ hoặc đã hết hạn."));
                     }
-                    user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
-                    user.setRequirePasswordChange(false);
+                    user.setMatKhauHash(passwordEncoder.encode(request.getNewPassword()));
+                    user.setBatBuocDoiMk(false);
                     userRepository.save(user);
                     loginSessionRepository.deleteByUser(user);
                     return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công. Vui lòng đăng nhập lại trên các thiết bị khác."));

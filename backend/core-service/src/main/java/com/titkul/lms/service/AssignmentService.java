@@ -58,7 +58,7 @@ public class AssignmentService {
         }
 
         if (dto.getTeacherId() != null) {
-            HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDungId(dto.getTeacherId())
+            HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDung_NguoiDungId(dto.getTeacherId())
                     .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy Giáo viên với User ID: " + dto.getTeacherId()));
             assignment.setGiaoVien(teacher);
         } else {

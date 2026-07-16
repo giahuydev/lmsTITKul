@@ -15,7 +15,7 @@ public class ImportBatch {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_thuc_hien_id")
-    private User executedBy;
+    private NguoiDung executedBy;
 
     @Column(name = "loai_import")
     private String importType;

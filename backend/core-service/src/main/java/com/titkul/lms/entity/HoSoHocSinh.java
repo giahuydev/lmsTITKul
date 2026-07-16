@@ -19,7 +19,7 @@ public class HoSoHocSinh {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_dung_id", nullable = false, unique = true, columnDefinition = "BIGINT UNSIGNED")
-    private User nguoiDung;
+    private NguoiDung nguoiDung;
 
     @Column(name = "ma_hoc_sinh", nullable = false, unique = true, length = 30)
     private String maHocSinh;

@@ -16,11 +16,11 @@ public class SupportTicket {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "giao_vien_tao_id", nullable = false)
-    private User teacher;
+    private NguoiDung teacher;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hoc_sinh_lien_quan_id", nullable = false)
-    private User student;
+    private NguoiDung student;
 
     @Column(name = "loai_yeu_cau", nullable = false, length = 100)
     private String type;
@@ -30,7 +30,7 @@ public class SupportTicket {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_xu_ly_id")
-    private User admin;
+    private NguoiDung admin;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai", nullable = false)

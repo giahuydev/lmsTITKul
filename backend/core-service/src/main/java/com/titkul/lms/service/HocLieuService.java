@@ -39,7 +39,7 @@ public class HocLieuService {
         hocLieu.setOrigin(NguonGocHocLieu.valueOf(dto.getNguonGoc()));
 
         if (dto.getGiaoVienId() != null) {
-            HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDungId(dto.getGiaoVienId())
+            HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDung_NguoiDungId(dto.getGiaoVienId())
                     .orElseThrow(() -> new EntityNotFoundException(
                             "Không tìm thấy Giáo viên với User ID: " + dto.getGiaoVienId()));
             hocLieu.setTeacher(teacher);
@@ -64,7 +64,7 @@ public class HocLieuService {
     }
 
     public List<HocLieu> listByTeacherUserId(Long userId) {
-        return hocLieuRepository.findByTeacher_NguoiDung_Id(userId);
+        return hocLieuRepository.findByTeacher_NguoiDung_NguoiDungId(userId);
     }
 
     public HocLieu getById(Long id) {
@@ -77,7 +77,7 @@ public class HocLieuService {
         HocLieu hocLieu = getById(id);
         boolean isOwner = hocLieu.getTeacher() != null
                 && hocLieu.getTeacher().getNguoiDung() != null
-                && hocLieu.getTeacher().getNguoiDung().getUsername().equals(requesterUsername);
+                && hocLieu.getTeacher().getNguoiDung().getTenDangNhap().equals(requesterUsername);
         if (!requesterIsAdmin && !isOwner) {
             throw new IllegalArgumentException("Bạn không có quyền xóa học liệu này.");
         }
@@ -89,7 +89,7 @@ public class HocLieuService {
         HocLieu hocLieu = getById(id);
         boolean isOwner = hocLieu.getTeacher() != null
                 && hocLieu.getTeacher().getNguoiDung() != null
-                && hocLieu.getTeacher().getNguoiDung().getUsername().equals(requesterUsername);
+                && hocLieu.getTeacher().getNguoiDung().getTenDangNhap().equals(requesterUsername);
         if (!isOwner) {
             throw new IllegalArgumentException("Bạn không có quyền chỉnh sửa học liệu này.");
         }

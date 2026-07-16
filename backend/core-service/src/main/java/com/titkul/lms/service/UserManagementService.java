@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserManagementService {
 
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final HoSoGiaoVienRepository teacherProfileRepository;
     private final HoSoHocSinhRepository studentProfileRepository;
     private final HoSoPhuHuynhRepository parentProfileRepository;
@@ -27,7 +27,7 @@ public class UserManagementService {
     private final List<UserCreationStrategy> userCreationStrategies;
 
     @Transactional
-    public User createUser(CreateUserDto dto) {
+    public NguoiDung createUser(CreateUserDto dto) {
         // Username giờ được tự sinh bên trong từng UserCreationStrategy (GV+SĐT / HS+Mã HS)
         // và được kiểm tra trùng ngay tại đó, nên không cần check dto.getUsername() ở đây nữa.
         String defaultPasswordHash = passwordEncoder.encode(AppConstants.DEFAULT_PASSWORD);
@@ -44,18 +44,18 @@ public class UserManagementService {
     public List<AdminUserDto> getAllUsers() {
         return userRepository.findAll().stream().map(user -> {
             AdminUserDto dto = new AdminUserDto();
-            dto.setId(user.getId());
-            dto.setUsername(user.getUsername());
+            dto.setId(user.getNguoiDungId());
+            dto.setUsername(user.getTenDangNhap());
             dto.setEmail(user.getEmail());
-            dto.setPhone(user.getPhone());
-            dto.setRole(user.getRole().name());
-            dto.setStatus(user.getStatus().name());
-            dto.setRequirePasswordChange(user.getRequirePasswordChange());
-            dto.setLastLogin(user.getLastLogin());
-            dto.setCreatedAt(user.getCreatedAt());
+            dto.setPhone(user.getSoDienThoai());
+            dto.setRole(user.getVaiTro().name());
+            dto.setStatus(user.getTrangThai().name());
+            dto.setRequirePasswordChange(user.getBatBuocDoiMk());
+            dto.setLastLogin(user.getLanDangNhapCuoi());
+            dto.setCreatedAt(user.getNgayTao());
 
-            if (user.getRole() == Role.HOC_SINH) {
-                studentProfileRepository.findByNguoiDungId(user.getId()).ifPresent(p -> {
+            if (user.getVaiTro() == VaiTro.HOC_SINH) {
+                studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId()).ifPresent(p -> {
                     dto.setFullName(p.getHoTen());
                     if (p.getLopHoc() != null) {
                         dto.setClassName(p.getLopHoc().getTenLop());
@@ -63,12 +63,12 @@ public class UserManagementService {
                         dto.getClassIds().add(p.getLopHoc().getLopHocId());
                     }
                 });
-            } else if (user.getRole() == Role.GIAO_VIEN) {
-                teacherProfileRepository.findByNguoiDungId(user.getId()).ifPresent(p -> {
+            } else if (user.getVaiTro() == VaiTro.GIAO_VIEN) {
+                teacherProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId()).ifPresent(p -> {
                     dto.setFullName(p.getHoTen());
                 });
-            } else if (user.getRole() == Role.PHU_HUYNH) {
-                parentProfileRepository.findByNguoiDungId(user.getId()).ifPresent(p -> {
+            } else if (user.getVaiTro() == VaiTro.PHU_HUYNH) {
+                parentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId()).ifPresent(p -> {
                     dto.setFullName(p.getHoTen());
                     List<HoSoHocSinh> children = studentProfileRepository.findByPhuHuynh_PhuHuynhId(p.getPhuHuynhId());
                     if (children != null) {
@@ -85,39 +85,39 @@ public class UserManagementService {
     }
 
     @Transactional
-    public User toggleUserStatus(Long userId) {
-        User user = userRepository.findById(userId)
+    public NguoiDung toggleUserStatus(Long userId) {
+        NguoiDung user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
-        if (user.getStatus() == UserStatus.ACTIVE) {
-            user.setStatus(UserStatus.LOCKED);
+        if (user.getTrangThai() == TrangThaiNguoiDung.ACTIVE) {
+            user.setTrangThai(TrangThaiNguoiDung.LOCKED);
         } else {
-            user.setStatus(UserStatus.ACTIVE);
+            user.setTrangThai(TrangThaiNguoiDung.ACTIVE);
         }
         return userRepository.save(user);
     }
     
     @Transactional
-    public User updateUser(Long userId, User updateDto) {
-        User user = userRepository.findById(userId)
+    public NguoiDung updateUser(Long userId, NguoiDung updateDto) {
+        NguoiDung user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
         
-        if (updateDto.getPhone() != null && !updateDto.getPhone().isEmpty()) {
-            user.setPhone(updateDto.getPhone());
+        if (updateDto.getSoDienThoai() != null && !updateDto.getSoDienThoai().isEmpty()) {
+            user.setSoDienThoai(updateDto.getSoDienThoai());
         }
-        if (updateDto.getStatus() != null) {
-            user.setStatus(updateDto.getStatus());
+        if (updateDto.getTrangThai() != null) {
+            user.setTrangThai(updateDto.getTrangThai());
         }
         return userRepository.save(user);
     }
     
     @Transactional
     public void transferClass(Long userId, Long newClassId, String adminUsername, TransferReason reason, String note) {
-        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(userId)
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
         LopHoc newClass = classRoomRepository.findById(newClassId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
-        User admin = userRepository.findByUsername(adminUsername)
+        NguoiDung admin = userRepository.findByTenDangNhap(adminUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người thực hiện"));
 
         LopHoc oldClass = profile.getLopHoc();

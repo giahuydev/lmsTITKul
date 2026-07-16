@@ -1,11 +1,11 @@
 package com.titkul.lms.service;
 
 import com.titkul.lms.dto.UserProfileDto;
-import com.titkul.lms.entity.User;
+import com.titkul.lms.entity.NguoiDung;
 import com.titkul.lms.repository.HoSoPhuHuynhRepository;
 import com.titkul.lms.repository.HoSoHocSinhRepository;
 import com.titkul.lms.repository.HoSoGiaoVienRepository;
-import com.titkul.lms.repository.UserRepository;
+import com.titkul.lms.repository.NguoiDungRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,35 +13,35 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final HoSoHocSinhRepository studentProfileRepository;
     private final HoSoGiaoVienRepository teacherProfileRepository;
     private final HoSoPhuHuynhRepository parentProfileRepository;
 
     public UserProfileDto getMyProfile(String username) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
         UserProfileDto dto = UserProfileDto.builder()
-                .username(user.getUsername())
+                .username(user.getTenDangNhap())
                 .email(user.getEmail())
-                .phone(user.getPhone())
-                .role(user.getRole().name())
+                .phone(user.getSoDienThoai())
+                .role(user.getVaiTro().name())
                 .build();
 
-        switch (user.getRole()) {
+        switch (user.getVaiTro()) {
             case HOC_SINH:
-                studentProfileRepository.findByNguoiDungId(user.getId()).ifPresent(profile -> {
+                studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId()).ifPresent(profile -> {
                     dto.setFullName(profile.getHoTen());
                 });
                 break;
             case GIAO_VIEN:
-                teacherProfileRepository.findByNguoiDungId(user.getId()).ifPresent(profile -> {
+                teacherProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId()).ifPresent(profile -> {
                     dto.setFullName(profile.getHoTen());
                 });
                 break;
             case PHU_HUYNH:
-                parentProfileRepository.findByNguoiDungId(user.getId()).ifPresent(profile -> {
+                parentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId()).ifPresent(profile -> {
                     dto.setFullName(profile.getHoTen());
                 });
                 break;
@@ -52,7 +52,7 @@ public class UserService {
 
         // Set default name if not found
         if (dto.getFullName() == null || dto.getFullName().isEmpty()) {
-            dto.setFullName(user.getUsername());
+            dto.setFullName(user.getTenDangNhap());
         }
 
         return dto;

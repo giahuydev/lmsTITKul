@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface SupportTicketRepository extends JpaRepository<SupportTicket, Long> {
-    List<SupportTicket> findByTeacherIdOrderByCreatedAtDesc(Long teacherId);
+    List<SupportTicket> findByTeacher_NguoiDungIdOrderByCreatedAtDesc(Long teacherId);
     List<SupportTicket> findByStatusOrderByCreatedAtAsc(SupportTicketStatus status);
 }

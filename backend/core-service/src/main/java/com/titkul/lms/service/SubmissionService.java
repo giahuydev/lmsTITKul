@@ -79,7 +79,7 @@ public class SubmissionService {
         }
 
         // Tìm Giáo viên chấm bài theo userId (nguoi_dung_id) từ JWT token
-        HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDungId(dto.getTeacherId())
+        HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDung_NguoiDungId(dto.getTeacherId())
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
                     "Không tìm thấy hồ sơ Giáo viên cho user ID: " + dto.getTeacherId() + ". Hãy kiểm tra bảng ho_so_giao_vien!"));
 

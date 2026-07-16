@@ -70,7 +70,7 @@ public class HocLieu {
 
     // teacher bị @JsonIgnore (lazy) nên expose riêng id qua đây cho FE.
     public Long getTeacherUserId() {
-        return teacher != null && teacher.getNguoiDung() != null ? teacher.getNguoiDung().getId() : null;
+        return teacher != null && teacher.getNguoiDung() != null ? teacher.getNguoiDung().getNguoiDungId() : null;
     }
 
     // subject bị @JsonIgnore (lazy) nên expose riêng id/tên qua đây cho FE.

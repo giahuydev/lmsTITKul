@@ -35,7 +35,7 @@ public class StudentService {
     private static final List<NotificationAudience> STUDENT_AUDIENCE =
             List.of(NotificationAudience.TAT_CA, NotificationAudience.HOC_SINH);
 
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final HoSoHocSinhRepository studentProfileRepository;
     private final DanhGiaBaiLamRepository evaluationRepository;
     private final BaiTapRepository assignmentRepository;
@@ -50,10 +50,10 @@ public class StudentService {
     private final KhenThuongHocSinhRepository khenThuongHocSinhRepository;
 
     public StudentDashboardDto getDashboard(String username) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
         LopHoc classRoom = profile.getLopHoc();
@@ -87,7 +87,7 @@ public class StudentService {
                 .limit(3)
                 .map(n -> {
                     boolean read = notificationReadStatusRepository
-                            .findByUser_IdAndNotification_Id(user.getId(), n.getId())
+                            .findByUser_NguoiDungIdAndNotification_Id(user.getNguoiDungId(), n.getId())
                             .map(NotificationReadStatus::isRead)
                             .orElse(false);
                     return StudentDashboardDto.NotificationDto.builder()
@@ -149,10 +149,10 @@ public class StudentService {
     }
 
     public List<AssignmentResponseDto> getAssignments(String username) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
         LopHoc classRoom = profile.getLopHoc();
@@ -332,9 +332,9 @@ public class StudentService {
     }
 
     private HoSoHocSinh resolveProfile(String username) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        return studentProfileRepository.findByNguoiDungId(user.getId())
+        return studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
     }
 
@@ -369,9 +369,9 @@ public class StudentService {
     }
 
     public List<Map<String, Object>> getNotifications(String username) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -382,7 +382,7 @@ public class StudentService {
         return notifications.stream()
                 .map(n -> {
                     boolean read = notificationReadStatusRepository
-                            .findByUser_IdAndNotification_Id(user.getId(), n.getId())
+                            .findByUser_NguoiDungIdAndNotification_Id(user.getNguoiDungId(), n.getId())
                             .map(NotificationReadStatus::isRead)
                             .orElse(false);
                     Map<String, Object> map = new LinkedHashMap<>();
@@ -400,16 +400,16 @@ public class StudentService {
 
     @Transactional
     public void markNotificationRead(String username, Long notificationId) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
         markNotificationReadForUser(user, notificationId);
     }
 
     @Transactional
     public void markAllNotificationsRead(String username) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
         List<Notification> notifications = profile.getLopHoc() != null
@@ -418,9 +418,9 @@ public class StudentService {
         notifications.forEach(n -> markNotificationReadForUser(user, n.getId()));
     }
 
-    private void markNotificationReadForUser(User user, Long notificationId) {
+    private void markNotificationReadForUser(NguoiDung user, Long notificationId) {
         NotificationReadStatus status = notificationReadStatusRepository
-                .findByUser_IdAndNotification_Id(user.getId(), notificationId)
+                .findByUser_NguoiDungIdAndNotification_Id(user.getNguoiDungId(), notificationId)
                 .orElseGet(NotificationReadStatus::new);
         if (status.getId() == null) {
             status.setUser(user);
@@ -432,9 +432,9 @@ public class StudentService {
     }
 
     public Map<String, Object> getRewards(String username) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
         return buildRewardsPayload(profile);
@@ -484,9 +484,9 @@ public class StudentService {
     // Mở khóa tuần tự: bài đầu tiên chưa hoàn thành trong toàn bộ môn là "current",
     // các bài sau đó "locked", các bài trước (đã hoàn thành) là "completed".
     public Map<String, Object> getSubjectTree(String username, Integer subjectId) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
         if (profile.getLopHoc() == null || profile.getLopHoc().getKhoiLop() == null || subjectId == null) {
@@ -551,9 +551,9 @@ public class StudentService {
     }
 
     public ContentNodeDetailDto getContentNodeDetail(String username, Integer contentNodeId) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
         DangBai contentNode = contentNodeRepository.findById(contentNodeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nội dung bài học"));
@@ -575,9 +575,9 @@ public class StudentService {
     // Chỉ cộng XP lần đầu hoàn thành, tránh cày XP qua việc gọi lại API nhiều lần.
     @Transactional
     public ContentNodeCompleteResultDto markContentNodeComplete(String username, Integer contentNodeId) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
         DangBai contentNode = contentNodeRepository.findById(contentNodeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nội dung bài học"));

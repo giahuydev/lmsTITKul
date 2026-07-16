@@ -72,7 +72,7 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody com.titkul.lms.entity.User updateDto) {
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody com.titkul.lms.entity.NguoiDung updateDto) {
         try {
             return ResponseEntity.ok(userManagementService.updateUser(id, updateDto));
         } catch (RuntimeException e) {

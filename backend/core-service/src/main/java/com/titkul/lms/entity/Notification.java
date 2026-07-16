@@ -23,7 +23,7 @@ public class Notification {
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_gui_id", nullable = false)
-    private User sender;
+    private NguoiDung sender;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

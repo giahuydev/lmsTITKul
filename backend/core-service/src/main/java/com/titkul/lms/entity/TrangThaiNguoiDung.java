@@ -1,6 +1,6 @@
 package com.titkul.lms.entity;
 
-public enum UserStatus {
+public enum TrangThaiNguoiDung {
     ACTIVE,
     LOCKED,
     DISABLED

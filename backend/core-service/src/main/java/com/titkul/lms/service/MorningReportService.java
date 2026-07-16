@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MorningReportService {
 
-    private final UserRepository userRepository;
+    private final NguoiDungRepository userRepository;
     private final HoSoGiaoVienRepository teacherProfileRepository;
     private final LopHocRepository classRoomRepository;
     private final HoSoHocSinhRepository studentProfileRepository;
@@ -35,9 +35,9 @@ public class MorningReportService {
 
     @Transactional
     public Map<String, Object> getOrGenerate(String username, Long classId) {
-        User user = userRepository.findByUsername(username)
+        NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDungId(user.getId())
+        HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
 
         LopHoc classRoom = resolveClass(teacher, classId);
