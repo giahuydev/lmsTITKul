@@ -39,6 +39,16 @@ public class HocLieu {
     @JoinColumn(name = "giao_vien_id", referencedColumnName = "giao_vien_id")
     private TeacherProfile teacher;
 
+    // Phân loại Khối/Môn do GV tự gán sau khi soạn — hoc_lieu không nằm trong cây SGK
+    // (Book/Topic/Lesson) nên không suy ra được tự động như ContentNode.
+    @Column(name = "khoi_lop")
+    private Short grade;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mon_hoc_id")
+    private Subject subject;
+
     @Column(name = "file_url", length = 500)
     private String fileUrl;
 
@@ -61,5 +71,14 @@ public class HocLieu {
     // teacher bị @JsonIgnore (lazy) nên expose riêng id qua đây cho FE.
     public Long getTeacherUserId() {
         return teacher != null && teacher.getUser() != null ? teacher.getUser().getId() : null;
+    }
+
+    // subject bị @JsonIgnore (lazy) nên expose riêng id/tên qua đây cho FE.
+    public Integer getSubjectId() {
+        return subject != null ? subject.getId() : null;
+    }
+
+    public String getSubjectName() {
+        return subject != null ? subject.getName() : null;
     }
 }

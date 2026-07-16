@@ -1,4 +1,4 @@
-import { CheckCircle, XCircle, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -71,7 +71,13 @@ export default function AdminTickets() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tickets.length === 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                    Đang tải...
+                  </TableCell>
+                </TableRow>
+              ) : tickets.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-slate-500">
                     Không có phiếu hỗ trợ nào đang chờ duyệt
@@ -160,7 +166,7 @@ export default function AdminTickets() {
                 {selectedTicket.status === 'CHO_DUYET' && (
                   <>
                     <Button variant="danger" isLoading={isProcessing} onClick={() => handleProcess(selectedTicket.id, 'TU_CHOI')}>Từ chối</Button>
-                    <Button className="bg-green-600 hover:bg-green-700" isLoading={isProcessing} onClick={() => handleProcess(selectedTicket.id, 'DA_DUYET')}>Duyệt yêu cầu</Button>
+                    <Button className="bg-pro-success hover:brightness-95" isLoading={isProcessing} onClick={() => handleProcess(selectedTicket.id, 'DA_DUYET')}>Duyệt yêu cầu</Button>
                   </>
                 )}
               </div>

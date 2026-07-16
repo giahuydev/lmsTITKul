@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Download, Award, Loader2 } from 'lucide-react';
+import { Download, Award, Loader2, Trophy } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
 import { parentService } from '../../services/parent.service';
+import { useParentContextStore } from '../../stores/useParentContextStore';
 
 export default function ParentGrades() {
   const [grades, setGrades] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [badges, setBadges] = useState<any[]>([]);
+  const selectedChild = useParentContextStore((state) => state.selectedChild);
 
   useEffect(() => {
     const fetchGrades = async () => {
@@ -24,10 +27,18 @@ export default function ParentGrades() {
     fetchGrades();
   }, []);
 
+  useEffect(() => {
+    if (!selectedChild) return;
+    parentService
+      .getRewards(selectedChild.id)
+      .then((data) => setBadges((data.badges ?? []).filter((b: any) => b.unlocked)))
+      .catch((err) => console.error('Failed to fetch rewards', err));
+  }, [selectedChild]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-pro-primary" />
       </div>
     );
   }
@@ -63,7 +74,7 @@ export default function ParentGrades() {
                 <TableBody>
                   {grades.length > 0 ? grades.map(grade => (
                     <TableRow key={grade.id}>
-                      <TableCell className="font-medium text-blue-600">{grade.studentName}</TableCell>
+                      <TableCell className="font-medium text-pro-primary">{grade.studentName}</TableCell>
                       <TableCell className="font-medium text-slate-800">{grade.subject}</TableCell>
                       <TableCell>{grade.assignment}</TableCell>
                       <TableCell>
@@ -93,31 +104,34 @@ export default function ParentGrades() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Award className="h-5 w-5 mr-2 text-amber-500" />
+                <Award className="h-5 w-5 mr-2 text-pro-warning" />
                 Huy hiệu gần đây
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center p-3 border border-slate-100 rounded-lg">
-                  <div className="h-12 w-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 text-xl mr-4 shrink-0">
-                    🏆
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-slate-800 text-sm">Kiện tướng Đúng hạn</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">Nộp liên tiếp 5 bài trước deadline</p>
-                  </div>
+              {!selectedChild ? (
+                <p className="text-sm text-slate-400 italic text-center py-4">
+                  Vui lòng chọn hồ sơ con để xem huy hiệu.
+                </p>
+              ) : badges.length === 0 ? (
+                <p className="text-sm text-slate-400 italic text-center py-4">
+                  {selectedChild.name} chưa có huy hiệu nào.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {badges.slice(0, 5).map((b) => (
+                    <div key={b.id} className="flex items-center p-3 border border-slate-100 rounded-lg">
+                      <div className="h-12 w-12 bg-pro-warning/10 rounded-full flex items-center justify-center text-pro-warning mr-4 shrink-0">
+                        {b.icon ? <img src={b.icon} alt={b.name} className="w-6 h-6" /> : <Trophy className="w-6 h-6" />}
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-slate-800 text-sm">{b.name}</h4>
+                        <p className="text-xs text-slate-500 mt-0.5">{b.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-center p-3 border border-slate-100 rounded-lg">
-                  <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl mr-4 shrink-0">
-                    🎓
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-slate-800 text-sm">Nhà thông thái</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">Đạt điểm 10 trong 3 bài liên tiếp</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>

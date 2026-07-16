@@ -18,9 +18,10 @@ declare module 'react/jsx-runtime' {
 
 interface H5PPlayerProps {
   contentId: string;
+  onXAPIStatement?: (statement: any) => void;
 }
 
-export default function H5PPlayer({ contentId }: H5PPlayerProps) {
+export default function H5PPlayer({ contentId, onXAPIStatement }: H5PPlayerProps) {
   const elementRef = useRef<H5PPlayerElement>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -44,8 +45,18 @@ export default function H5PPlayer({ contentId }: H5PPlayerProps) {
 
     const handleInitialized = () => setLoading(false);
     el.addEventListener('initialized', handleInitialized);
-    return () => el.removeEventListener('initialized', handleInitialized);
-  }, [contentId, loadContent]);
+
+    const handleXAPI = (event: Event) => {
+      const statement = (event as CustomEvent<{ statement: any }>).detail?.statement;
+      if (statement && onXAPIStatement) onXAPIStatement(statement);
+    };
+    if (onXAPIStatement) el.addEventListener('xAPI', handleXAPI);
+
+    return () => {
+      el.removeEventListener('initialized', handleInitialized);
+      if (onXAPIStatement) el.removeEventListener('xAPI', handleXAPI);
+    };
+  }, [contentId, loadContent, onXAPIStatement]);
 
   if (loadError) {
     return (
@@ -60,7 +71,7 @@ export default function H5PPlayer({ contentId }: H5PPlayerProps) {
     <div className="relative h-full min-h-[300px]">
       {loading && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80">
-          <Loader2 className="w-7 h-7 text-indigo-600 animate-spin mb-2" />
+          <Loader2 className="w-7 h-7 text-slate-500 animate-spin mb-2" />
           <p className="text-slate-500 text-sm">Đang tải nội dung...</p>
         </div>
       )}

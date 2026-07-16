@@ -1,6 +1,7 @@
 package com.titkul.lms.controller;
 
 import com.titkul.lms.dto.TeacherDashboardDto;
+import com.titkul.lms.service.MorningReportService;
 import com.titkul.lms.service.TeacherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,6 +20,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class TeacherController {
 
     private final TeacherService teacherService;
+    private final MorningReportService morningReportService;
+
+    @GetMapping("/me/morning-report")
+    public ResponseEntity<?> getMorningReport(@org.springframework.web.bind.annotation.RequestParam(required = false) Long classId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
+        try {
+            return ResponseEntity.ok(morningReportService.getOrGenerate(authentication.getName(), classId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
 
     @GetMapping("/me/dashboard")
     public ResponseEntity<?> getDashboard() {
@@ -65,13 +81,56 @@ public class TeacherController {
     }
 
     @GetMapping("/me/reports")
-    public ResponseEntity<?> getReports() {
+    public ResponseEntity<?> getReports(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Long classId,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer semesterId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
         }
         try {
-            return ResponseEntity.ok(teacherService.getReports(authentication.getName()));
+            return ResponseEntity.ok(teacherService.getReports(authentication.getName(), classId, semesterId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    @org.springframework.web.bind.annotation.PostMapping("/me/announcements")
+    public ResponseEntity<?> createAnnouncement(@org.springframework.web.bind.annotation.RequestBody com.titkul.lms.dto.AnnouncementCreateDTO dto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
+        try {
+            return ResponseEntity.ok(teacherService.createAnnouncement(authentication.getName(), dto));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/me/announcements")
+    public ResponseEntity<?> getMyAnnouncements() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
+        try {
+            return ResponseEntity.ok(teacherService.getMyAnnouncements(authentication.getName()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    @org.springframework.web.bind.annotation.PostMapping("/me/students/{studentId}/rewards")
+    public ResponseEntity<?> awardBadge(
+            @PathVariable Long studentId,
+            @org.springframework.web.bind.annotation.RequestBody com.titkul.lms.dto.AwardBadgeDTO dto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
+        try {
+            return ResponseEntity.ok(teacherService.awardBadge(authentication.getName(), studentId, dto));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         }

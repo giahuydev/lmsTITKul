@@ -15,8 +15,10 @@ export default function TeacherProfile() {
   const [dashboard, setDashboard] = useState<TeacherDashboardDto | null>(null);
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [otpStep, setOtpStep] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -32,19 +34,41 @@ export default function TeacherProfile() {
     navigate('/login');
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
+  const closePasswordModal = () => {
+    setShowPasswordModal(false);
+    setOtpStep(false);
+    setOldPassword('');
+    setNewPassword('');
+    setOtp('');
+    setError('');
+  };
+
+  const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
-      await authService.changePassword(oldPassword, newPassword);
-      toast.success('Đổi mật khẩu thành công!');
-      setShowPasswordModal(false);
-      setOldPassword('');
-      setNewPassword('');
+      await authService.requestChangePasswordOtp(oldPassword);
+      toast.success('Mã OTP đã được gửi đến email của bạn.');
+      setOtpStep(true);
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.response?.data?.message || 'Có lỗi xảy ra');
+      setError(err.response?.data?.message || 'Mật khẩu hiện tại không chính xác');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      await authService.confirmChangePassword(otp, newPassword);
+      toast.success('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
+      closePasswordModal();
+      handleLogout();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Mã OTP không hợp lệ hoặc đã hết hạn');
     } finally {
       setLoading(false);
     }
@@ -61,7 +85,7 @@ export default function TeacherProfile() {
             {user?.avatarUrl ? (
                <img src={user.avatarUrl} alt="Avatar" className="w-24 h-24 rounded-full border-4 border-white shadow-md mb-4 object-cover" />
             ) : (
-               <div className="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-3xl font-bold mb-4">
+               <div className="w-24 h-24 bg-pro-primary/10 text-pro-primary rounded-full flex items-center justify-center text-3xl font-bold mb-4">
                  GV
                </div>
             )}
@@ -99,11 +123,11 @@ export default function TeacherProfile() {
              <div className="space-y-3">
                <div className="flex justify-between items-center p-3 border border-slate-200 rounded-lg">
                   <span className="font-semibold text-slate-700">Tổng số học liệu đã tạo</span>
-                  <span className="font-bold text-indigo-600 text-lg">{dashboard?.totalMaterials?.toLocaleString() || '0'}</span>
+                  <span className="font-bold text-pro-primary text-lg">{dashboard?.totalMaterials?.toLocaleString() || '0'}</span>
                </div>
                <div className="flex justify-between items-center p-3 border border-slate-200 rounded-lg">
                   <span className="font-semibold text-slate-700">Tổng số bài tập đã giao</span>
-                  <span className="font-bold text-indigo-600 text-lg">{dashboard?.totalAssignments?.toLocaleString() || '0'}</span>
+                  <span className="font-bold text-pro-primary text-lg">{dashboard?.totalAssignments?.toLocaleString() || '0'}</span>
                </div>
              </div>
           </CardContent>
@@ -116,39 +140,63 @@ export default function TeacherProfile() {
           <div className="bg-white w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h3 className="font-bold text-slate-800 flex items-center">
-                <ShieldCheck className="w-5 h-5 mr-2 text-indigo-600" /> Đổi mật khẩu
+                <ShieldCheck className="w-5 h-5 mr-2 text-pro-primary" /> Đổi mật khẩu
               </h3>
-              <button onClick={() => setShowPasswordModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={closePasswordModal} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
-            <form onSubmit={handleChangePassword} className="p-6 space-y-4">
-              {error && (
-                <div className="p-3 bg-red-50 text-red-600 rounded-md text-sm text-center">
-                  {error}
-                </div>
-              )}
-              <Input 
-                label="Mật khẩu cũ" 
-                type="password" 
-                placeholder="Nhập mật khẩu hiện tại" 
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                required
-              />
-              <Input 
-                label="Mật khẩu mới" 
-                type="password" 
-                placeholder="Tối thiểu 6 ký tự" 
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
-              <Button type="submit" className="w-full mt-2" disabled={loading}>
-                {loading ? 'Đang xử lý...' : 'Xác nhận đổi mật khẩu'}
-              </Button>
-            </form>
+
+            {!otpStep ? (
+              <form onSubmit={handleRequestOtp} className="p-6 space-y-4">
+                {error && (
+                  <div className="p-3 bg-red-50 text-red-600 rounded-md text-sm text-center">
+                    {error}
+                  </div>
+                )}
+                <Input
+                  label="Mật khẩu cũ"
+                  type="password"
+                  placeholder="Nhập mật khẩu hiện tại"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  required
+                />
+                <Input
+                  label="Mật khẩu mới"
+                  type="password"
+                  placeholder="Tối thiểu 6 ký tự"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+                <Button type="submit" className="w-full mt-2" disabled={loading}>
+                  {loading ? 'Đang gửi mã...' : 'Gửi mã xác nhận OTP'}
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handleConfirmOtp} className="p-6 space-y-4">
+                {error && (
+                  <div className="p-3 bg-red-50 text-red-600 rounded-md text-sm text-center">
+                    {error}
+                  </div>
+                )}
+                <p className="text-sm text-slate-500">
+                  Mã OTP đã được gửi đến email của bạn, hiệu lực trong 5 phút.
+                </p>
+                <Input
+                  label="Mã OTP"
+                  type="text"
+                  placeholder="Nhập mã 6 số"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  required
+                />
+                <Button type="submit" className="w-full mt-2" disabled={loading}>
+                  {loading ? 'Đang xử lý...' : 'Xác nhận đổi mật khẩu'}
+                </Button>
+              </form>
+            )}
           </div>
         </div>
       )}

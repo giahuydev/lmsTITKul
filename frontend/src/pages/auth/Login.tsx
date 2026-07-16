@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
+import { PageTitle } from '../../components/ui/PageTitle';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { authService } from '../../services/auth.service';
 import { User, Lock, Sparkles, Volume2, Loader2, Star, Eye, EyeOff } from 'lucide-react';
@@ -62,7 +63,7 @@ export default function Login() {
             case 'ADMIN': navigate('/admin'); break;
             case 'GIAO_VIEN': navigate('/teacher'); break;
             case 'HOC_SINH': navigate('/student'); break;
-            case 'PHU_HUYNH': navigate('/parent'); break;
+            case 'PHU_HUYNH': navigate('/select-child'); break;
             default: navigate('/');
           }
         }
@@ -89,9 +90,9 @@ export default function Login() {
     <>
       <div className="w-full">
         <div className="mb-10 text-center lg:text-left">
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2">
+          <PageTitle as="h2" className="text-3xl font-black text-slate-800 tracking-tight mb-2">
             {greeting}
-          </h2>
+          </PageTitle>
           <p className="text-slate-500 font-medium text-base">
             Vui lòng nhập thông tin để truy cập vào hệ thống
           </p>
@@ -107,51 +108,53 @@ export default function Login() {
 
           <div className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 flex items-center ml-1">
+              <label htmlFor="username" className="text-sm font-bold text-slate-700 flex items-center ml-1">
                 Tên đăng nhập
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                  <User className="h-5 w-5 text-slate-400 group-focus-within:text-student-primary transition-colors" />
                 </div>
                 <input
+                  id="username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
                   placeholder="Biệt danh / Mã số"
-                  className="w-full pl-11 pr-4 h-14 bg-slate-50 border-2 border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 rounded-2xl text-base font-medium text-slate-900 transition-all outline-none"
+                  className="w-full pl-11 pr-4 h-14 bg-slate-50 border-2 border-slate-100 focus:bg-white focus:border-student-primary focus:ring-4 focus:ring-student-primary/10 rounded-2xl text-base font-medium text-slate-900 transition-all outline-none"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 flex items-center justify-between ml-1">
+              <label htmlFor="password" className="text-sm font-bold text-slate-700 flex items-center justify-between ml-1">
                 <span>Mật mã bí mật</span>
                 <button
                   type="button"
                   onClick={() => setShowForgotModal(true)}
-                  className="text-indigo-600 hover:text-indigo-800 transition-colors text-sm font-bold"
+                  className="text-student-primary hover:text-student-accent transition-colors text-sm font-bold"
                 >
                   Quên mật mã?
                 </button>
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                  <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-student-primary transition-colors" />
                 </div>
                 <input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full pl-11 pr-12 h-14 bg-slate-50 border-2 border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 rounded-2xl text-lg tracking-[0.2em] font-medium text-slate-900 transition-all outline-none"
+                  className="w-full pl-11 pr-12 h-14 bg-slate-50 border-2 border-slate-100 focus:bg-white focus:border-student-primary focus:ring-4 focus:ring-student-primary/10 rounded-2xl text-lg tracking-[0.2em] font-medium text-slate-900 transition-all outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-600 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-student-primary transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -175,8 +178,10 @@ export default function Login() {
 
           <Button
             type="submit"
+            variant="student-primary"
+            size="lg"
             disabled={isLoading}
-            className="w-full h-14 text-lg font-bold mt-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_8px_20px_rgba(79,70,229,0.25)] hover:shadow-[0_12px_25px_rgba(79,70,229,0.35)] active:translate-y-1 active:shadow-[0_4px_10px_rgba(79,70,229,0.2)] transition-all group overflow-hidden relative"
+            className="w-full text-lg mt-8 group overflow-hidden relative"
           >
             {/* Shine effect */}
             <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
@@ -196,9 +201,9 @@ export default function Login() {
             <button
               type="button"
               onClick={playAudioHint}
-              className="flex items-center gap-2 text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-100 px-5 py-2.5 rounded-full font-bold transition-all text-sm shadow-sm active:scale-95 w-fit"
+              className="flex items-center gap-2 text-student-primary bg-student-primary/10 hover:bg-student-primary/20 border border-student-primary/20 px-5 py-2.5 rounded-full font-bold transition-all text-sm shadow-sm active:scale-95 w-fit"
             >
-              <Volume2 size={18} className="text-indigo-500" /> Nghe hướng dẫn
+              <Volume2 size={18} className="text-student-primary" /> Nghe hướng dẫn
             </button>
           </div>
         </form>

@@ -40,5 +40,13 @@ export const authService = {
   changePassword: async (oldPassword: string, newPassword: string) => {
     const response = await api.post('/auth/change-password', { oldPassword, newPassword });
     return response.data;
+  },
+  requestChangePasswordOtp: async (oldPassword: string) => {
+    const response = await api.post('/auth/change-password/request-otp', { oldPassword });
+    return response.data;
+  },
+  confirmChangePassword: async (otp: string, newPassword: string) => {
+    const response = await api.post('/auth/change-password/confirm', { otp, newPassword });
+    return response.data;
   }
 };

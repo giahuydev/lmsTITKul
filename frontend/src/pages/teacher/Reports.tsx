@@ -6,13 +6,29 @@ import { useReportsViewModel } from './hooks/useReportsViewModel';
 import { RewardModal } from './components/RewardModal';
 import { StudentProgressModal } from './components/StudentProgressModal';
 
+function exportStudentsToCsv(students: any[]) {
+  const header = ['STT', 'Họ và tên Học sinh', 'Toán học', 'Tiếng Việt', 'Đánh giá chung'];
+  const rows = students.map((s, idx) => [idx + 1, s.name, s.math, s.viet, s.avg]);
+  const csvContent = [header, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\r\n');
+  // BOM để Excel nhận đúng UTF-8 (không lỗi font tiếng Việt)
+  const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `so-diem-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function TeacherReports() {
   const vm = useReportsViewModel();
 
   if (vm.isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -21,7 +37,12 @@ export default function TeacherReports() {
     <div className="space-y-6 max-w-5xl relative">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <h1 className="text-2xl font-bold text-slate-800">Sổ điểm & Danh sách Học sinh</h1>
-        <Button variant="outline" className="text-green-700 border-green-600 hover:bg-green-50">
+        <Button
+          variant="outline"
+          className="text-green-700 border-green-600 hover:bg-green-50"
+          disabled={vm.students.length === 0}
+          onClick={() => exportStudentsToCsv(vm.students)}
+        >
           <FileSpreadsheet className="w-4 h-4 mr-2" /> Xuất Excel
         </Button>
       </div>
@@ -29,16 +50,27 @@ export default function TeacherReports() {
       <Card>
         <div className="p-4 border-b border-slate-100 flex gap-4 bg-slate-50 items-center">
           <div className="font-semibold text-slate-700 mr-2">Bộ lọc:</div>
-          <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary">
-            <option>Lớp 5A</option>
-            <option>Lớp 5B</option>
+          <select
+            className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary"
+            value={vm.selectedClassId}
+            onChange={(e) => vm.setSelectedClassId(e.target.value ? Number(e.target.value) : '')}
+          >
+            {vm.classes.length === 0 && <option value="">Không có lớp nào</option>}
+            {vm.classes.map((c: any) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
           </select>
           <div className="flex items-center space-x-2 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus-within:border-primary">
             <Calendar className="w-4 h-4 text-slate-400" />
-            <select className="outline-none bg-transparent">
-              <option>Học kỳ 1 (2025-2026)</option>
-              <option>Tháng 10/2025</option>
-              <option>Tháng 11/2025</option>
+            <select
+              className="outline-none bg-transparent"
+              value={vm.selectedSemesterId}
+              onChange={(e) => vm.setSelectedSemesterId(e.target.value ? Number(e.target.value) : '')}
+            >
+              <option value="">Tất cả học kỳ</option>
+              {vm.semesters.map((s: any) => (
+                <option key={s.id} value={s.id}>{s.label}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -62,7 +94,7 @@ export default function TeacherReports() {
                     <TableCell className="text-center text-slate-500">{idx + 1}</TableCell>
                     <TableCell className="font-medium text-slate-800">
                       <button
-                        className="hover:text-indigo-600 hover:underline transition-colors text-left"
+                        className="hover:text-primary hover:underline transition-colors text-left"
                         onClick={() => vm.openProgressModal(student.name)}
                       >
                         {student.name}
@@ -78,7 +110,7 @@ export default function TeacherReports() {
                       <Button
                         size="sm" variant="outline"
                         className="text-amber-600 border-amber-200 hover:bg-amber-50 h-8 px-2 text-xs"
-                        onClick={() => vm.openRewardModal(student.name)}
+                        onClick={() => vm.openRewardModal(student.id, student.name)}
                       >
                         <Trophy className="w-3.5 h-3.5 mr-1" /> Khen
                       </Button>
@@ -97,8 +129,9 @@ export default function TeacherReports() {
         </CardContent>
       </Card>
 
-      {vm.showRewardModal && (
+      {vm.showRewardModal && vm.selectedStudentId != null && (
         <RewardModal
+          studentId={vm.selectedStudentId}
           studentName={vm.selectedStudentName}
           onClose={() => vm.setShowRewardModal(false)}
         />

@@ -20,7 +20,7 @@ export default function TeacherGradingDetail() {
 
   if (vm.isLoading) {
     return (
-      <div className="flex justify-center items-center py-20 text-blue-500">
+      <div className="flex justify-center items-center py-20 text-pro-primary">
         <Loader2 className="w-10 h-10 animate-spin" />
       </div>
     );
@@ -44,7 +44,16 @@ export default function TeacherGradingDetail() {
           <Button variant="outline" onClick={() => navigate('/teacher/grading')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại
           </Button>
-          <h1 className="text-2xl font-bold text-slate-800">Chấm bài #{submissionId}</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              {vm.submission ? `${vm.submission.studentName} — ${vm.submission.assignmentTitle}` : `Chấm bài #${submissionId}`}
+            </h1>
+            {vm.submission?.submittedAt && (
+              <p className="text-sm text-slate-500 mt-0.5">
+                Nộp lúc {vm.submission.submittedAt}{vm.submission.isLate ? ' (Nộp trễ)' : ''}
+              </p>
+            )}
+          </div>
         </div>
         <Badge variant="warning" className="text-sm px-3 py-1">Chờ chấm</Badge>
       </div>
@@ -73,6 +82,21 @@ export default function TeacherGradingDetail() {
                 </span>
               )}
             </div>
+            {vm.submission?.attachmentUrl && (
+              <a
+                href={vm.submission.attachmentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-2 text-sm text-pro-primary font-semibold hover:underline"
+              >
+                Xem tệp đính kèm
+              </a>
+            )}
+            {vm.submission?.autoScore !== null && vm.submission?.autoScore !== undefined && (
+              <p className="mt-2 text-sm text-slate-600">
+                Điểm tự động (H5P): <span className="font-bold text-slate-800">{vm.submission.autoScore}</span>
+              </p>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -93,15 +117,16 @@ export default function TeacherGradingDetail() {
               <div className="flex justify-between items-center mb-2">
                 <label className="block text-sm font-bold text-slate-700">Nhận xét của Giáo viên</label>
                 <button
-                  className="text-sm text-indigo-600 font-bold flex items-center hover:bg-indigo-50 px-3 py-1.5 rounded transition-colors"
+                  className="text-sm text-pro-primary font-bold flex items-center hover:bg-pro-primary/10 px-3 py-1.5 rounded transition-colors"
                   onClick={() => vm.setShowAI(!vm.showAI)}
                 >
                   <Bot className="w-4 h-4 mr-1.5" /> Gemma2 Gợi ý
                 </button>
               </div>
 
-              {vm.showAI && (
+              {vm.showAI && submissionId && (
                 <AiSuggestionsPanel
+                  submissionId={Number(submissionId)}
                   onApply={vm.applyAISuggestion}
                   onClose={() => vm.setShowAI(false)}
                 />
@@ -118,7 +143,7 @@ export default function TeacherGradingDetail() {
             <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <Button
-                  className="w-full bg-green-600 hover:bg-green-700 py-6 text-base shadow-sm"
+                  className="w-full bg-pro-success hover:brightness-95 py-6 text-base shadow-sm"
                   onClick={vm.handleApprove}
                   disabled={vm.isSubmittingApprove || vm.actionStatus === 'success'}
                 >

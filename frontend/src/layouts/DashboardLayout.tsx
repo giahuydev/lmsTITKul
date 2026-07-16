@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, Users, Settings, BookOpen, 
-  FileText, Award, Bell, Upload, LogOut, ShieldCheck, MessageSquare
+import {
+  LayoutDashboard, Users, Settings, BookOpen,
+  FileText, Award, Bell, Upload, ShieldCheck, MessageSquare, Repeat,
+  type LucideIcon
 } from 'lucide-react';
 import { useAuthStore } from '../stores/useAuthStore';
+import { useParentContextStore } from '../stores/useParentContextStore';
 import { userService } from '../services/user.service';
 import { ticketService } from '../services/ticket.service';
 import { cn } from '../lib/utils';
@@ -16,7 +18,9 @@ export default function DashboardLayout({ role }: { role: Role }) {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
-  const logout = useAuthStore((state) => state.logout);
+  const selectedChild = useParentContextStore((state) => state.selectedChild);
+  const childContextResolved = useParentContextStore((state) => state.resolved);
+  const clearSelectedChild = useParentContextStore((state) => state.clearSelectedChild);
 
   const [pendingTicketsCount, setPendingTicketsCount] = useState(0);
   const [teacherTicketsCount, setTeacherTicketsCount] = useState(0);
@@ -27,6 +31,11 @@ export default function DashboardLayout({ role }: { role: Role }) {
       return;
     }
 
+    if (role === 'parent' && !childContextResolved) {
+      navigate('/select-child');
+      return;
+    }
+
     if (user && !user.fullName) {
       userService.getMyProfile()
         .then(data => {
@@ -34,7 +43,12 @@ export default function DashboardLayout({ role }: { role: Role }) {
         })
         .catch(err => console.error("Failed to fetch profile", err));
     }
-  }, [user, navigate, updateUser]);
+  }, [user, navigate, updateUser, role, childContextResolved]);
+
+  const handleSwitchChild = () => {
+    clearSelectedChild();
+    navigate('/select-child');
+  };
 
   useEffect(() => {
     const fetchTicketsCount = () => {
@@ -71,7 +85,14 @@ export default function DashboardLayout({ role }: { role: Role }) {
     return () => window.removeEventListener('ticketsUpdated', fetchTicketsCount);
   }, [role]);
 
-  const navItems = {
+  interface NavItem {
+    name: string;
+    path: string;
+    icon: LucideIcon;
+    badge?: number;
+  }
+
+  const navItems: Record<Role, NavItem[]> = {
     admin: [
       { name: 'Tổng quan', path: '/admin', icon: LayoutDashboard },
       { name: 'Tài khoản', path: '/admin/users', icon: Users },
@@ -104,7 +125,7 @@ export default function DashboardLayout({ role }: { role: Role }) {
   const items = navItems[role];
 
   return (
-    <div className="min-h-[100dvh] bg-slate-50 flex font-sans">
+    <div className="min-h-[100dvh] bg-slate-50 flex font-pro">
       {/* Sidebar - Premium Minimalist */}
       <aside className="w-72 bg-white border-r border-slate-200 flex flex-col fixed h-full z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         <div className="p-6">
@@ -130,8 +151,23 @@ export default function DashboardLayout({ role }: { role: Role }) {
                 </span>
              </div>
           </div>
+
+          {role === 'parent' && selectedChild && (
+            <button
+              onClick={handleSwitchChild}
+              className="mt-3 w-full flex items-center justify-between px-3 py-2.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-xl transition-all group"
+            >
+              <div className="flex flex-col items-start overflow-hidden">
+                <span className="text-[11px] font-semibold text-indigo-400 uppercase tracking-wider">Đang xem</span>
+                <span className="text-sm font-bold text-indigo-700 truncate max-w-[140px]" title={selectedChild.name}>{selectedChild.name}</span>
+              </div>
+              <span className="flex items-center text-xs font-bold text-indigo-600 group-hover:text-indigo-800">
+                <Repeat className="w-3.5 h-3.5 mr-1" /> Đổi hồ sơ
+              </span>
+            </button>
+          )}
         </div>
-        
+
         <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto custom-scrollbar pb-6">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 px-3">Menu chính</div>
           {items.map((item) => {

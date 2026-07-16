@@ -3,7 +3,7 @@ import { Rocket, Sparkles, Quote } from 'lucide-react';
 
 export default function AuthLayout() {
   return (
-    <div className="min-h-[100dvh] flex bg-slate-50 font-sans selection:bg-indigo-200">
+    <div className="min-h-[100dvh] flex bg-slate-50 font-body selection:bg-indigo-200">
       
       {/* Nửa trái: Visual Area (Ẩn trên Mobile) */}
       <div className="hidden lg:flex w-[55%] relative overflow-hidden bg-indigo-950 flex-col justify-between p-12 lg:p-16">

@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '../../lib/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost' | 'kids';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost' | 'kids' | 'student-primary' | 'pro-primary';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
@@ -15,15 +15,17 @@ export function Button({
   children, 
   ...props 
 }: ButtonProps) {
-  const baseStyles = "inline-flex items-center justify-center font-bold transition-all focus:outline-none disabled:opacity-50 disabled:pointer-events-none rounded-[14px]";
-  
+  const baseStyles = "inline-flex items-center justify-center font-bold transition-all focus:outline-none disabled:opacity-50 disabled:pointer-events-none";
+
   const variants = {
-    primary: "bg-[#4B9EFF] text-white hover:bg-[#3A82DF] shadow-[0_4px_0_0_#2563eb] active:shadow-[0_0px_0_0_#2563eb] active:translate-y-1 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2",
-    secondary: "bg-slate-100 text-slate-700 hover:bg-slate-200 shadow-[0_4px_0_0_#cbd5e1] active:shadow-[0_0px_0_0_#cbd5e1] active:translate-y-1 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2",
-    outline: "border-2 border-slate-200 bg-transparent hover:bg-slate-50 text-slate-700",
-    danger: "bg-red-500 text-white hover:bg-red-600 shadow-[0_4px_0_0_#b91c1c] active:shadow-[0_0px_0_0_#b91c1c] active:translate-y-1 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2",
-    ghost: "bg-transparent text-slate-600 hover:bg-slate-100",
-    kids: "bg-gradient-to-r from-[#7c3aed] to-[#6366f1] text-white shadow-[0_8px_20px_rgba(124,58,237,0.35)] hover:from-[#6d28d9] hover:to-[#4f46e5] hover:shadow-[0_12px_25px_rgba(109,40,217,0.45)] active:shadow-[0_4px_10px_rgba(109,40,217,0.3)] active:translate-y-1 focus-visible:ring-4 focus-visible:ring-purple-300"
+    primary: "bg-[#4B9EFF] text-white hover:bg-[#3A82DF] shadow-[0_4px_0_0_theme(colors.primary.hover)] active:shadow-[0_0px_0_0_theme(colors.primary.hover)] active:translate-y-1 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 rounded-[14px]",
+    secondary: "bg-slate-100 text-slate-700 hover:bg-slate-200 shadow-[0_4px_0_0_#cbd5e1] active:shadow-[0_0px_0_0_#cbd5e1] active:translate-y-1 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 rounded-[14px]",
+    outline: "border-2 border-slate-200 bg-transparent hover:bg-slate-50 text-slate-700 rounded-[14px]",
+    danger: "bg-red-500 text-white hover:bg-red-600 shadow-[0_4px_0_0_theme(colors.red.800)] active:shadow-[0_0px_0_0_theme(colors.red.800)] active:translate-y-1 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 rounded-[14px]",
+    ghost: "bg-transparent text-slate-600 hover:bg-slate-100 rounded-[14px]",
+    kids: "bg-gradient-to-r from-student-accent to-student-primary text-white shadow-[0_8px_20px_rgba(129,140,248,0.35)] hover:brightness-95 hover:shadow-[0_12px_25px_rgba(129,140,248,0.45)] active:shadow-[0_4px_10px_rgba(129,140,248,0.3)] active:translate-y-1 focus-visible:ring-4 focus-visible:ring-student-accent/40 rounded-[14px]",
+    'student-primary': "bg-student-primary text-white shadow-clay-sm hover:-translate-y-0.5 active:translate-y-1 active:shadow-none rounded-clay-sm font-heading font-semibold focus-visible:ring-2 focus-visible:ring-student-accent focus-visible:ring-offset-2",
+    'pro-primary': "bg-pro-primary text-white hover:bg-pro-primary/90 rounded-lg font-pro font-medium focus-visible:ring-2 focus-visible:ring-pro-primary/40 focus-visible:ring-offset-2",
   };
 
   const sizes = {

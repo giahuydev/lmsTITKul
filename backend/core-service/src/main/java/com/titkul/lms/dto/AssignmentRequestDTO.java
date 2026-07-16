@@ -14,5 +14,6 @@ public class AssignmentRequestDTO {
     private Integer maxResubmitCount;
     private Integer lessonId;
     private Integer contentNodeId;
+    private Long hocLieuId;
     private Integer semesterId;
 }

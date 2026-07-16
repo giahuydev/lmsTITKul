@@ -93,7 +93,7 @@ export default function ForceChangePassword() {
         </div>
         <h1 className="text-2xl font-black text-slate-800">Bảo mật tài khoản</h1>
         <p className="text-slate-500 mt-2 text-sm font-medium">
-          Xin chào <span className="font-bold text-indigo-600">{user.username}</span>! Đây là lần đầu bạn đăng nhập.
+          Xin chào <span className="font-bold text-primary">{user.username}</span>! Đây là lần đầu bạn đăng nhập.
           Vui lòng đổi mật khẩu mới để bảo vệ tài khoản nhé.
         </p>
       </div>

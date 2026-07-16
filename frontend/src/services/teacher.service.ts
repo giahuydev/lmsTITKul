@@ -7,8 +7,10 @@ export interface ClassRoom {
   name: string;
   grade: number;
   academicYear: string;
-  maxCapacity: number;
-  status: string;
+  maxCapacity?: number;
+  status?: string;
+  role?: string;
+  students?: number;
 }
 
 export interface Material {
@@ -23,6 +25,23 @@ export interface Material {
   maxRetryCount: number | null;
   createdAt: string;
   teacherUserId: number | null;
+  grade: number | null;
+  subjectId: number | null;
+  subjectName: string | null;
+}
+
+export interface Subject {
+  id: number;
+  name: string;
+  code: string | null;
+}
+
+export interface TeacherProfile {
+  id: number;
+  teacherCode: string | null;
+  fullName: string;
+  department: string | null;
+  dateOfBirth: string | null;
 }
 
 export interface Assignment {
@@ -48,6 +67,25 @@ export interface Submission {
   submittedAt: string;
 }
 
+export interface SubmissionDetail {
+  id: number;
+  studentName: string;
+  assignmentTitle: string;
+  textContent: string | null;
+  attachmentUrl: string | null;
+  autoScore: number | null;
+  xpEarned: number;
+  attemptNumber: number;
+  status: string;
+  isLate: boolean;
+  submittedAt: string | null;
+  evaluationScore: number | null;
+  evaluationGrade: string | null;
+  evaluationComment: string | null;
+  evaluationAction: string | null;
+  evaluatedAt: string | null;
+}
+
 export interface AssignmentCreateDTO {
   title: string;
   description: string;
@@ -56,6 +94,7 @@ export interface AssignmentCreateDTO {
   type: string;
   deadline: string;
   maxResubmitCount: number;
+  hocLieuId?: number;
 }
 
 export interface EvaluateDTO {
@@ -69,9 +108,9 @@ export interface EvaluateDTO {
 // ===== Service =====
 
 export const teacherService = {
-  // Lấy danh sách tất cả lớp học
+  // Lấy danh sách lớp của giáo viên hiện tại (chỉ lớp mình chủ nhiệm)
   getClasses: async (): Promise<ClassRoom[]> => {
-    const response = await api.get<ClassRoom[]>('/classes');
+    const response = await api.get<ClassRoom[]>('/teachers/me/classes');
     return response.data;
   },
 
@@ -92,6 +131,19 @@ export const teacherService = {
     await api.delete(`/hoc-lieu/${id}`);
   },
 
+  updateMaterialClassification: async (
+    id: number | string,
+    data: { grade: number | null; subjectId: number | null },
+  ): Promise<Material> => {
+    const response = await api.patch<Material>(`/hoc-lieu/${id}/classification`, data);
+    return response.data;
+  },
+
+  getSubjects: async (): Promise<Subject[]> => {
+    const response = await api.get<Subject[]>('/subjects');
+    return response.data;
+  },
+
   // Giao bài tập mới
   createAssignment: async (dto: AssignmentCreateDTO): Promise<Assignment> => {
     const response = await api.post<Assignment>('/assignments', dto);
@@ -101,6 +153,12 @@ export const teacherService = {
   // Lấy danh sách bài nộp theo ID bài tập
   getSubmissions: async (assignmentId: number): Promise<Submission[]> => {
     const response = await api.get<Submission[]>(`/assignments/${assignmentId}/submissions`);
+    return response.data;
+  },
+
+  // Lấy chi tiết một bài nộp (nội dung, điểm, đánh giá nếu đã chấm)
+  getSubmissionDetail: async (submissionId: number | string): Promise<SubmissionDetail> => {
+    const response = await api.get<SubmissionDetail>(`/submissions/${submissionId}`);
     return response.data;
   },
 
@@ -115,13 +173,64 @@ export const teacherService = {
     return response.data;
   },
 
-  getAllTeachers: async (): Promise<any[]> => {
+  getAllTeachers: async (): Promise<TeacherProfile[]> => {
     const response = await api.get('/teachers');
     return response.data;
   },
 
-  getReports: async (): Promise<any> => {
-    const response = await api.get('/teachers/me/reports');
+  getReports: async (classId?: number, semesterId?: number): Promise<any> => {
+    const response = await api.get('/teachers/me/reports', { params: { classId, semesterId } });
+    return response.data;
+  },
+
+  getSemesters: async (): Promise<{ id: number; label: string }[]> => {
+    const response = await api.get('/semesters');
+    return response.data;
+  },
+
+  createAnnouncement: async (dto: {
+    title: string;
+    content: string;
+    audience: 'TAT_CA' | 'PHU_HUYNH' | 'HOC_SINH';
+    pinned: boolean;
+  }): Promise<void> => {
+    await api.post('/teachers/me/announcements', dto);
+  },
+
+  getMyAnnouncements: async (): Promise<any[]> => {
+    const response = await api.get('/teachers/me/announcements');
+    return response.data;
+  },
+
+  getBadges: async (): Promise<{ id: number; name: string; description: string | null; iconUrl: string | null }[]> => {
+    const response = await api.get('/badges');
+    return response.data;
+  },
+
+  awardBadge: async (studentId: number, dto: { badgeId: number; complimentLetter: string }): Promise<void> => {
+    await api.post(`/teachers/me/students/${studentId}/rewards`, dto);
+  },
+
+  generateCommentSuggestions: async (submissionId: number): Promise<{ id: number; suggestions: string[] }> => {
+    const response = await api.post(`/submissions/${submissionId}/comment-suggestions`);
+    return response.data;
+  },
+
+  chooseCommentSuggestion: async (suggestionId: number): Promise<void> => {
+    await api.post(`/submissions/comment-suggestions/${suggestionId}/choose`);
+  },
+
+  getMorningReport: async (classId?: number): Promise<{
+    id: number;
+    classId: number;
+    className: string;
+    reportDate: string;
+    summary: string;
+    generatedAt: string;
+  }> => {
+    const response = await api.get('/teachers/me/morning-report', {
+      params: classId ? { classId } : undefined,
+    });
     return response.data;
   },
 };

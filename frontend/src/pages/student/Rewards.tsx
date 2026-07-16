@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, MailOpen } from 'lucide-react';
+import { ArrowLeft, MailOpen, Award, Mail, Trophy, Gem, Lock, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { studentService } from '../../services/student.service';
 
@@ -36,7 +36,7 @@ export default function StudentRewards() {
         <div className="absolute right-0 top-0 w-64 h-64 bg-amber-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
         <div className="flex items-center mb-6 md:mb-0 relative z-10">
           <div className="w-20 h-20 bg-gradient-to-br from-amber-200 to-orange-400 rounded-2xl flex items-center justify-center mr-6 shadow-lg shadow-amber-200/50 border-2 border-white">
-             <img src="https://img.icons8.com/color/96/trophy.png" alt="Cúp" className="w-12 h-12 animate-bounce-subtle" />
+             <Trophy className="w-12 h-12 animate-bounce-subtle text-white" strokeWidth={1.5} />
           </div>
           <div>
             <h1 className="text-3xl font-black text-slate-800 mb-1">Kho báu của em</h1>
@@ -46,24 +46,24 @@ export default function StudentRewards() {
         <div className="bg-white px-6 py-4 rounded-2xl border-2 border-amber-100 shadow-sm text-center relative z-10">
            <div className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Tổng điểm thưởng</div>
            <div className="text-3xl font-black text-amber-500 flex items-center justify-center">
-             1,250 <img src="https://img.icons8.com/color/48/diamond.png" className="w-8 h-8 ml-2" />
+             1,250 <Gem className="w-8 h-8 ml-2 text-cyan-500 fill-cyan-100" />
            </div>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex space-x-2 mb-8 bg-slate-200/50 p-1.5 rounded-2xl inline-flex">
-         <button 
+         <button
            onClick={() => setActiveTab('badges')}
-           className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'badges' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+           className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'badges' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
          >
-           🏅 Huy hiệu
+           <Award className="w-4 h-4" /> Huy hiệu
          </button>
-         <button 
+         <button
            onClick={() => setActiveTab('letters')}
-           className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'letters' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+           className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'letters' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
          >
-           💌 Hộp thư khen
+           <Mail className="w-4 h-4" /> Hộp thư khen
          </button>
       </div>
 
@@ -84,7 +84,7 @@ export default function StudentRewards() {
                   <img src={badge.icon} alt={badge.name} className="w-full h-full object-contain relative z-10 drop-shadow-md" />
                   {!badge.unlocked && (
                      <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-100/80 rounded-full backdrop-blur-sm border-4 border-slate-200">
-                        <img src="https://img.icons8.com/color/48/lock.png" alt="Khóa" className="w-8 h-8 opacity-50" />
+                        <Lock className="w-8 h-8 opacity-50 text-slate-500" />
                      </div>
                   )}
                </div>
@@ -92,8 +92,8 @@ export default function StudentRewards() {
                <p className="text-slate-500 text-sm mb-6 font-medium leading-relaxed">{badge.desc}</p>
                
                {badge.unlocked ? (
-                  <div className="mt-auto inline-flex items-center text-green-700 bg-green-100 px-4 py-2 rounded-xl text-sm font-bold border border-green-200 w-full justify-center">
-                    <img src="https://img.icons8.com/color/48/checked--v1.png" className="w-5 h-5 mr-2" />
+                  <div className="mt-auto inline-flex items-center text-student-success bg-student-success/10 px-4 py-2 rounded-xl text-sm font-bold border border-student-success/30 w-full justify-center">
+                    <CheckCircle2 className="w-5 h-5 mr-2" />
                     Đạt: {badge.date}
                   </div>
                ) : (
@@ -106,7 +106,7 @@ export default function StudentRewards() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-           {letters.map(letter => (
+           {letters.map((letter: any) => (
               <div key={letter.id} className="bg-gradient-to-br from-pink-50 to-red-50 p-1 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
                  <div className="bg-white rounded-[22px] p-6 h-full border border-pink-100 flex flex-col relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-pink-100/50 rounded-bl-full -z-10"></div>

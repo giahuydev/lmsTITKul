@@ -1,5 +1,5 @@
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
-import { Bell, Search, Map, CheckSquare, Trophy, Gem, Star, UserCircle, LogOut } from 'lucide-react';
+import { Bell, Search, Map, CheckSquare, Trophy, Gem, Star, UserCircle } from 'lucide-react';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useEffect } from 'react';
 import { userService } from '../services/user.service';
@@ -8,7 +8,6 @@ export default function StudentLayout() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
-  const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
     if (user?.requirePasswordChange) {
@@ -26,7 +25,7 @@ export default function StudentLayout() {
   }, [user, navigate, updateUser]);
 
   return (
-    <div className="flex min-h-[100dvh] font-sans bg-[#f8fafc]">
+    <div className="flex min-h-[100dvh] font-body bg-[#f8fafc]">
       {/* Sidebar - Premium Kids UI */}
       <aside className="w-[280px] bg-white border-r border-slate-200 flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)] fixed h-full">
         <div className="p-6 flex items-center border-b border-slate-100">

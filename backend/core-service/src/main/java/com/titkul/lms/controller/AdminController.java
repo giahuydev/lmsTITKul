@@ -81,9 +81,21 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/transfer-class")
-    public ResponseEntity<?> transferClass(@PathVariable Long id, @RequestParam Long newClassId) {
+    public ResponseEntity<?> transferClass(
+            @PathVariable Long id,
+            @RequestParam Long newClassId,
+            @RequestParam(required = false) String reason,
+            @RequestParam(required = false) String note) {
+        org.springframework.security.core.Authentication authentication =
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
         try {
-            userManagementService.transferClass(id, newClassId);
+            com.titkul.lms.entity.TransferReason transferReason = reason != null
+                    ? com.titkul.lms.entity.TransferReason.valueOf(reason)
+                    : null;
+            userManagementService.transferClass(id, newClassId, authentication.getName(), transferReason, note);
             return ResponseEntity.ok(java.util.Map.of("message", "Chuyển lớp thành công"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));

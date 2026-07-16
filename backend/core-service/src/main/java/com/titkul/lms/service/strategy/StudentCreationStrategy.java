@@ -26,20 +26,35 @@ public class StudentCreationStrategy implements UserCreationStrategy {
     @Override
     @Transactional
     public User createUser(CreateUserDto dto, String defaultPasswordHash) {
+        if (dto.getStudentCode() == null || dto.getStudentCode().isBlank()) {
+            throw new IllegalArgumentException("Mã học sinh là bắt buộc để tạo tài khoản Học sinh.");
+        }
+        if (studentProfileRepository.findByStudentCode(dto.getStudentCode()).isPresent()) {
+            throw new RuntimeException("Mã học sinh này đã tồn tại.");
+        }
+        if (dto.getClassId() == null) {
+            throw new IllegalArgumentException("Học sinh bắt buộc phải được gắn vào một lớp học.");
+        }
+
+        ClassRoom classRoom = classRoomRepository.findById(dto.getClassId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Lớp học"));
+        if (classRoom.getStatus() != ClassStatus.ACTIVE) {
+            throw new IllegalArgumentException("Chỉ được gắn học sinh vào lớp đang ACTIVE.");
+        }
+
+        String username = "HS" + dto.getStudentCode();
+        if (userRepository.existsByUsername(username)) {
+            throw new RuntimeException("Đã tồn tại tài khoản Học sinh với mã này.");
+        }
+
         User user = new User();
-        user.setUsername(dto.getUsername());
+        user.setUsername(username);
         user.setPasswordHash(defaultPasswordHash);
         user.setStatus(UserStatus.ACTIVE);
         user.setRequirePasswordChange(true);
         user.setRole(Role.HOC_SINH);
-        
-        user = userRepository.save(user);
 
-        ClassRoom classRoom = null;
-        if (dto.getClassId() != null) {
-            classRoom = classRoomRepository.findById(dto.getClassId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Lớp học"));
-        }
+        user = userRepository.save(user);
 
         ParentProfile parentProfile = null;
         if (dto.getParentPhone() != null && !dto.getParentPhone().trim().isEmpty()) {
@@ -66,7 +81,7 @@ public class StudentCreationStrategy implements UserCreationStrategy {
 
         StudentProfile sp = new StudentProfile();
         sp.setUser(user);
-        sp.setStudentCode(dto.getUsername());
+        sp.setStudentCode(dto.getStudentCode());
         sp.setFullName(dto.getFullName());
         sp.setDateOfBirth(dto.getDateOfBirth());
         sp.setClassRoom(classRoom);

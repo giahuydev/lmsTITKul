@@ -33,7 +33,7 @@ export default function TeacherClassDetails() {
         setClassInfo({
           ...currentClass,
           studentsCount: studentsData.length,
-          role: currentClass.homeroomTeacher?.user?.fullName || 'Chưa phân công'
+          role: currentClass.homeroomTeacher?.fullName || 'Chưa phân công'
         });
         setStudents(studentsData);
       }
@@ -156,7 +156,7 @@ export default function TeacherClassDetails() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button variant="outline" size="sm" className="text-orange-600 border-orange-200 hover:bg-orange-50" onClick={() => setResetStudent(student)}>
+                    <Button variant="outline" size="sm" className="text-pro-warning border-pro-warning/30 hover:bg-pro-warning/10" onClick={() => setResetStudent(student)}>
                       <KeySquare className="w-4 h-4 mr-1" /> Cấp lại MK
                     </Button>
                   </TableCell>
@@ -171,8 +171,8 @@ export default function TeacherClassDetails() {
       {resetStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-orange-50">
-              <h3 className="font-bold text-orange-800">Yêu cầu cấp lại Mật khẩu</h3>
+            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-pro-warning/10">
+              <h3 className="font-bold text-pro-warning">Yêu cầu cấp lại Mật khẩu</h3>
               <button onClick={() => setResetStudent(null)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
@@ -196,7 +196,7 @@ export default function TeacherClassDetails() {
 
               <div className="pt-4 flex justify-end space-x-3 border-t border-slate-100 mt-2">
                 <Button variant="outline" onClick={() => setResetStudent(null)}>Hủy bỏ</Button>
-                <Button className="bg-orange-600 hover:bg-orange-700" isLoading={isSubmitting} onClick={handleSendTicket}>Gửi Ticket</Button>
+                <Button className="bg-pro-warning hover:brightness-95" isLoading={isSubmitting} onClick={handleSendTicket}>Gửi Ticket</Button>
               </div>
             </div>
           </div>

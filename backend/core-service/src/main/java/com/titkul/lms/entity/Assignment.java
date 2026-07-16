@@ -38,6 +38,12 @@ public class Assignment {
     @JoinColumn(name = "dang_bai_id")
     private ContentNode contentNode;
 
+    // Học liệu GV tự soạn ở Kho Học Liệu (hoc_lieu) — độc lập với cây SGK (ContentNode).
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hoc_lieu_id")
+    private HocLieu hocLieu;
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hoc_ky_id", nullable = false)

@@ -136,7 +136,7 @@ export default function ClassDetails() {
                     <TableCell>{student.parentName || <span className="text-slate-400 italic">Chưa liên kết</span>}</TableCell>
                     <TableCell>{student.phone}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => handleOpenTransferModal(student)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                      <Button variant="ghost" size="sm" onClick={() => handleOpenTransferModal(student)} className="text-pro-primary hover:text-pro-primary hover:bg-pro-primary/10">
                         <ArrowRightLeft className="h-4 w-4 mr-1.5" />
                         Chuyển lớp
                       </Button>

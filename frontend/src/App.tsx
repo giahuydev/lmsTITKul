@@ -8,6 +8,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import Login from './pages/auth/Login';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ForceChangePassword from './pages/auth/ForceChangePassword';
+import SelectChild from './pages/auth/SelectChild';
 
 // Pages - Admin
 import AdminDashboard from './pages/admin/Dashboard';
@@ -29,7 +30,7 @@ import TeacherGrading from './pages/teacher/Grading';
 import TeacherGradingDetail from './pages/teacher/GradingDetail';
 import TeacherReports from './pages/teacher/Reports';
 import TeacherAnnouncements from './pages/teacher/Announcements';
-import TeacherEditorMock from './pages/teacher/EditorMock';
+import TeacherEditor from './pages/teacher/Editor';
 import TeacherTickets from './pages/teacher/Tickets';
 import TeacherProfile from './pages/teacher/Profile';
 
@@ -48,6 +49,7 @@ import StudentLayout from './layouts/StudentLayout';
 import StudentDashboard from './pages/student/Dashboard';
 import SubjectTree from './pages/student/SubjectTree';
 import LessonPlayer from './pages/student/LessonPlayer';
+import AssignmentH5PPlayer from './pages/student/AssignmentH5PPlayer';
 import StudentRewards from './pages/student/Rewards';
 import StudentAssignments from './pages/student/Assignments';
 import StudentNotifications from './pages/student/Notifications';
@@ -66,6 +68,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/force-change-password" element={<ForceChangePassword />} />
+          <Route path="/select-child" element={<SelectChild />} />
         </Route>
 
         {/* Student Routes (Bright Theme) */}
@@ -75,6 +78,7 @@ function App() {
           <Route path="lesson/:lessonId" element={<LessonPlayer />} />
           <Route path="rewards" element={<StudentRewards />} />
           <Route path="tasks" element={<StudentAssignments />} />
+          <Route path="tasks/:assignmentId/play" element={<AssignmentH5PPlayer />} />
           <Route path="notifications" element={<StudentNotifications />} />
           <Route path="profile" element={<StudentProfile />} />
         </Route>
@@ -98,8 +102,8 @@ function App() {
           <Route path="announcements" element={<TeacherAnnouncements />} />
           <Route path="materials" element={<TeacherMaterials />} />
           <Route path="materials/:materialId" element={<TeacherMaterialDetail />} />
-          <Route path="editor" element={<TeacherEditorMock />} />
-          <Route path="editor/:contentId" element={<TeacherEditorMock />} />
+          <Route path="editor" element={<TeacherEditor />} />
+          <Route path="editor/:contentId" element={<TeacherEditor />} />
           <Route path="assignments" element={<TeacherAssignments />} />
           <Route path="grading" element={<TeacherGrading />} />
           <Route path="grading/:submissionId" element={<TeacherGradingDetail />} />

@@ -1,5 +1,6 @@
 package com.titkul.lms.controller;
 
+import com.titkul.lms.dto.HocLieuClassificationDTO;
 import com.titkul.lms.dto.HocLieuInternalDTO;
 import com.titkul.lms.entity.HocLieu;
 import com.titkul.lms.service.HocLieuService;
@@ -54,5 +55,14 @@ public class HocLieuController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         hocLieuService.delete(id, authentication.getName(), isAdmin);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/api/v1/hoc-lieu/{id}/classification")
+    @PreAuthorize("hasRole('GIAO_VIEN')")
+    public ResponseEntity<HocLieu> updateClassification(
+            @PathVariable Long id,
+            @RequestBody HocLieuClassificationDTO dto,
+            Authentication authentication) {
+        return ResponseEntity.ok(hocLieuService.updateClassification(id, dto, authentication.getName()));
     }
 }

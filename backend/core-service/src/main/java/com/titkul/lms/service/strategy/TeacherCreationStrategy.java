@@ -26,17 +26,23 @@ public class TeacherCreationStrategy implements UserCreationStrategy {
     @Override
     @Transactional
     public User createUser(CreateUserDto dto, String defaultPasswordHash) {
+        if (dto.getPhone() == null || dto.getPhone().isBlank()) {
+            throw new IllegalArgumentException("Số điện thoại là bắt buộc để tạo tài khoản Giáo viên.");
+        }
+
+        String username = "GV" + dto.getPhone();
+        if (userRepository.existsByUsername(username)) {
+            throw new RuntimeException("Đã tồn tại tài khoản Giáo viên với số điện thoại này.");
+        }
+
         User user = new User();
-        user.setUsername(dto.getUsername());
+        user.setUsername(username);
         user.setPasswordHash(defaultPasswordHash);
         user.setStatus(UserStatus.ACTIVE);
         user.setRequirePasswordChange(true);
         user.setRole(Role.GIAO_VIEN);
+        user.setPhone(dto.getPhone());
 
-        if (dto.getPhone() != null) {
-            user.setPhone(dto.getPhone());
-        }
-        
         user = userRepository.save(user);
 
         TeacherProfile tp = new TeacherProfile();

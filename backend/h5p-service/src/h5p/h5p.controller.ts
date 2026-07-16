@@ -46,7 +46,7 @@ export class H5pController {
   // Giáo viên lưu H5P content mới
   @Post('content')
   async saveContent(
-    @Body() body: { params: any; metadata: any; library: string },
+    @Body() body: { params: any; metadata: any; library: string; grade?: number; subjectId?: number },
     @Req() req: Request,
   ) {
     const user = (req as any).user;
@@ -56,6 +56,8 @@ export class H5pController {
       body.library,
       String(user?.userId ?? '0'),
       user?.sub ?? 'GiaoVien',
+      body.grade,
+      body.subjectId,
     );
   }
 

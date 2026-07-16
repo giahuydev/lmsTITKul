@@ -46,7 +46,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
           {user.className && (
             <div className="grid grid-cols-3 gap-2 border-b border-slate-100 pb-3">
               <span className="text-slate-500 font-medium">Lớp học</span>
-              <span className="col-span-2 font-bold text-indigo-600">{user.className}</span>
+              <span className="col-span-2 font-bold text-pro-primary">{user.className}</span>
             </div>
           )}
           <div className="grid grid-cols-3 gap-2 border-b border-slate-100 pb-3">

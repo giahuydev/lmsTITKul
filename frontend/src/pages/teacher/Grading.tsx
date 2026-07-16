@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useState as useLocalState } from 'react';
 import { Search, Filter, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../../components/ui/Card';
@@ -24,6 +23,19 @@ interface Submission {
 export default function TeacherGrading() {
   const navigate = useNavigate();
   const { viewGradedDetails, handleViewDetails, closeDetails } = useGradingSystem();
+  const [loadingDetailId, setLoadingDetailId] = useState<number | null>(null);
+
+  const openGradedDetails = async (submissionId: number) => {
+    setLoadingDetailId(submissionId);
+    try {
+      const detail = await teacherService.getSubmissionDetail(submissionId);
+      handleViewDetails(detail);
+    } catch {
+      // silent — modal chỉ đơn giản không mở nếu lỗi
+    } finally {
+      setLoadingDetailId(null);
+    }
+  };
 
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
@@ -98,7 +110,8 @@ export default function TeacherGrading() {
               <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
             ) : (
               <select
-                className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary font-bold text-indigo-700 bg-indigo-50"
+                aria-label="Chọn lớp học"
+                className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary font-bold text-pro-primary bg-pro-bg"
                 value={selectedClassId ?? ''}
                 onChange={(e) => setSelectedClassId(Number(e.target.value))}
               >
@@ -109,6 +122,7 @@ export default function TeacherGrading() {
             )}
             <Filter className="h-4 w-4 text-slate-400 ml-2" />
             <select
+              aria-label="Chọn bài tập"
               className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary"
               value={selectedAssignmentId ?? ''}
               onChange={(e) => setSelectedAssignmentId(Number(e.target.value))}
@@ -170,7 +184,14 @@ export default function TeacherGrading() {
                     </TableCell>
                     <TableCell className="text-right">
                       {sub.status === 'DA_CHAM' ? (
-                        <Button variant="ghost" size="sm">Xem chi tiết</Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          isLoading={loadingDetailId === sub.id}
+                          onClick={() => openGradedDetails(sub.id)}
+                        >
+                          Xem chi tiết
+                        </Button>
                       ) : sub.h5pScore !== null ? (
                         <Button variant="ghost" size="sm">Xem tiến độ</Button>
                       ) : (

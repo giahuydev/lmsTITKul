@@ -64,7 +64,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-white rounded-[32px] p-8 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200 border-4 border-indigo-50">
+      <div className="bg-white rounded-[32px] p-8 max-w-sm w-full shadow-2xl relative animate-in zoom-in-95 duration-200 border-4 border-student-primary/10">
         <button
           onClick={handleClose}
           className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full p-1.5 transition-colors"
@@ -73,8 +73,8 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
         </button>
         
         <div className="text-center">
-          <div className="w-20 h-20 bg-indigo-50 rounded-[24px] flex items-center justify-center mx-auto mb-6 shadow-inner rotate-3">
-            <Lock className="w-10 h-10 text-indigo-500 -rotate-3" />
+          <div className="w-20 h-20 bg-student-primary/10 rounded-[24px] flex items-center justify-center mx-auto mb-6 shadow-inner rotate-3">
+            <Lock className="w-10 h-10 text-student-primary -rotate-3" />
           </div>
           <h3 className="text-2xl font-black text-slate-800 mb-2 tracking-tight">Quên mật mã rồi sao?</h3>
           
@@ -106,7 +106,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-slate-50 border-slate-200 h-14 text-base focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl transition-all"
+                  className="bg-slate-50 border-slate-200 h-14 text-base focus:bg-white focus:border-student-primary focus:ring-4 focus:ring-student-primary/20 rounded-2xl transition-all"
                 />
               </div>
               
@@ -121,7 +121,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
           ) : (
             <form onSubmit={handleResetPassword} className="text-left animate-in fade-in slide-in-from-right-4 duration-300 mt-4">
               <p className="text-slate-500 font-medium text-[14px] mb-6 text-center leading-relaxed bg-slate-50 p-3 rounded-xl">
-                Mã xác nhận đã được gửi đến <b className="text-indigo-600 block mt-1">{email}</b>
+                Mã xác nhận đã được gửi đến <b className="text-student-primary block mt-1">{email}</b>
               </p>
               
               {error && (
@@ -164,7 +164,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
                   setStep('email');
                   setError('');
                 }}
-                className="w-full mt-5 text-[14px] text-slate-400 hover:text-indigo-600 font-bold transition-colors underline decoration-2 underline-offset-4"
+                className="w-full mt-5 text-[14px] text-slate-400 hover:text-student-primary font-bold transition-colors underline decoration-2 underline-offset-4"
               >
                 Sử dụng email khác
               </button>

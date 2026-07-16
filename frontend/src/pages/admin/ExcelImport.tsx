@@ -71,9 +71,9 @@ export default function ExcelImport() {
                     <TableCell>{row.parentPhone}</TableCell>
                     <TableCell>
                       {row.isValid ? (
-                        <CheckCircle className="w-5 h-5 text-green-500" />
+                        <CheckCircle className="w-5 h-5 text-pro-success" />
                       ) : (
-                        <div className="flex items-center text-red-500" title={row.errors.join(', ')}>
+                        <div className="flex items-center text-pro-destructive" title={row.errors.join(', ')}>
                           <AlertCircle className="w-5 h-5 mr-1" /> Lỗi
                         </div>
                       )}
@@ -95,13 +95,13 @@ export default function ExcelImport() {
           <CardContent>
             <div className="flex space-x-6 mb-6">
               <StatBox label="Tổng số dòng" value={uploadResult.totalRows} color="bg-slate-50" textColor="text-slate-800" />
-              <StatBox label="Thành công" value={uploadResult.successCount} color="bg-green-50" textColor="text-green-700" labelColor="text-green-600" />
-              <StatBox label="Thất bại" value={uploadResult.failureCount} color="bg-red-50" textColor="text-red-700" labelColor="text-red-600" />
+              <StatBox label="Thành công" value={uploadResult.successCount} color="bg-pro-success/10" textColor="text-pro-success" labelColor="text-pro-success" />
+              <StatBox label="Thất bại" value={uploadResult.failureCount} color="bg-pro-destructive/10" textColor="text-pro-destructive" labelColor="text-pro-destructive" />
             </div>
 
             {uploadResult.failures?.length > 0 && (
               <div>
-                <h4 className="font-medium text-red-600 mb-2">Chi tiết lỗi:</h4>
+                <h4 className="font-medium text-pro-destructive mb-2">Chi tiết lỗi:</h4>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -117,7 +117,7 @@ export default function ExcelImport() {
                         <TableCell>#{f.rowNumber}</TableCell>
                         <TableCell>{f.studentCode}</TableCell>
                         <TableCell>{f.studentName}</TableCell>
-                        <TableCell className="text-red-500">{f.errorMsg}</TableCell>
+                        <TableCell className="text-pro-destructive">{f.errorMsg}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

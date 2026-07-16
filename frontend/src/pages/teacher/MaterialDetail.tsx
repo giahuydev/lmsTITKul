@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowLeft, FileText, Puzzle, Loader2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, FileText, Puzzle, Loader2, AlertTriangle, Tag } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import H5PPlayer from '../../components/h5p/H5PPlayer';
-import { teacherService, type Material } from '../../services/teacher.service';
+import { teacherService, type Material, type Subject } from '../../services/teacher.service';
+import { GRADES } from '../../constants';
 
 const TYPE_LABEL: Record<Material['type'], string> = {
   TAI_LIEU: 'Tài liệu',
@@ -23,6 +24,12 @@ export default function TeacherMaterialDetail() {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const [showClassifyModal, setShowClassifyModal] = useState(false);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [classifyGrade, setClassifyGrade] = useState('');
+  const [classifySubjectId, setClassifySubjectId] = useState('');
+  const [classifying, setClassifying] = useState(false);
 
   useEffect(() => {
     if (!materialId) return;
@@ -44,6 +51,34 @@ export default function TeacherMaterialDetail() {
       cancelled = true;
     };
   }, [materialId]);
+
+  useEffect(() => {
+    teacherService.getSubjects().then(setSubjects).catch(() => setSubjects([]));
+  }, []);
+
+  const openClassifyModal = () => {
+    setClassifyGrade(material?.grade ? String(material.grade) : '');
+    setClassifySubjectId(material?.subjectId ? String(material.subjectId) : '');
+    setShowClassifyModal(true);
+  };
+
+  const handleSaveClassification = async () => {
+    if (!material) return;
+    setClassifying(true);
+    try {
+      const updated = await teacherService.updateMaterialClassification(material.id, {
+        grade: classifyGrade ? Number(classifyGrade) : null,
+        subjectId: classifySubjectId ? Number(classifySubjectId) : null,
+      });
+      setMaterial(updated);
+      toast.success('Đã cập nhật Khối/Môn cho học liệu.');
+      setShowClassifyModal(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Cập nhật thất bại.');
+    } finally {
+      setClassifying(false);
+    }
+  };
 
   const isH5p = material?.type === 'BAI_GIANG_H5P' || material?.type === 'BAI_TAP_H5P';
 
@@ -85,7 +120,7 @@ export default function TeacherMaterialDetail() {
             <div className="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-6">
               <div className="h-24 w-24 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0 shadow-inner">
                 {isH5p ? (
-                  <Puzzle className="h-12 w-12 text-indigo-600" />
+                  <Puzzle className="h-12 w-12 text-pro-primary" />
                 ) : (
                   <FileText className="h-12 w-12 text-orange-600" />
                 )}
@@ -100,6 +135,15 @@ export default function TeacherMaterialDetail() {
                   )}
                   {material.xpReward > 0 && (
                     <Badge variant="success" className="text-sm px-3 py-1">+{material.xpReward} XP</Badge>
+                  )}
+                  {material.grade && (
+                    <Badge variant="outline" className="text-sm px-3 py-1">Khối {material.grade}</Badge>
+                  )}
+                  {material.subjectName && (
+                    <Badge variant="outline" className="text-sm px-3 py-1">{material.subjectName}</Badge>
+                  )}
+                  {material.origin !== 'THU_VIEN_GOC' && !material.grade && !material.subjectName && (
+                    <Badge variant="warning" className="text-sm px-3 py-1">Chưa phân loại Khối/Môn</Badge>
                   )}
                 </div>
               </div>
@@ -129,6 +173,11 @@ export default function TeacherMaterialDetail() {
                 </Button>
               )}
               <div className="flex space-x-3 w-full sm:w-auto">
+                {material.origin !== 'THU_VIEN_GOC' && (
+                  <Button variant="outline" className="w-full sm:w-auto" onClick={openClassifyModal}>
+                    <Tag className="w-4 h-4 mr-2" /> Phân loại Khối/Môn
+                  </Button>
+                )}
                 {isH5p && material.h5pContentId && material.origin !== 'THU_VIEN_GOC' && (
                   <Button
                     variant="outline"
@@ -139,9 +188,10 @@ export default function TeacherMaterialDetail() {
                   </Button>
                 )}
                 <Button
-                  className="bg-primary/50 cursor-not-allowed w-full sm:w-auto px-8"
-                  disabled
-                  title="Tính năng gắn học liệu vào bài tập đang được phát triển"
+                  className="w-full sm:w-auto px-8"
+                  disabled={!isH5p || !material.h5pContentId}
+                  title={!isH5p || !material.h5pContentId ? 'Chỉ học liệu H5P mới giao được thành bài tập tự động chấm' : undefined}
+                  onClick={() => navigate(`/teacher/assignments?hocLieuId=${material.id}`)}
                 >
                   Giao bài cho lớp
                 </Button>
@@ -171,6 +221,54 @@ export default function TeacherMaterialDetail() {
             </Button>
             <Button className="bg-red-600 hover:bg-red-700" onClick={handleDelete} disabled={deleting}>
               {deleting ? 'Đang xóa...' : 'Xóa vĩnh viễn'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showClassifyModal}
+        onClose={() => setShowClassifyModal(false)}
+        title={
+          <div className="flex items-center">
+            <Tag className="w-4 h-4 mr-2 text-pro-primary" /> Phân loại Khối/Môn
+          </div>
+        }
+        widthClass="w-[420px]"
+      >
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">Khối</label>
+            <select
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white text-base focus:border-pro-primary focus:ring-2 focus:ring-pro-primary/10"
+              value={classifyGrade}
+              onChange={(e) => setClassifyGrade(e.target.value)}
+            >
+              <option value="">-- Chưa chọn --</option>
+              {GRADES.filter((g) => g.value !== 'all').map((g) => (
+                <option key={g.value} value={g.value}>{g.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">Môn học</label>
+            <select
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white text-base focus:border-pro-primary focus:ring-2 focus:ring-pro-primary/10"
+              value={classifySubjectId}
+              onChange={(e) => setClassifySubjectId(e.target.value)}
+            >
+              <option value="">-- Chưa chọn --</option>
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setShowClassifyModal(false)} disabled={classifying}>
+              Hủy
+            </Button>
+            <Button onClick={handleSaveClassification} disabled={classifying}>
+              {classifying ? 'Đang lưu...' : 'Lưu phân loại'}
             </Button>
           </div>
         </div>

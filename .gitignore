@@ -5,3 +5,6 @@ target/
 backend/h5p-service/h5p-core/
 backend/h5p-service/h5p-editor/
 backend/h5p-service/h5p/
+backend/core-service/uploads/
+backend/core-service/run.log
+backend/core-service/src/main/resources/application-secrets.yml

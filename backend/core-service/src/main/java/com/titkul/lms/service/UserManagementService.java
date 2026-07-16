@@ -22,15 +22,14 @@ public class UserManagementService {
     private final StudentProfileRepository studentProfileRepository;
     private final ParentProfileRepository parentProfileRepository;
     private final ClassRoomRepository classRoomRepository;
+    private final com.titkul.lms.repository.ClassTransferHistoryRepository classTransferHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final List<UserCreationStrategy> userCreationStrategies;
 
     @Transactional
     public User createUser(CreateUserDto dto) {
-        if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new RuntimeException("Tên đăng nhập (Username) đã tồn tại.");
-        }
-
+        // Username giờ được tự sinh bên trong từng UserCreationStrategy (GV+SĐT / HS+Mã HS)
+        // và được kiểm tra trùng ngay tại đó, nên không cần check dto.getUsername() ở đây nữa.
         String defaultPasswordHash = passwordEncoder.encode(AppConstants.DEFAULT_PASSWORD);
 
         UserCreationStrategy strategy = userCreationStrategies.stream()
@@ -113,11 +112,30 @@ public class UserManagementService {
     }
     
     @Transactional
-    public void transferClass(Long userId, Long newClassId) {
+    public void transferClass(Long userId, Long newClassId, String adminUsername, TransferReason reason, String note) {
         StudentProfile profile = studentProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
         ClassRoom newClass = classRoomRepository.findById(newClassId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
+        User admin = userRepository.findByUsername(adminUsername)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người thực hiện"));
+
+        ClassRoom oldClass = profile.getClassRoom();
+        if (oldClass != null && oldClass.getId().equals(newClass.getId())) {
+            throw new RuntimeException("Học sinh đã thuộc lớp này rồi.");
+        }
+
+        ClassTransferHistory history = new ClassTransferHistory();
+        history.setStudent(profile);
+        history.setOldClass(oldClass);
+        history.setNewClass(newClass);
+        history.setOldAcademicYear(oldClass != null ? oldClass.getAcademicYear().getName() : null);
+        history.setNewAcademicYear(newClass.getAcademicYear().getName());
+        history.setReason(reason != null ? reason : TransferReason.DOI_LOP);
+        history.setNote(note);
+        history.setPerformedBy(admin);
+        classTransferHistoryRepository.save(history);
+
         profile.setClassRoom(newClass);
         studentProfileRepository.save(profile);
     }

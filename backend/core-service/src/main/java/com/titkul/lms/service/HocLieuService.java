@@ -1,11 +1,14 @@
 package com.titkul.lms.service;
 
+import com.titkul.lms.dto.HocLieuClassificationDTO;
 import com.titkul.lms.dto.HocLieuInternalDTO;
 import com.titkul.lms.entity.HocLieu;
 import com.titkul.lms.entity.LoaiHocLieu;
 import com.titkul.lms.entity.NguonGocHocLieu;
+import com.titkul.lms.entity.Subject;
 import com.titkul.lms.entity.TeacherProfile;
 import com.titkul.lms.repository.HocLieuRepository;
+import com.titkul.lms.repository.SubjectRepository;
 import com.titkul.lms.repository.TeacherProfileRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ public class HocLieuService {
 
     private final HocLieuRepository hocLieuRepository;
     private final TeacherProfileRepository teacherProfileRepository;
+    private final SubjectRepository subjectRepository;
 
     // Upsert theo h5pContentId, tránh tạo trùng khi GV sửa lại bài.
     public HocLieu createOrUpdateFromH5p(HocLieuInternalDTO dto) {
@@ -39,6 +43,17 @@ public class HocLieuService {
                     .orElseThrow(() -> new EntityNotFoundException(
                             "Không tìm thấy Giáo viên với User ID: " + dto.getGiaoVienId()));
             hocLieu.setTeacher(teacher);
+        }
+
+        // Chỉ set khi NestJS gửi kèm (lúc tạo mới) — null nghĩa là không đổi, tránh xóa mất
+        // phân loại đã có mỗi khi GV sửa lại nội dung (upsert này chạy cho cả create lẫn update).
+        if (dto.getKhoiLop() != null) {
+            hocLieu.setGrade(dto.getKhoiLop());
+        }
+        if (dto.getMonHocId() != null) {
+            Subject subject = subjectRepository.findById(dto.getMonHocId())
+                    .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy Môn học với ID: " + dto.getMonHocId()));
+            hocLieu.setSubject(subject);
         }
 
         return hocLieuRepository.save(hocLieu);
@@ -67,5 +82,27 @@ public class HocLieuService {
             throw new IllegalArgumentException("Bạn không có quyền xóa học liệu này.");
         }
         hocLieuRepository.delete(hocLieu);
+    }
+
+    // Chỉ chủ sở hữu mới được gán Khối/Môn cho học liệu của mình.
+    public HocLieu updateClassification(Long id, HocLieuClassificationDTO dto, String requesterUsername) {
+        HocLieu hocLieu = getById(id);
+        boolean isOwner = hocLieu.getTeacher() != null
+                && hocLieu.getTeacher().getUser() != null
+                && hocLieu.getTeacher().getUser().getUsername().equals(requesterUsername);
+        if (!isOwner) {
+            throw new IllegalArgumentException("Bạn không có quyền chỉnh sửa học liệu này.");
+        }
+
+        hocLieu.setGrade(dto.getGrade());
+        if (dto.getSubjectId() != null) {
+            Subject subject = subjectRepository.findById(dto.getSubjectId())
+                    .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy Môn học với ID: " + dto.getSubjectId()));
+            hocLieu.setSubject(subject);
+        } else {
+            hocLieu.setSubject(null);
+        }
+
+        return hocLieuRepository.save(hocLieu);
     }
 }

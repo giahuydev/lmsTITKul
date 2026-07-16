@@ -19,10 +19,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     
     // Light Theme
     const lightClasses = [
-      "border-[rgba(167,139,250,0.5)] bg-[rgba(255,255,255,0.35)] backdrop-blur-[12px] text-slate-900",
+      "border-primary/30 bg-[rgba(255,255,255,0.35)] backdrop-blur-[12px] text-slate-900",
       "placeholder:text-slate-400 placeholder:font-medium placeholder:text-[15px]",
-      "focus:border-[#8b5cf6] focus:bg-[rgba(255,255,255,0.9)] focus:ring-[4px] focus:ring-[#8b5cf6]/20 focus:shadow-[0_0_15px_rgba(139,92,246,0.3)]",
-      "hover:bg-[rgba(255,255,255,0.8)] hover:border-[#a78bfa]",
+      "focus:border-primary focus:bg-[rgba(255,255,255,0.9)] focus:ring-[4px] focus:ring-primary/20 focus:shadow-[0_0_15px_rgba(75,158,255,0.3)]",
+      "hover:bg-[rgba(255,255,255,0.8)] hover:border-primary/50",
       "disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500",
       error ? "border-red-400 bg-red-50 focus:border-red-500 focus:bg-red-50 focus:ring-red-500/20 text-red-900" : ""
     ].join(" ");
@@ -31,7 +31,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const darkClasses = [
       "border-white/20 bg-white/10 text-white backdrop-blur-md",
       "placeholder:text-white/50 placeholder:font-medium placeholder:text-[15px]",
-      "focus:border-purple-300 focus:bg-white/20 focus:ring-[4px] focus:ring-purple-400/30 focus:shadow-[0_0_20px_rgba(192,132,252,0.4)]",
+      "focus:border-accent focus:bg-white/20 focus:ring-[4px] focus:ring-accent/30 focus:shadow-[0_0_20px_rgba(129,140,248,0.4)]",
       "hover:bg-white/15 hover:border-white/40",
       "disabled:cursor-not-allowed disabled:bg-white/5 disabled:text-white/30",
       error ? "border-red-400/60 bg-red-500/10 focus:border-red-400 focus:bg-red-500/20 focus:ring-red-500/30 text-red-200" : ""
@@ -42,7 +42,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label className={cn(
             "flex items-center gap-2 text-[15px] font-bold mb-2",
-            theme === 'dark' ? "text-purple-200" : "text-[#4f46e5]"
+            theme === 'dark' ? "text-accent" : "text-primary"
           )}>
             {label}
           </label>

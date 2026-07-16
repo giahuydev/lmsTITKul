@@ -5,13 +5,11 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { ticketService } from '../../services/ticket.service';
-import { teacherService } from '../../services/teacher.service';
 import toast from 'react-hot-toast';
 
 export default function TeacherTickets() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [tickets, setTickets] = useState<any[]>([]);
-  const [students, setStudents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -33,20 +31,9 @@ export default function TeacherTickets() {
     }
   };
 
-  const fetchStudents = async () => {
-    try {
-      // Assuming teacherService has a method to get their students or classes
-      // For now, let's just fetch all classes and then students, or we can use adminService as fallback
-      // In a real app, there's an API for Teacher to get their own students
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   useEffect(() => {
     fetchData();
-    fetchStudents();
-    
+
     // Đánh dấu đã xem các thông báo
     localStorage.setItem('lastSeenTickets', Date.now().toString());
     window.dispatchEvent(new Event('ticketsUpdated'));
@@ -104,7 +91,13 @@ export default function TeacherTickets() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tickets.length === 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                    Đang tải...
+                  </TableCell>
+                </TableRow>
+              ) : tickets.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-slate-500">
                     Bạn chưa gửi yêu cầu hỗ trợ nào

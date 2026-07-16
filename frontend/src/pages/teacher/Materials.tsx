@@ -7,6 +7,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Link, useNavigate } from 'react-router-dom';
 import { teacherService, type Material } from '../../services/teacher.service';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { GRADES } from '../../constants';
 
 const TYPE_LABEL: Record<Material['type'], string> = {
   TAI_LIEU: 'Tài liệu',
@@ -23,8 +24,8 @@ function MaterialIcon({ type }: { type: Material['type'] }) {
     );
   }
   return (
-    <div className="h-12 w-12 rounded-lg bg-indigo-100 flex items-center justify-center mb-3">
-      <Puzzle className="h-6 w-6 text-indigo-600" />
+    <div className="h-12 w-12 rounded-lg bg-pro-primary/10 flex items-center justify-center mb-3">
+      <Puzzle className="h-6 w-6 text-pro-primary" />
     </div>
   );
 }
@@ -34,6 +35,8 @@ export default function TeacherMaterials() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [gradeFilter, setGradeFilter] = useState('all');
   const navigate = useNavigate();
   const userId = useAuthStore((state) => state.user?.userId);
 
@@ -59,7 +62,10 @@ export default function TeacherMaterials() {
 
   const myLibrary = materials.filter((m) => m.origin === 'GIAO_VIEN_TAO' && m.teacherUserId === userId);
   const sharedLibrary = materials.filter((m) => m.origin === 'THU_VIEN_GOC');
-  const visibleList = activeTab === 'my-library' ? myLibrary : sharedLibrary;
+  const baseList = activeTab === 'my-library' ? myLibrary : sharedLibrary;
+  const visibleList = baseList
+    .filter((m) => gradeFilter === 'all' || m.grade === Number(gradeFilter))
+    .filter((m) => !searchTerm.trim() || m.title.toLowerCase().includes(searchTerm.trim().toLowerCase()));
 
   return (
     <div className="space-y-6">
@@ -67,7 +73,7 @@ export default function TeacherMaterials() {
         <h1 className="text-2xl font-bold text-slate-800">Kho Học Liệu</h1>
         <div className="flex space-x-2">
           <Link to="/teacher/editor">
-            <Button className="bg-indigo-600 hover:bg-indigo-700">
+            <Button variant="pro-primary">
               <Star className="h-4 w-4 mr-2" />
               Soạn H5P mới
             </Button>
@@ -106,12 +112,23 @@ export default function TeacherMaterials() {
       <div className="flex gap-4 items-center">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input className="pl-9" placeholder="Tìm kiếm tài liệu, bài giảng..." />
+          <Input
+            className="pl-9"
+            placeholder="Tìm kiếm tài liệu, bài giảng..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
         <div className="flex items-center space-x-2">
           <Filter className="h-4 w-4 text-slate-400" />
-          <select className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary font-bold text-slate-700">
-            <option value="all">Tất cả Khối</option>
+          <select
+            className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary font-bold text-slate-700"
+            value={gradeFilter}
+            onChange={(e) => setGradeFilter(e.target.value)}
+          >
+            {GRADES.map((g) => (
+              <option key={g.value} value={g.value}>{g.value === 'all' ? 'Tất cả Khối' : g.label}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -145,8 +162,14 @@ export default function TeacherMaterials() {
               <CardContent className="p-4 flex flex-col items-center text-center h-48">
                 <MaterialIcon type={material.type} />
                 <h3 className="font-bold text-slate-800 text-sm">{material.title}</h3>
-                <div className="mt-auto flex gap-2">
+                <div className="mt-auto flex flex-wrap justify-center gap-2">
                   <Badge variant="outline" className="text-[10px]">{TYPE_LABEL[material.type]}</Badge>
+                  {material.grade && (
+                    <Badge variant="outline" className="text-[10px]">Khối {material.grade}</Badge>
+                  )}
+                  {material.subjectName && (
+                    <Badge variant="outline" className="text-[10px]">{material.subjectName}</Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -43,26 +43,34 @@ export function CreateUserModal({
           </div>
 
           <div className="grid grid-cols-2 gap-5">
-            <Input 
-              label={formData.role === 'GIAO_VIEN' ? 'Mã Giáo viên' : 'Mã Học sinh'} 
-              required 
-              value={formData.username}
-              onChange={(e) => setFormData({...formData, username: e.target.value})}
-              className="bg-slate-50"
-            />
-            <Input 
-              label="Họ và tên" 
-              required 
+            {formData.role === 'HOC_SINH' && (
+              <Input
+                label="Mã Học sinh"
+                required
+                placeholder="VD: HS2026001"
+                value={formData.studentCode}
+                onChange={(e) => setFormData({...formData, studentCode: e.target.value})}
+                className="bg-slate-50"
+              />
+            )}
+            <Input
+              label="Họ và tên"
+              required
               value={formData.fullName}
               onChange={(e) => setFormData({...formData, fullName: e.target.value})}
               className="bg-slate-50"
             />
           </div>
+          {formData.role === 'HOC_SINH' && (
+            <p className="text-xs text-slate-500 -mt-3">
+              Tên đăng nhập sẽ tự động là <span className="font-semibold">HS{formData.studentCode || '...'}</span>
+            </p>
+          )}
 
           <div className="grid grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">Ngày sinh</label>
-              <input 
+              <input
                 type="date"
                 required
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-slate-50 focus:bg-white text-base focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
@@ -71,12 +79,18 @@ export function CreateUserModal({
               />
             </div>
             {formData.role === 'GIAO_VIEN' && (
-              <Input 
-                label="Số điện thoại" 
-                value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="bg-slate-50"
-              />
+              <div>
+                <Input
+                  label="Số điện thoại"
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  className="bg-slate-50"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Tên đăng nhập sẽ tự động là <span className="font-semibold">GV{formData.phone || '...'}</span>
+                </p>
+              </div>
             )}
             {formData.role === 'HOC_SINH' && (
               <div>
@@ -108,7 +122,7 @@ export function CreateUserModal({
           {formData.role === 'HOC_SINH' && (
             <div className="border-t border-slate-100 pt-5 mt-2">
               <h4 className="font-bold text-slate-800 mb-4 flex items-center">
-                <span className="w-1.5 h-4 bg-indigo-500 rounded-full mr-2"></span>
+                <span className="w-1.5 h-4 bg-pro-primary rounded-full mr-2"></span>
                 Thông tin Phụ huynh (Tùy chọn)
               </h4>
               <div className="grid grid-cols-2 gap-5">

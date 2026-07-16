@@ -52,8 +52,10 @@ export const adminService = {
     return response.data;
   },
 
-  transferClass: async (userId: number, newClassId: number): Promise<any> => {
-    const response = await api.put(`/admin/users/${userId}/transfer-class?newClassId=${newClassId}`);
+  transferClass: async (userId: number, newClassId: number, reason?: string): Promise<any> => {
+    const params = new URLSearchParams({ newClassId: String(newClassId) });
+    if (reason) params.set('reason', reason);
+    const response = await api.put(`/admin/users/${userId}/transfer-class?${params.toString()}`);
     return response.data;
   },
 

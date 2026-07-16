@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Users, Search, Filter, Loader2 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
+import { Users, Loader2 } from 'lucide-react';
+import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
 import { teacherService } from '../../services/teacher.service';
@@ -26,7 +26,7 @@ export default function TeacherClasses() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }

@@ -26,9 +26,12 @@ interface H5PEditorProps {
   contentId?: string;
   // Gọi khi trình soạn thảo H5P đã tải xong và sẵn sàng thao tác
   onReady?: () => void;
+  // Khối/Môn chọn sẵn ở trang cha (chỉ áp dụng lúc tạo mới) — gửi kèm lúc lưu để BE lưu luôn phân loại.
+  grade?: number;
+  subjectId?: number;
 }
 
-const H5PEditor = forwardRef<H5PEditorHandle, H5PEditorProps>(({ contentId, onReady }, ref) => {
+const H5PEditor = forwardRef<H5PEditorHandle, H5PEditorProps>(({ contentId, onReady, grade, subjectId }, ref) => {
   const elementRef = useRef<H5PEditorElement>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -52,9 +55,20 @@ const H5PEditor = forwardRef<H5PEditorHandle, H5PEditorProps>(({ contentId, onRe
     }
   }, []);
 
+  // Đọc grade/subjectId qua ref (không phải dependency của saveContent) để chọn
+  // Khối/Môn không làm đổi tham chiếu saveContent — tránh useEffect bên dưới
+  // chạy lại và set loading=true mãi mãi (web component không thực sự tải lại).
+  const gradeRef = useRef(grade);
+  const subjectIdRef = useRef(subjectId);
+  useEffect(() => { gradeRef.current = grade; }, [grade]);
+  useEffect(() => { subjectIdRef.current = subjectId; }, [subjectId]);
+
   const saveContent = useCallback(async (id: string, requestBody: { library: string; params: any }) => {
     if (!id) {
-      return h5pService.saveNewContent(requestBody.library, requestBody.params);
+      return h5pService.saveNewContent(requestBody.library, requestBody.params, {
+        grade: gradeRef.current,
+        subjectId: subjectIdRef.current,
+      });
     }
     return h5pService.updateContent(id, requestBody.library, requestBody.params);
   }, []);
@@ -97,7 +111,7 @@ const H5PEditor = forwardRef<H5PEditorHandle, H5PEditorProps>(({ contentId, onRe
         <p className="text-slate-500 text-sm mb-6 max-w-md">{loadError}</p>
         <button
           onClick={handleRetry}
-          className="flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium"
+          className="flex items-center px-4 py-2 bg-pro-primary hover:brightness-95 text-white rounded-lg text-sm font-medium"
         >
           <RefreshCw className="w-4 h-4 mr-2" /> Thử lại
         </button>
@@ -109,7 +123,7 @@ const H5PEditor = forwardRef<H5PEditorHandle, H5PEditorProps>(({ contentId, onRe
     <div className="relative min-h-[300px]">
       {loading && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80">
-          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mb-3" />
+          <Loader2 className="w-8 h-8 text-pro-primary animate-spin mb-3" />
           <p className="text-slate-500 text-sm">Đang tải trình soạn thảo H5P...</p>
         </div>
       )}

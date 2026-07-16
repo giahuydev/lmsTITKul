@@ -8,15 +8,16 @@ public class CreateUserDto {
     private String role; // GIAO_VIEN, HOC_SINH
     
     // Common
-    private String username;
+    private String username; // deprecated for GIAO_VIEN/HOC_SINH: username giờ tự sinh (GV+SĐT hoặc HS+Mã HS)
     private String fullName;
     private LocalDate dateOfBirth;
-    
+
     // Teacher specific
     private String department;
     private String phone; // used for teacher phone or parent phone
-    
+
     // Student specific
+    private String studentCode; // Mã học sinh - bắt buộc, dùng để sinh username
     private Long classId;
     
     // Parent info (if creating Student)

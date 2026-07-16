@@ -2,6 +2,7 @@ package com.titkul.lms.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.titkul.lms.entity.User;
+import com.titkul.lms.entity.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,12 +18,14 @@ public class UserDetailsImpl implements UserDetails {
 
     private Long id;
     private String username;
-    
+
     @JsonIgnore
     private String password;
-    
+
     private Boolean requirePasswordChange;
-    
+
+    private UserStatus status;
+
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserDetailsImpl build(User user) {
@@ -33,6 +36,7 @@ public class UserDetailsImpl implements UserDetails {
                 user.getUsername(),
                 user.getPasswordHash(),
                 user.getRequirePasswordChange(),
+                user.getStatus(),
                 Collections.singletonList(authority)
         );
     }
@@ -44,7 +48,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return status != UserStatus.LOCKED;
     }
 
     @Override
@@ -54,6 +58,6 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return status != UserStatus.DISABLED;
     }
 }

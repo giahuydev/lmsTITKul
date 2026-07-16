@@ -62,6 +62,9 @@ public class SecurityConfig {
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     // Service-to-service, xác thực bằng header X-Internal-Secret trong HocLieuController.
                     .requestMatchers("/api/v1/internal/**").permitAll()
+                    // File đính kèm xem qua thẻ <a> thường (không kèm Bearer token) nên phải public;
+                    // việc UPLOAD (POST /api/v1/uploads) vẫn yêu cầu đăng nhập như bình thường.
+                    .requestMatchers("/uploads/**").permitAll()
                     .anyRequest().authenticated()
                 );
 

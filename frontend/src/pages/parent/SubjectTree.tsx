@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Calculator, PlayCircle, Puzzle, FileQuestion, CheckCircle2, Lock } from 'lucide-react';
 import { parentService } from '../../services/parent.service';
 
 export default function ParentSubjectTree() {
@@ -46,8 +46,8 @@ export default function ParentSubjectTree() {
     <div className="max-w-4xl mx-auto pb-20">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-10">
         <div className="flex items-center">
-          <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mr-4 border-2 border-blue-200">
-             <img src="https://img.icons8.com/color/96/calculator--v1.png" alt="Toán" className="w-10 h-10" />
+          <div className="w-16 h-16 bg-pro-primary/10 rounded-2xl flex items-center justify-center mr-4 border-2 border-pro-primary/20">
+             <Calculator className="w-10 h-10 text-pro-primary" strokeWidth={1.5} />
           </div>
           <div>
             <h1 className="text-3xl font-black text-slate-800">Tiến trình học tập</h1>
@@ -73,7 +73,7 @@ export default function ParentSubjectTree() {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <Loader2 className="w-8 h-8 animate-spin text-pro-primary" />
         </div>
       ) : children.length === 0 ? (
         <div className="bg-slate-50 border-dashed border-2 rounded-2xl flex flex-col items-center justify-center h-64 text-slate-500">
@@ -108,29 +108,29 @@ export default function ParentSubjectTree() {
 
                         {/* Node Giữa (Flat UI) */}
                         <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border-4 z-20 ${
-                          lesson.status === 'completed' ? 'bg-green-500 border-green-100' :
-                          lesson.status === 'current' ? 'bg-blue-600 border-blue-200 ring-4 ring-blue-50' :
+                          lesson.status === 'completed' ? 'bg-pro-success border-pro-success/20' :
+                          lesson.status === 'current' ? 'bg-pro-primary border-pro-primary/20 ring-4 ring-pro-primary/10' :
                           'bg-slate-200 border-white'
                         }`}></div>
 
                         {/* Card Bài Học (Flat UI) */}
                         <div className={`w-full md:w-[45%] flex flex-col p-4 rounded-2xl border transition-all z-10 bg-white ${
-                          lesson.status === 'completed' ? 'border-green-200 shadow-sm' :
-                          lesson.status === 'current' ? 'border-blue-300 shadow-md ring-2 ring-blue-50' :
+                          lesson.status === 'completed' ? 'border-pro-success/30 shadow-sm' :
+                          lesson.status === 'current' ? 'border-pro-primary/40 shadow-md ring-2 ring-pro-primary/10' :
                           'border-slate-200 opacity-60 grayscale'
                         }`}>
                            <div className="flex items-center mb-4">
                               <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-3 ${
-                                lesson.status === 'completed' ? 'bg-green-50 text-green-600' :
-                                lesson.status === 'current' ? 'bg-blue-50 text-blue-600' :
+                                lesson.status === 'completed' ? 'bg-pro-success/10 text-pro-success' :
+                                lesson.status === 'current' ? 'bg-pro-primary/10 text-pro-primary' :
                                 'bg-slate-100 text-slate-400'
                               }`}>
-                                {lesson.type === 'FILE' && <img src="https://img.icons8.com/color/48/play--v1.png" className="w-6 h-6" alt="video" />}
-                                {lesson.type === 'H5P' && <img src="https://img.icons8.com/color/48/puzzle.png" className="w-6 h-6" alt="h5p" />}
-                                {(lesson.type === 'NATIVE' || lesson.type === 'JSON_TEXT') && <img src="https://img.icons8.com/color/48/exam.png" className="w-6 h-6" alt="quiz" />}
+                                {lesson.type === 'FILE' && <PlayCircle className="w-6 h-6" />}
+                                {lesson.type === 'H5P' && <Puzzle className="w-6 h-6" />}
+                                {(lesson.type === 'NATIVE' || lesson.type === 'JSON_TEXT') && <FileQuestion className="w-6 h-6" />}
                               </div>
                               <div>
-                                <h3 className={`text-lg font-bold leading-tight mb-1 ${lesson.status === 'current' ? 'text-blue-800' : 'text-slate-700'}`}>
+                                <h3 className={`text-lg font-bold leading-tight mb-1 ${lesson.status === 'current' ? 'text-pro-primary' : 'text-slate-700'}`}>
                                   {lesson.title}
                                 </h3>
                                 <p className="text-xs font-semibold text-slate-500">
@@ -141,20 +141,20 @@ export default function ParentSubjectTree() {
 
                            <div className="mt-auto">
                               {lesson.status === 'completed' && (
-                                 <div className="flex items-center justify-center w-full py-2 bg-green-50 rounded-lg text-green-700 font-semibold text-sm">
-                                   <img src="https://img.icons8.com/color/48/checked--v1.png" alt="Hoàn thành" className="w-5 h-5 mr-1.5" />
+                                 <div className="flex items-center justify-center w-full py-2 bg-pro-success/10 rounded-lg text-pro-success font-semibold text-sm">
+                                   <CheckCircle2 className="w-5 h-5 mr-1.5" />
                                    Đã học
                                  </div>
                               )}
                               {lesson.status === 'current' && (
-                                 <div className="flex items-center justify-center w-full py-2 bg-blue-50 rounded-lg text-blue-700 font-semibold text-sm border border-blue-200">
-                                   <div className="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse"></div>
+                                 <div className="flex items-center justify-center w-full py-2 bg-pro-primary/10 rounded-lg text-pro-primary font-semibold text-sm border border-pro-primary/20">
+                                   <div className="w-2 h-2 rounded-full bg-pro-primary mr-2 animate-pulse"></div>
                                    Đang học
                                  </div>
                               )}
                               {lesson.status === 'locked' && (
                                  <div className="flex items-center justify-center w-full py-2 bg-slate-50 rounded-lg text-slate-500 font-semibold text-sm">
-                                   <img src="https://img.icons8.com/color/48/lock.png" alt="Khóa" className="w-5 h-5 mr-1.5 grayscale" />
+                                   <Lock className="w-5 h-5 mr-1.5" />
                                    Chưa mở khóa
                                  </div>
                               )}

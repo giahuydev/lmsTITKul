@@ -6,7 +6,6 @@ import { Badge } from '../../components/ui/Badge';
 import { Plus, Trash2, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-import { adminSubjects, adminGrades } from '../../mocks/adminData';
 import { adminService } from '../../services/admin.service';
 
 export default function AdminSettings() {

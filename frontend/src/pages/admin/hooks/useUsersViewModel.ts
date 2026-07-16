@@ -7,7 +7,7 @@ export type TabType = 'teacher' | 'student' | 'parent';
 
 const INITIAL_CREATE_FORM = {
   role: 'HOC_SINH',
-  username: '',
+  studentCode: '',
   fullName: '',
   dateOfBirth: '',
   department: '',
@@ -34,6 +34,7 @@ export function useUsersViewModel() {
   const [editFormData, setEditFormData] = useState({ phone: '', status: '' });
   const [createFormData, setCreateFormData] = useState(INITIAL_CREATE_FORM);
   const [transferClassId, setTransferClassId] = useState('');
+  const [transferReason, setTransferReason] = useState('DOI_LOP');
 
   // Action loading flags
   const [isTransferring, setIsTransferring] = useState(false);
@@ -95,12 +96,12 @@ export function useUsersViewModel() {
     if (!transferClassId) return;
     setIsTransferring(true);
     try {
-      await adminService.transferClass(selectedUser.id, parseInt(transferClassId));
+      await adminService.transferClass(selectedUser.id, parseInt(transferClassId), transferReason);
       toast.success('Chuyển lớp thành công!');
       setShowTransferModal(false);
       fetchData();
-    } catch {
-      toast.error('Có lỗi xảy ra khi chuyển lớp');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi chuyển lớp');
     } finally {
       setIsTransferring(false);
     }
@@ -149,6 +150,7 @@ export function useUsersViewModel() {
   const openTransferModal = (user: any) => {
     setSelectedUser(user);
     setTransferClassId('');
+    setTransferReason('DOI_LOP');
     setShowTransferModal(true);
   };
 
@@ -171,6 +173,7 @@ export function useUsersViewModel() {
     createFormData, setCreateFormData,
     editFormData, setEditFormData,
     transferClassId, setTransferClassId,
+    transferReason, setTransferReason,
     // Action flags
     isCreating, isUpdating, isTransferring,
     // Filters

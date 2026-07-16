@@ -157,6 +157,7 @@ export default function AdminUsers() {
         <TransferClassModal
           user={vm.selectedUser} classes={vm.classes}
           transferClassId={vm.transferClassId} setTransferClassId={vm.setTransferClassId}
+          transferReason={vm.transferReason} setTransferReason={vm.setTransferReason}
           onConfirm={vm.handleTransferClass} onClose={() => vm.setShowTransferModal(false)}
           isTransferring={vm.isTransferring}
         />

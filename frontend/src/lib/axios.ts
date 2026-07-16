@@ -39,7 +39,7 @@ api.interceptors.response.use(
       if (refreshToken && window.location.pathname !== '/login' && !originalRequest.url?.includes('/refresh-token')) {
         try {
           const res = await axios.post('http://localhost:8080/api/v1/auth/refresh-token', { refreshToken });
-          const { accessToken, refreshToken: newRefreshToken, user } = res.data;
+          const { accessToken, refreshToken: newRefreshToken } = res.data;
           
           if (accessToken) {
              const currentUser = useAuthStore.getState().user;

@@ -29,10 +29,10 @@ export default function AdminDashboard() {
   };
 
   const kpis = [
-    { title: 'Tổng số Học sinh', value: stats.totalStudents, icon: Users, bg: 'bg-blue-100', color: 'text-blue-600' },
-    { title: 'Giáo viên', value: stats.totalTeachers, icon: UserCheck, bg: 'bg-emerald-100', color: 'text-emerald-600' },
-    { title: 'Phụ huynh', value: stats.totalParents, icon: Users, bg: 'bg-purple-100', color: 'text-purple-600' },
-    { title: 'Lớp học (Đang hoạt động)', value: `${stats.activeClasses} / ${stats.totalClasses}`, icon: BookOpen, bg: 'bg-amber-100', color: 'text-amber-600' }
+    { title: 'Tổng số Học sinh', value: stats.totalStudents, icon: Users, bg: 'bg-pro-primary/10', color: 'text-pro-primary' },
+    { title: 'Giáo viên', value: stats.totalTeachers, icon: UserCheck, bg: 'bg-pro-success/10', color: 'text-pro-success' },
+    { title: 'Phụ huynh', value: stats.totalParents, icon: Users, bg: 'bg-pro-accent/10', color: 'text-pro-accent' },
+    { title: 'Lớp học (Đang hoạt động)', value: `${stats.activeClasses} / ${stats.totalClasses}`, icon: BookOpen, bg: 'bg-pro-warning/10', color: 'text-pro-warning' }
   ];
 
   return (
@@ -71,8 +71,8 @@ export default function AdminDashboard() {
                 return (
                   <div key={idx} className="flex flex-col items-center w-full gap-2 group">
                     <span className="text-xs text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity font-medium">{val}</span>
-                    <div 
-                      className="w-8 md:w-12 bg-indigo-500 hover:bg-indigo-600 rounded-t-md transition-all duration-300 relative"
+                    <div
+                      className="w-8 md:w-12 bg-pro-primary hover:bg-pro-primary/90 rounded-t-md transition-all duration-300 relative"
                       style={{ height: `${heightPercent}%` }}
                     ></div>
                     <span className="text-xs font-medium text-slate-600 mt-2">{days[idx]}</span>
@@ -92,11 +92,11 @@ export default function AdminDashboard() {
               {stats.systemWarnings?.map((warning, idx) => {
                 const isError = warning.toLowerCase().includes('chưa');
                 return (
-                  <li key={idx} className={`flex items-start p-3 rounded-lg ${isError ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                    <AlertCircle className={`h-5 w-5 mr-3 shrink-0 mt-0.5 ${isError ? 'text-red-600' : 'text-emerald-600'}`} />
+                  <li key={idx} className={`flex items-start p-3 rounded-lg ${isError ? 'bg-pro-destructive/10 text-pro-destructive' : 'bg-pro-success/10 text-pro-success'}`}>
+                    <AlertCircle className={`h-5 w-5 mr-3 shrink-0 mt-0.5 ${isError ? 'text-pro-destructive' : 'text-pro-success'}`} />
                     <div>
                       <p className="font-medium">{isError ? 'Cần chú ý' : 'Tuyệt vời'}</p>
-                      <p className={`text-sm mt-1 ${isError ? 'text-red-600' : 'text-emerald-600'}`}>{warning}</p>
+                      <p className={`text-sm mt-1 ${isError ? 'text-pro-destructive' : 'text-pro-success'}`}>{warning}</p>
                     </div>
                   </li>
                 );

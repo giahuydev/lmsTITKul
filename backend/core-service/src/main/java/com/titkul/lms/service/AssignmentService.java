@@ -4,9 +4,12 @@ import com.titkul.lms.dto.AssignmentRequestDTO;
 import com.titkul.lms.entity.Assignment;
 import com.titkul.lms.entity.AssignmentType;
 import com.titkul.lms.entity.ClassRoom;
+import com.titkul.lms.entity.ClassStatus;
+import com.titkul.lms.entity.HocLieu;
 import com.titkul.lms.entity.TeacherProfile;
 import com.titkul.lms.repository.AssignmentRepository;
 import com.titkul.lms.repository.ClassRoomRepository;
+import com.titkul.lms.repository.HocLieuRepository;
 import com.titkul.lms.repository.TeacherProfileRepository;
 import com.titkul.lms.repository.LessonRepository;
 import com.titkul.lms.repository.ContentNodeRepository;
@@ -26,6 +29,7 @@ public class AssignmentService {
     private final LessonRepository lessonRepository;
     private final ContentNodeRepository contentNodeRepository;
     private final SemesterRepository semesterRepository;
+    private final HocLieuRepository hocLieuRepository;
 
     public Assignment createAssignment(AssignmentRequestDTO dto) {
         Assignment assignment = new Assignment();
@@ -45,6 +49,9 @@ public class AssignmentService {
         if (dto.getClassId() != null) {
             ClassRoom classRoom = classRoomRepository.findById(dto.getClassId())
                     .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy Lớp học với ID: " + dto.getClassId()));
+            if (classRoom.getStatus() != ClassStatus.ACTIVE) {
+                throw new IllegalArgumentException("Lớp học đã đóng băng (DONG_BANG), không thể giao bài tập mới.");
+            }
             assignment.setClassRoom(classRoom);
         } else {
             throw new IllegalArgumentException("classId không được để trống!");
@@ -64,8 +71,21 @@ public class AssignmentService {
         if (dto.getContentNodeId() != null) {
             assignment.setContentNode(contentNodeRepository.findById(dto.getContentNodeId()).orElse(null));
         }
+        if (dto.getHocLieuId() != null) {
+            HocLieu hocLieu = hocLieuRepository.findById(dto.getHocLieuId())
+                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy Học liệu với ID: " + dto.getHocLieuId()));
+            assignment.setHocLieu(hocLieu);
+        }
         if (dto.getSemesterId() != null) {
             assignment.setSemester(semesterRepository.findById(dto.getSemesterId()).orElse(null));
+        }
+
+        if (assignment.getType() == AssignmentType.H5P) {
+            String h5pContentId = assignment.getHocLieu() != null ? assignment.getHocLieu().getH5pContentId()
+                    : assignment.getContentNode() != null ? assignment.getContentNode().getH5pContentId() : null;
+            if (h5pContentId == null || h5pContentId.isBlank()) {
+                throw new IllegalArgumentException("Bài tập H5P phải gắn với một học liệu (hoặc bài giảng) đã có nội dung H5P.");
+            }
         }
 
         return assignmentRepository.save(assignment);

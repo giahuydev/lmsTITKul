@@ -2,6 +2,7 @@ package com.titkul.lms.controller;
 
 import com.titkul.lms.dto.*;
 import com.titkul.lms.entity.LoginSession;
+import com.titkul.lms.repository.LoginSessionRepository;
 import com.titkul.lms.repository.UserRepository;
 import com.titkul.lms.service.AuthService;
 import com.titkul.lms.service.EmailService;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,6 +36,7 @@ public class AuthController {
     private final OtpService otpService;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final LoginSessionRepository loginSessionRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
@@ -40,6 +44,10 @@ public class AuthController {
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        } catch (LockedException e) {
+            return ResponseEntity.status(403).body(Map.of("message", "Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên."));
+        } catch (DisabledException e) {
+            return ResponseEntity.status(403).body(Map.of("message", "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên."));
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(401).body(Map.of("message", "Tài khoản hoặc mật khẩu không chính xác."));
         }
@@ -98,6 +106,53 @@ public class AuthController {
                     user.setRequirePasswordChange(false);
                     userRepository.save(user);
                     return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công."));
+                })
+                .orElse(ResponseEntity.badRequest().body(Map.of("message", "Người dùng không tồn tại.")));
+    }
+
+    // QT01.2 - Đổi mật khẩu tự nguyện (đã đăng nhập): xác nhận MK cũ -> gửi OTP
+    @PostMapping("/change-password/request-otp")
+    public ResponseEntity<?> requestChangePasswordOtp(@Valid @RequestBody ChangePasswordOtpRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("message", "Vui lòng đăng nhập."));
+        }
+        return userRepository.findByUsername(authentication.getName())
+                .map(user -> {
+                    if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+                        return ResponseEntity.badRequest().body(Map.of("message", "Mật khẩu hiện tại không chính xác."));
+                    }
+                    if (user.getEmail() == null || user.getEmail().isBlank()) {
+                        return ResponseEntity.badRequest().body(Map.of("message", "Tài khoản chưa có email để nhận mã OTP."));
+                    }
+                    String otp = otpService.generateOtp(user.getEmail());
+                    emailService.sendSimpleEmail(
+                            user.getEmail(),
+                            "Titkul LMS - Mã xác nhận đổi mật khẩu",
+                            "Mã OTP của bạn là: " + otp + "\n\nMã này có hiệu lực trong 5 phút.\nVui lòng không chia sẻ mã này cho bất kỳ ai."
+                    );
+                    return ResponseEntity.ok(Map.of("message", "Mã OTP đã được gửi đến email của bạn."));
+                })
+                .orElse(ResponseEntity.badRequest().body(Map.of("message", "Người dùng không tồn tại.")));
+    }
+
+    // QT01.2 - Bước 2: xác nhận OTP -> lưu MK mới -> đăng xuất các phiên khác
+    @PostMapping("/change-password/confirm")
+    public ResponseEntity<?> confirmChangePassword(@Valid @RequestBody ChangePasswordConfirmRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("message", "Vui lòng đăng nhập."));
+        }
+        return userRepository.findByUsername(authentication.getName())
+                .map(user -> {
+                    if (!otpService.validateOtp(user.getEmail(), request.getOtp())) {
+                        return ResponseEntity.badRequest().body(Map.of("message", "Mã OTP không hợp lệ hoặc đã hết hạn."));
+                    }
+                    user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+                    user.setRequirePasswordChange(false);
+                    userRepository.save(user);
+                    loginSessionRepository.deleteByUser(user);
+                    return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công. Vui lòng đăng nhập lại trên các thiết bị khác."));
                 })
                 .orElse(ResponseEntity.badRequest().body(Map.of("message", "Người dùng không tồn tại.")));
     }

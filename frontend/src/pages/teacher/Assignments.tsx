@@ -1,14 +1,38 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, Send, Bot, Sparkles, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Send, Bot, Sparkles, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { teacherService } from '../../services/teacher.service';
-import type { ClassRoom } from '../../services/teacher.service';
+import type { ClassRoom, Material } from '../../services/teacher.service';
 import { useAuthStore } from '../../stores/useAuthStore';
+
+// Gợi ý yêu cầu bài tập theo từ khóa trong tiêu đề — quy tắc dựa dữ liệu thật (tiêu đề
+// GV nhập), không gọi API AI ngoài (dự án hiện chưa có credentials cho dịch vụ AI trả phí).
+function suggestDescription(title: string): string {
+  const t = title.toLowerCase();
+  if (/con vật|vật nuôi|thú cưng|chó|mèo/.test(t)) {
+    return `Các con hãy viết một đoạn văn ngắn (từ 5-7 câu) miêu tả "${title}". Hãy tập trung miêu tả về: hình dáng, bộ lông, và một thói quen đáng yêu của nó nhé!`;
+  }
+  if (/gia đình|bố|mẹ|ông|bà|anh|chị|em/.test(t)) {
+    return `Các con hãy viết một đoạn văn ngắn (từ 5-7 câu) về "${title}". Hãy kể tên các thành viên, công việc của mỗi người, và một kỷ niệm đáng nhớ của cả nhà nhé!`;
+  }
+  if (/cây|hoa|vườn|trái cây|quả/.test(t)) {
+    return `Các con hãy viết một đoạn văn ngắn (từ 5-7 câu) miêu tả "${title}". Hãy tả hình dáng, màu sắc, và lý do vì sao con thích nó nhé!`;
+  }
+  if (/trường|lớp|cô giáo|thầy giáo|bạn bè/.test(t)) {
+    return `Các con hãy viết một đoạn văn ngắn (từ 5-7 câu) về "${title}". Hãy kể lại một hoạt động hoặc kỷ niệm vui ở trường/lớp nhé!`;
+  }
+  if (/mùa|xuân|hè|thu|đông/.test(t)) {
+    return `Các con hãy viết một đoạn văn ngắn (từ 5-7 câu) miêu tả "${title}". Hãy tả thời tiết, cảnh vật, và cảm xúc của con trong mùa này nhé!`;
+  }
+  return `Các con hãy viết một đoạn văn ngắn (từ 5-7 câu) về chủ đề "${title}". Hãy nêu rõ suy nghĩ, cảm xúc và ví dụ cụ thể của con nhé!`;
+}
 
 export default function TeacherAssignments() {
   const user = useAuthStore((state) => state.user);
+  const [searchParams] = useSearchParams();
   const [targetType, setTargetType] = useState('toan-lop');
   const [showAI, setShowAI] = useState(false);
   const [taskDesc, setTaskDesc] = useState('');
@@ -19,6 +43,8 @@ export default function TeacherAssignments() {
   const [assignmentType, setAssignmentType] = useState('TU_LUAN');
 
   const [classes, setClasses] = useState<ClassRoom[]>([]);
+  const [h5pMaterials, setH5pMaterials] = useState<Material[]>([]);
+  const [selectedHocLieuId, setSelectedHocLieuId] = useState<number | ''>('');
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -27,9 +53,19 @@ export default function TeacherAssignments() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const classData = await teacherService.getClasses();
+        const [classData, materialData] = await Promise.all([
+          teacherService.getClasses(),
+          user?.userId ? teacherService.getMaterials(user.userId) : Promise.resolve([]),
+        ]);
         setClasses(classData);
         if (classData.length > 0) setSelectedClassId(classData[0].id);
+        setH5pMaterials(materialData.filter((m) => m.h5pContentId));
+
+        const prefillHocLieuId = searchParams.get('hocLieuId');
+        if (prefillHocLieuId) {
+          setAssignmentType('H5P');
+          setSelectedHocLieuId(Number(prefillHocLieuId));
+        }
       } catch (err) {
         console.error('Lỗi tải danh sách lớp', err);
       } finally {
@@ -37,10 +73,11 @@ export default function TeacherAssignments() {
       }
     };
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleApplyAI = () => {
-    setTaskDesc('Các con hãy viết một đoạn văn ngắn (từ 5-7 câu) miêu tả một con vật nuôi trong nhà mà con yêu thích nhất. Hãy tập trung miêu tả về: hình dáng, bộ lông, và một thói quen đáng yêu của nó nhé!');
+    setTaskDesc(suggestDescription(taskTitle || 'chủ đề bài tập'));
     setShowAI(false);
   };
 
@@ -48,6 +85,11 @@ export default function TeacherAssignments() {
     if (!selectedClassId || !taskTitle || !deadline) {
       setSubmitStatus('error');
       setErrorMsg('Vui lòng điền đầy đủ Tiêu đề, chọn Lớp và Hạn chót!');
+      return;
+    }
+    if (assignmentType === 'H5P' && !selectedHocLieuId) {
+      setSubmitStatus('error');
+      setErrorMsg('Vui lòng chọn học liệu H5P cho bài tập này!');
       return;
     }
 
@@ -64,6 +106,7 @@ export default function TeacherAssignments() {
         type: assignmentType,
         deadline: new Date(deadline).toISOString(),
         maxResubmitCount,
+        hocLieuId: assignmentType === 'H5P' ? (selectedHocLieuId as number) : undefined,
       });
       setSubmitStatus('success');
       setTaskTitle('');
@@ -110,7 +153,7 @@ export default function TeacherAssignments() {
             <div className="flex justify-between items-center mb-1.5">
               <label className="block text-sm font-medium text-slate-700">Mô tả bài tập / Yêu cầu tự luận</label>
               <button
-                className="text-xs text-indigo-600 font-bold flex items-center hover:bg-indigo-50 px-2 py-1 rounded"
+                className="text-xs text-pro-primary font-bold flex items-center hover:bg-pro-primary/10 px-2 py-1 rounded"
                 onClick={() => setShowAI(!showAI)}
               >
                 <Bot className="w-4 h-4 mr-1" /> AI Đề xuất Yêu cầu
@@ -118,13 +161,13 @@ export default function TeacherAssignments() {
             </div>
 
             {showAI && (
-              <div className="mb-3 p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
-                <p className="text-sm text-indigo-900 mb-2 font-medium">Gemma2 đang đọc tiêu đề "{taskTitle || '...'}"...</p>
-                <div className="bg-white p-3 rounded border border-indigo-200 text-sm text-slate-700 leading-relaxed">
-                  "Các con hãy viết một đoạn văn ngắn (từ 5-7 câu) miêu tả một con vật nuôi trong nhà mà con yêu thích nhất..."
+              <div className="mb-3 p-3 bg-pro-primary/10 border border-pro-primary/20 rounded-lg">
+                <p className="text-sm text-pro-fg mb-2 font-medium">Gợi ý theo tiêu đề "{taskTitle || '...'}"</p>
+                <div className="bg-white p-3 rounded border border-pro-primary/20 text-sm text-slate-700 leading-relaxed">
+                  {taskTitle ? `"${suggestDescription(taskTitle)}"` : 'Vui lòng nhập tiêu đề bài tập trước để nhận gợi ý phù hợp.'}
                 </div>
                 <div className="mt-2 flex space-x-2">
-                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-xs" onClick={handleApplyAI}>
+                  <Button size="sm" variant="pro-primary" className="text-xs" onClick={handleApplyAI} disabled={!taskTitle}>
                     <Sparkles className="w-3 h-3 mr-1" /> Sử dụng đoạn này
                   </Button>
                 </div>
@@ -147,9 +190,33 @@ export default function TeacherAssignments() {
               onChange={(e) => setAssignmentType(e.target.value)}
             >
               <option value="TU_LUAN">Bài tự luận (Chấm tay)</option>
-              <option value="CA_NHAN">Bài tập H5P (Tự động chấm)</option>
+              <option value="H5P">Bài tập H5P (Tự động chấm)</option>
             </select>
           </div>
+
+          {assignmentType === 'H5P' && (
+            <div className="pt-2">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Chọn học liệu H5P</label>
+              {h5pMaterials.length === 0 ? (
+                <p className="text-sm text-slate-500 italic p-3 bg-slate-50 border border-dashed border-slate-200 rounded-lg">
+                  Bạn chưa có học liệu H5P nào. Vào "Kho Học Liệu" để soạn bài trước.
+                </p>
+              ) : (
+                <select
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary"
+                  value={selectedHocLieuId}
+                  onChange={(e) => setSelectedHocLieuId(e.target.value ? Number(e.target.value) : '')}
+                >
+                  <option value="">-- Chọn học liệu --</option>
+                  {h5pMaterials.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.title}{m.grade ? ` (Khối ${m.grade})` : ''}{m.subjectName ? ` - ${m.subjectName}` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -209,7 +276,7 @@ export default function TeacherAssignments() {
       </Card>
 
       <div className="flex justify-end space-x-3">
-        <Button variant="outline" onClick={() => { setTaskTitle(''); setTaskDesc(''); setDeadline(''); setSubmitStatus('idle'); }}>
+        <Button variant="outline" onClick={() => { setTaskTitle(''); setTaskDesc(''); setDeadline(''); setSelectedHocLieuId(''); setSubmitStatus('idle'); }}>
           Xóa form
         </Button>
         <Button className="bg-primary hover:bg-primary/90" onClick={handleSubmit} disabled={isSubmitting}>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { teacherService } from '../../../services/teacher.service';
+import { teacherService, type SubmissionDetail } from '../../../services/teacher.service';
 import { useAuthStore } from '../../../stores/useAuthStore';
 
 export type ActionStatus = 'idle' | 'success' | 'error';
@@ -7,7 +7,7 @@ export type ActionStatus = 'idle' | 'success' | 'error';
 export function useGradingDetail(submissionId: string | undefined) {
   const user = useAuthStore((state) => state.user);
 
-  const [submission, setSubmission] = useState<any>(null);
+  const [submission, setSubmission] = useState<SubmissionDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
@@ -23,8 +23,23 @@ export function useGradingDetail(submissionId: string | undefined) {
 
   useEffect(() => {
     if (!submissionId) return;
-    setIsLoading(false);
-    setSubmission({ id: Number(submissionId), status: 'DA_NOP' });
+    let cancelled = false;
+    setIsLoading(true);
+    setLoadError('');
+    teacherService
+      .getSubmissionDetail(submissionId)
+      .then((data) => {
+        if (!cancelled) setSubmission(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setLoadError(err?.response?.data?.message ?? 'Không tải được bài nộp.');
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [submissionId]);
 
   const applyAISuggestion = (text: string) => {
