@@ -94,13 +94,13 @@ export default function ClassDetails() {
         </Link>
         <div>
           <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold text-slate-800">Chi tiết lớp: {classData?.name}</h1>
-            <Badge variant={classData?.status === 'ACTIVE' ? 'success' : 'outline'}>
-              {classData?.status === 'ACTIVE' ? 'Đang hoạt động' : 'Đóng băng'}
+            <h1 className="text-2xl font-bold text-slate-800">Chi tiết lớp: {classData?.tenLop}</h1>
+            <Badge variant={classData?.trangThai === 'ACTIVE' ? 'success' : 'outline'}>
+              {classData?.trangThai === 'ACTIVE' ? 'Đang hoạt động' : 'Đóng băng'}
             </Badge>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Niên khóa {classData?.academicYear} • GVCN: {classData?.homeroomTeacher?.fullName || 'Chưa phân công'}
+            Niên khóa {classData?.namHoc?.tenNamHoc} • GVCN: {classData?.giaoVienChuNhiem?.hoTen || 'Chưa phân công'}
           </p>
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function ClassDetails() {
         <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
           <div className="flex items-center space-x-2 text-slate-700 font-medium">
             <Users className="h-5 w-5 text-primary" />
-            <span>Danh sách học sinh ({students.length} / {classData?.maxCapacity})</span>
+            <span>Danh sách học sinh ({students.length} / {classData?.siSoToiDa})</span>
           </div>
         </div>
         <CardContent className="p-0">
@@ -158,19 +158,19 @@ export default function ClassDetails() {
         <div className="p-6 space-y-4">
           <div className="bg-slate-50 p-4 rounded-lg text-sm mb-4">
             <p><strong>Học sinh:</strong> {selectedStudent?.name} ({selectedStudent?.code})</p>
-            <p><strong>Lớp hiện tại:</strong> {classData?.name}</p>
+            <p><strong>Lớp hiện tại:</strong> {classData?.tenLop}</p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Chọn lớp chuyển đến</label>
-            <select 
+            <select
               className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary"
               value={transferClassId}
               onChange={(e) => setTransferClassId(e.target.value)}
             >
               <option value="">-- Chọn lớp --</option>
-              {allClasses.filter(c => c.id !== classData?.id && c.status === 'ACTIVE').map(c => (
-                <option key={c.id} value={c.id}>{c.name} (Khối {c.grade})</option>
+              {allClasses.filter(c => c.lopHocId !== classData?.lopHocId && c.trangThai === 'ACTIVE').map(c => (
+                <option key={c.lopHocId} value={c.lopHocId}>{c.tenLop} (Khối {c.khoiLop})</option>
               ))}
             </select>
           </div>

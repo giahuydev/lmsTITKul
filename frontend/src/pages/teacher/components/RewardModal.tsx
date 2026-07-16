@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function RewardModal({ studentId, studentName, onClose }: Props) {
-  const [badges, setBadges] = useState<{ id: number; name: string; description: string | null; iconUrl: string | null }[]>([]);
+  const [badges, setBadges] = useState<{ huyHieuId: number; tenHuyHieu: string; moTa: string | null; iconUrl: string | null }[]>([]);
   const [selectedBadgeId, setSelectedBadgeId] = useState<number | null>(null);
   const [complimentLetter, setComplimentLetter] = useState(`Cô/Thầy rất tuyên dương ${studentName} tuần này!`);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +22,7 @@ export function RewardModal({ studentId, studentName, onClose }: Props) {
       .getBadges()
       .then((data) => {
         setBadges(data);
-        if (data.length > 0) setSelectedBadgeId(data[0].id);
+        if (data.length > 0) setSelectedBadgeId(data[0].huyHieuId);
       })
       .catch(() => toast.error('Không tải được danh sách huy hiệu.'))
       .finally(() => setIsLoading(false));
@@ -35,7 +35,7 @@ export function RewardModal({ studentId, studentName, onClose }: Props) {
     }
     setIsSubmitting(true);
     try {
-      await teacherService.awardBadge(studentId, { badgeId: selectedBadgeId, complimentLetter });
+      await teacherService.awardBadge(studentId, { huyHieuId: selectedBadgeId, thuKhen: complimentLetter });
       toast.success(`Đã trao huy hiệu cho ${studentName}!`);
       onClose();
     } catch (err: any) {
@@ -71,17 +71,17 @@ export function RewardModal({ studentId, studentName, onClose }: Props) {
               <div className="grid grid-cols-3 gap-3">
                 {badges.map((badge) => (
                   <div
-                    key={badge.id}
-                    onClick={() => setSelectedBadgeId(badge.id)}
+                    key={badge.huyHieuId}
+                    onClick={() => setSelectedBadgeId(badge.huyHieuId)}
                     className={`border-2 rounded-lg p-3 text-center cursor-pointer relative ${
-                      selectedBadgeId === badge.id ? 'border-amber-400 bg-amber-50' : 'border-slate-200 hover:border-slate-300'
+                      selectedBadgeId === badge.huyHieuId ? 'border-amber-400 bg-amber-50' : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    {selectedBadgeId === badge.id && (
+                    {selectedBadgeId === badge.huyHieuId && (
                       <div className="absolute top-1 right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-white" />
                     )}
-                    <Trophy className={`w-8 h-8 mx-auto mb-1 ${selectedBadgeId === badge.id ? 'text-amber-500' : 'text-slate-400'}`} />
-                    <p className={`text-xs font-bold ${selectedBadgeId === badge.id ? 'text-amber-900' : 'text-slate-600'}`}>{badge.name}</p>
+                    <Trophy className={`w-8 h-8 mx-auto mb-1 ${selectedBadgeId === badge.huyHieuId ? 'text-amber-500' : 'text-slate-400'}`} />
+                    <p className={`text-xs font-bold ${selectedBadgeId === badge.huyHieuId ? 'text-amber-900' : 'text-slate-600'}`}>{badge.tenHuyHieu}</p>
                   </div>
                 ))}
               </div>

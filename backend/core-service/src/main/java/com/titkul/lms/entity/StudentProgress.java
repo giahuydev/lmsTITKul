@@ -19,15 +19,15 @@ public class StudentProgress {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hoc_sinh_id", referencedColumnName = "hoc_sinh_id", nullable = false)
-    private StudentProfile student;
+    private HoSoHocSinh student;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dang_bai_id", nullable = false)
-    private ContentNode contentNode;
+    private DangBai contentNode;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hoc_ky_id", nullable = false)
-    private Semester semester;
+    private HocKy semester;
 
     @Column(name = "phan_tram_hoan_thanh", nullable = false)
     private Short completionPercent = 0;

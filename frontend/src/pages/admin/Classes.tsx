@@ -65,26 +65,26 @@ export default function AdminClasses() {
                   <TableCell colSpan={6} className="text-center py-8 text-slate-500">Không tìm thấy lớp học nào.</TableCell>
                 </TableRow>
               ) : vm.filteredClasses.map((cls) => (
-                <TableRow key={cls.id}>
-                  <TableCell className="font-medium text-primary">{cls.name}</TableCell>
-                  <TableCell>{cls.grade}</TableCell>
+                <TableRow key={cls.lopHocId}>
+                  <TableCell className="font-medium text-primary">{cls.tenLop}</TableCell>
+                  <TableCell>{cls.khoiLop}</TableCell>
                   <TableCell className="font-medium">
-                    {cls.homeroomTeacher
-                      ? cls.homeroomTeacher.fullName
+                    {cls.giaoVienChuNhiem
+                      ? cls.giaoVienChuNhiem.hoTen
                       : <span className="text-slate-400 italic">Chưa phân công</span>}
                   </TableCell>
-                  <TableCell>{cls.currentStudentCount || 0} / {cls.maxCapacity}</TableCell>
+                  <TableCell>{cls.siSoHienTai || 0} / {cls.siSoToiDa}</TableCell>
                   <TableCell>
-                    <Badge variant={cls.status === 'ACTIVE' ? 'success' : 'outline'}>
-                      {cls.status === 'ACTIVE' ? 'Đang học' : 'Đóng băng'}
+                    <Badge variant={cls.trangThai === 'ACTIVE' ? 'success' : 'outline'}>
+                      {cls.trangThai === 'ACTIVE' ? 'Đang học' : 'Đóng băng'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Link to={`/admin/classes/${cls.id}`}>
+                    <Link to={`/admin/classes/${cls.lopHocId}`}>
                       <Button variant="ghost" size="sm">Chi tiết</Button>
                     </Link>
-                    <Button variant="outline" size="sm" onClick={() => vm.handleToggleStatus(cls.id)}>
-                      {cls.status === 'ACTIVE' ? 'Đóng băng' : 'Mở khóa'}
+                    <Button variant="outline" size="sm" onClick={() => vm.handleToggleStatus(cls.lopHocId)}>
+                      {cls.trangThai === 'ACTIVE' ? 'Đóng băng' : 'Mở khóa'}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => vm.openEditModal(cls)}>Sửa</Button>
                   </TableCell>
@@ -146,7 +146,7 @@ export default function AdminClasses() {
               >
                 <option value="">-- Chưa phân công --</option>
                 {vm.teachers.map((t) => (
-                  <option key={t.id} value={t.id}>{t.fullName}</option>
+                  <option key={t.giaoVienId} value={t.giaoVienId}>{t.hoTen}</option>
                 ))}
               </select>
             </div>

@@ -14,9 +14,9 @@ import java.util.Optional;
 public class StudentCreationStrategy implements UserCreationStrategy {
 
     private final UserRepository userRepository;
-    private final StudentProfileRepository studentProfileRepository;
-    private final ParentProfileRepository parentProfileRepository;
-    private final ClassRoomRepository classRoomRepository;
+    private final HoSoHocSinhRepository studentProfileRepository;
+    private final HoSoPhuHuynhRepository parentProfileRepository;
+    private final LopHocRepository classRoomRepository;
 
     @Override
     public boolean supports(String roleStr) {
@@ -29,16 +29,16 @@ public class StudentCreationStrategy implements UserCreationStrategy {
         if (dto.getStudentCode() == null || dto.getStudentCode().isBlank()) {
             throw new IllegalArgumentException("Mã học sinh là bắt buộc để tạo tài khoản Học sinh.");
         }
-        if (studentProfileRepository.findByStudentCode(dto.getStudentCode()).isPresent()) {
+        if (studentProfileRepository.findByMaHocSinh(dto.getStudentCode()).isPresent()) {
             throw new RuntimeException("Mã học sinh này đã tồn tại.");
         }
         if (dto.getClassId() == null) {
             throw new IllegalArgumentException("Học sinh bắt buộc phải được gắn vào một lớp học.");
         }
 
-        ClassRoom classRoom = classRoomRepository.findById(dto.getClassId())
+        LopHoc classRoom = classRoomRepository.findById(dto.getClassId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Lớp học"));
-        if (classRoom.getStatus() != ClassStatus.ACTIVE) {
+        if (classRoom.getTrangThai() != TrangThaiLopHoc.ACTIVE) {
             throw new IllegalArgumentException("Chỉ được gắn học sinh vào lớp đang ACTIVE.");
         }
 
@@ -56,11 +56,11 @@ public class StudentCreationStrategy implements UserCreationStrategy {
 
         user = userRepository.save(user);
 
-        ParentProfile parentProfile = null;
+        HoSoPhuHuynh parentProfile = null;
         if (dto.getParentPhone() != null && !dto.getParentPhone().trim().isEmpty()) {
             Optional<User> existingParent = userRepository.findByUsername(dto.getParentPhone());
             if (existingParent.isPresent()) {
-                parentProfile = parentProfileRepository.findByUserId(existingParent.get().getId())
+                parentProfile = parentProfileRepository.findByNguoiDungId(existingParent.get().getId())
                     .orElseThrow(() -> new RuntimeException("SĐT đã dùng nhưng không phải Phụ huynh."));
             } else {
                 User pUser = new User();
@@ -71,21 +71,21 @@ public class StudentCreationStrategy implements UserCreationStrategy {
                 pUser.setStatus(UserStatus.ACTIVE);
                 pUser.setRequirePasswordChange(true);
                 pUser = userRepository.save(pUser);
-                
-                parentProfile = new ParentProfile();
-                parentProfile.setUser(pUser);
-                parentProfile.setFullName(dto.getParentName() != null ? dto.getParentName() : "Phụ huynh của " + dto.getFullName());
+
+                parentProfile = new HoSoPhuHuynh();
+                parentProfile.setNguoiDung(pUser);
+                parentProfile.setHoTen(dto.getParentName() != null ? dto.getParentName() : "Phụ huynh của " + dto.getFullName());
                 parentProfile = parentProfileRepository.save(parentProfile);
             }
         }
 
-        StudentProfile sp = new StudentProfile();
-        sp.setUser(user);
-        sp.setStudentCode(dto.getStudentCode());
-        sp.setFullName(dto.getFullName());
-        sp.setDateOfBirth(dto.getDateOfBirth());
-        sp.setClassRoom(classRoom);
-        sp.setParent(parentProfile);
+        HoSoHocSinh sp = new HoSoHocSinh();
+        sp.setNguoiDung(user);
+        sp.setMaHocSinh(dto.getStudentCode());
+        sp.setHoTen(dto.getFullName());
+        sp.setNgaySinh(dto.getDateOfBirth());
+        sp.setLopHoc(classRoom);
+        sp.setPhuHuynh(parentProfile);
         studentProfileRepository.save(sp);
         
         return user;

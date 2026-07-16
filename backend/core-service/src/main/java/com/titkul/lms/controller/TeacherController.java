@@ -124,7 +124,7 @@ public class TeacherController {
     @org.springframework.web.bind.annotation.PostMapping("/me/students/{studentId}/rewards")
     public ResponseEntity<?> awardBadge(
             @PathVariable Long studentId,
-            @org.springframework.web.bind.annotation.RequestBody com.titkul.lms.dto.AwardBadgeDTO dto) {
+            @org.springframework.web.bind.annotation.RequestBody com.titkul.lms.dto.TraoHuyHieuRequest dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));

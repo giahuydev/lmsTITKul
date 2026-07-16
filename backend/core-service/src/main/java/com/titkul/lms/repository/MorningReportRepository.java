@@ -9,5 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface MorningReportRepository extends JpaRepository<MorningReport, Long> {
-    Optional<MorningReport> findByTeacher_IdAndClassRoom_IdAndReportDate(Long teacherId, Long classRoomId, LocalDate reportDate);
+    Optional<MorningReport> findByTeacher_GiaoVienIdAndClassRoom_LopHocIdAndReportDate(Long teacherId, Long classRoomId, LocalDate reportDate);
 }

@@ -23,7 +23,7 @@ public class AiCommentSuggestion {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bai_nop_id", nullable = false)
-    private Submission submission;
+    private BaiNop submission;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "du_lieu_dau_vao", nullable = false)

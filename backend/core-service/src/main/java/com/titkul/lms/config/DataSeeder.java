@@ -1,14 +1,14 @@
 package com.titkul.lms.config;
 
-import com.titkul.lms.entity.ClassRoom;
+import com.titkul.lms.entity.LopHoc;
 import com.titkul.lms.entity.Role;
-import com.titkul.lms.entity.TeacherProfile;
+import com.titkul.lms.entity.HoSoGiaoVien;
 import com.titkul.lms.entity.User;
 import com.titkul.lms.entity.UserStatus;
-import com.titkul.lms.entity.AcademicYear;
-import com.titkul.lms.repository.AcademicYearRepository;
-import com.titkul.lms.repository.ClassRoomRepository;
-import com.titkul.lms.repository.TeacherProfileRepository;
+import com.titkul.lms.entity.NamHoc;
+import com.titkul.lms.repository.NamHocRepository;
+import com.titkul.lms.repository.LopHocRepository;
+import com.titkul.lms.repository.HoSoGiaoVienRepository;
 import com.titkul.lms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -21,9 +21,9 @@ public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final TeacherProfileRepository teacherProfileRepository;
-    private final ClassRoomRepository classRoomRepository;
-    private final AcademicYearRepository academicYearRepository;
+    private final HoSoGiaoVienRepository teacherProfileRepository;
+    private final LopHocRepository classRoomRepository;
+    private final NamHocRepository academicYearRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -70,34 +70,34 @@ public class DataSeeder implements CommandLineRunner {
             System.out.println("====== SEEDED TEST PARENT: PH001 / Password123! ======");
         }
 
-        // Ensure GV001 always has a TeacherProfile, regardless of classroom count
+        // Ensure GV001 always has a HoSoGiaoVien, regardless of classroom count
         User teacherUser = userRepository.findByUsername("GV001").orElseThrow();
-        TeacherProfile teacherProfile = teacherProfileRepository.findByUserId(teacherUser.getId())
+        HoSoGiaoVien teacherProfile = teacherProfileRepository.findByNguoiDungId(teacherUser.getId())
                 .orElseGet(() -> {
-                    TeacherProfile p = new TeacherProfile();
-                    p.setUser(teacherUser);
-                    p.setTeacherCode("GV001");
-                    p.setFullName("Nguyễn Văn GV");
-                    p.setDepartment("Toán");
+                    HoSoGiaoVien p = new HoSoGiaoVien();
+                    p.setNguoiDung(teacherUser);
+                    p.setMaGiaoVien("GV001");
+                    p.setHoTen("Nguyễn Văn GV");
+                    p.setBoMon("Toán");
                     return teacherProfileRepository.save(p);
                 });
 
         if (classRoomRepository.count() == 0) {
-            AcademicYear academicYear = academicYearRepository.findByName("2026-2027")
+            NamHoc academicYear = academicYearRepository.findByTenNamHoc("2026-2027")
                     .orElseGet(() -> {
-                        AcademicYear newYear = new AcademicYear();
-                        newYear.setName("2026-2027");
-                        newYear.setStartDate(java.time.LocalDate.of(2026, 9, 5));
-                        newYear.setEndDate(java.time.LocalDate.of(2027, 5, 31));
+                        NamHoc newYear = new NamHoc();
+                        newYear.setTenNamHoc("2026-2027");
+                        newYear.setNgayBatDau(java.time.LocalDate.of(2026, 9, 5));
+                        newYear.setNgayKetThuc(java.time.LocalDate.of(2027, 5, 31));
                         return academicYearRepository.save(newYear);
                     });
 
-            ClassRoom classRoom = new ClassRoom();
-            classRoom.setName("Lớp 5A");
-            classRoom.setGrade((short) 5);
-            classRoom.setAcademicYear(academicYear);
-            classRoom.setHomeroomTeacher(teacherProfile);
-            classRoom.setMaxCapacity((short) 40);
+            LopHoc classRoom = new LopHoc();
+            classRoom.setTenLop("Lớp 5A");
+            classRoom.setKhoiLop((short) 5);
+            classRoom.setNamHoc(academicYear);
+            classRoom.setGiaoVienChuNhiem(teacherProfile);
+            classRoom.setSiSoToiDa((short) 40);
             classRoomRepository.save(classRoom);
 
             System.out.println("====== SEEDED TEST CLASSROOM: Lớp 5A ======");

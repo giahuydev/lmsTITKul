@@ -5,11 +5,11 @@ import com.titkul.lms.dto.HocLieuInternalDTO;
 import com.titkul.lms.entity.HocLieu;
 import com.titkul.lms.entity.LoaiHocLieu;
 import com.titkul.lms.entity.NguonGocHocLieu;
-import com.titkul.lms.entity.Subject;
-import com.titkul.lms.entity.TeacherProfile;
+import com.titkul.lms.entity.MonHoc;
+import com.titkul.lms.entity.HoSoGiaoVien;
 import com.titkul.lms.repository.HocLieuRepository;
-import com.titkul.lms.repository.SubjectRepository;
-import com.titkul.lms.repository.TeacherProfileRepository;
+import com.titkul.lms.repository.MonHocRepository;
+import com.titkul.lms.repository.HoSoGiaoVienRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,8 +21,8 @@ import java.util.List;
 public class HocLieuService {
 
     private final HocLieuRepository hocLieuRepository;
-    private final TeacherProfileRepository teacherProfileRepository;
-    private final SubjectRepository subjectRepository;
+    private final HoSoGiaoVienRepository teacherProfileRepository;
+    private final MonHocRepository subjectRepository;
 
     // Upsert theo h5pContentId, tránh tạo trùng khi GV sửa lại bài.
     public HocLieu createOrUpdateFromH5p(HocLieuInternalDTO dto) {
@@ -39,7 +39,7 @@ public class HocLieuService {
         hocLieu.setOrigin(NguonGocHocLieu.valueOf(dto.getNguonGoc()));
 
         if (dto.getGiaoVienId() != null) {
-            TeacherProfile teacher = teacherProfileRepository.findByUserId(dto.getGiaoVienId())
+            HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDungId(dto.getGiaoVienId())
                     .orElseThrow(() -> new EntityNotFoundException(
                             "Không tìm thấy Giáo viên với User ID: " + dto.getGiaoVienId()));
             hocLieu.setTeacher(teacher);
@@ -51,7 +51,7 @@ public class HocLieuService {
             hocLieu.setGrade(dto.getKhoiLop());
         }
         if (dto.getMonHocId() != null) {
-            Subject subject = subjectRepository.findById(dto.getMonHocId())
+            MonHoc subject = subjectRepository.findById(dto.getMonHocId())
                     .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy Môn học với ID: " + dto.getMonHocId()));
             hocLieu.setSubject(subject);
         }
@@ -64,7 +64,7 @@ public class HocLieuService {
     }
 
     public List<HocLieu> listByTeacherUserId(Long userId) {
-        return hocLieuRepository.findByTeacher_User_Id(userId);
+        return hocLieuRepository.findByTeacher_NguoiDung_Id(userId);
     }
 
     public HocLieu getById(Long id) {
@@ -76,8 +76,8 @@ public class HocLieuService {
     public void delete(Long id, String requesterUsername, boolean requesterIsAdmin) {
         HocLieu hocLieu = getById(id);
         boolean isOwner = hocLieu.getTeacher() != null
-                && hocLieu.getTeacher().getUser() != null
-                && hocLieu.getTeacher().getUser().getUsername().equals(requesterUsername);
+                && hocLieu.getTeacher().getNguoiDung() != null
+                && hocLieu.getTeacher().getNguoiDung().getUsername().equals(requesterUsername);
         if (!requesterIsAdmin && !isOwner) {
             throw new IllegalArgumentException("Bạn không có quyền xóa học liệu này.");
         }
@@ -88,15 +88,15 @@ public class HocLieuService {
     public HocLieu updateClassification(Long id, HocLieuClassificationDTO dto, String requesterUsername) {
         HocLieu hocLieu = getById(id);
         boolean isOwner = hocLieu.getTeacher() != null
-                && hocLieu.getTeacher().getUser() != null
-                && hocLieu.getTeacher().getUser().getUsername().equals(requesterUsername);
+                && hocLieu.getTeacher().getNguoiDung() != null
+                && hocLieu.getTeacher().getNguoiDung().getUsername().equals(requesterUsername);
         if (!isOwner) {
             throw new IllegalArgumentException("Bạn không có quyền chỉnh sửa học liệu này.");
         }
 
         hocLieu.setGrade(dto.getGrade());
         if (dto.getSubjectId() != null) {
-            Subject subject = subjectRepository.findById(dto.getSubjectId())
+            MonHoc subject = subjectRepository.findById(dto.getSubjectId())
                     .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy Môn học với ID: " + dto.getSubjectId()));
             hocLieu.setSubject(subject);
         } else {

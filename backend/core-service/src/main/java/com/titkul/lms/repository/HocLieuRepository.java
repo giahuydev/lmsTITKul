@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface HocLieuRepository extends JpaRepository<HocLieu, Long> {
     Optional<HocLieu> findByH5pContentId(String h5pContentId);
 
-    List<HocLieu> findByTeacher_User_Id(Long userId);
+    List<HocLieu> findByTeacher_NguoiDung_Id(Long userId);
 }

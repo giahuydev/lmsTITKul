@@ -23,12 +23,12 @@ import java.util.stream.Collectors;
 public class MorningReportService {
 
     private final UserRepository userRepository;
-    private final TeacherProfileRepository teacherProfileRepository;
-    private final ClassRoomRepository classRoomRepository;
-    private final StudentProfileRepository studentProfileRepository;
+    private final HoSoGiaoVienRepository teacherProfileRepository;
+    private final LopHocRepository classRoomRepository;
+    private final HoSoHocSinhRepository studentProfileRepository;
     private final StudentProgressRepository studentProgressRepository;
-    private final SubmissionRepository submissionRepository;
-    private final ContentDistributionRepository contentDistributionRepository;
+    private final BaiNopRepository submissionRepository;
+    private final PhanPhoiDangBaiRepository contentDistributionRepository;
     private final MorningReportRepository morningReportRepository;
     private final OllamaClient ollamaClient;
     private final ObjectMapper objectMapper;
@@ -37,14 +37,14 @@ public class MorningReportService {
     public Map<String, Object> getOrGenerate(String username, Long classId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        TeacherProfile teacher = teacherProfileRepository.findByUserId(user.getId())
+        HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
 
-        ClassRoom classRoom = resolveClass(teacher, classId);
+        LopHoc classRoom = resolveClass(teacher, classId);
         LocalDate today = LocalDate.now();
 
         Optional<MorningReport> cached = morningReportRepository
-                .findByTeacher_IdAndClassRoom_IdAndReportDate(teacher.getId(), classRoom.getId(), today);
+                .findByTeacher_GiaoVienIdAndClassRoom_LopHocIdAndReportDate(teacher.getGiaoVienId(), classRoom.getLopHocId(), today);
         if (cached.isPresent()) {
             return toDto(cached.get(), classRoom);
         }
@@ -53,70 +53,70 @@ public class MorningReportService {
         return toDto(generated, classRoom);
     }
 
-    private ClassRoom resolveClass(TeacherProfile teacher, Long classId) {
+    private LopHoc resolveClass(HoSoGiaoVien teacher, Long classId) {
         if (classId != null) {
             return classRoomRepository.findById(classId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
         }
-        List<ClassRoom> homeroom = classRoomRepository.findByHomeroomTeacher_Id(teacher.getId());
+        List<LopHoc> homeroom = classRoomRepository.findByGiaoVienChuNhiem_GiaoVienId(teacher.getGiaoVienId());
         if (homeroom.isEmpty()) {
             throw new RuntimeException("Bạn chưa là giáo viên chủ nhiệm của lớp nào để xem báo cáo.");
         }
         return homeroom.get(0);
     }
 
-    private MorningReport generate(TeacherProfile teacher, ClassRoom classRoom, LocalDate today) {
-        List<StudentProfile> students = studentProfileRepository.findByClassRoomId(classRoom.getId());
+    private MorningReport generate(HoSoGiaoVien teacher, LopHoc classRoom, LocalDate today) {
+        List<HoSoHocSinh> students = studentProfileRepository.findByLopHoc_LopHocId(classRoom.getLopHocId());
         int totalStudents = students.size();
 
         Map<String, Object> analysis = new LinkedHashMap<>();
         analysis.put("totalStudents", totalStudents);
 
         if (totalStudents == 0) {
-            String summary = "Lớp " + classRoom.getName() + " hiện chưa có học sinh nào để phân tích tiến độ.";
+            String summary = "Lớp " + classRoom.getTenLop() + " hiện chưa có học sinh nào để phân tích tiến độ.";
             return persist(teacher, classRoom, today, summary, analysis);
         }
 
-        List<Long> studentIds = students.stream().map(StudentProfile::getId).collect(Collectors.toList());
+        List<Long> studentIds = students.stream().map(HoSoHocSinh::getHocSinhId).collect(Collectors.toList());
         LocalDateTime since = today.minusDays(1).atStartOfDay();
 
-        List<StudentProgress> progressList = studentProgressRepository.findByStudent_IdIn(studentIds);
+        List<StudentProgress> progressList = studentProgressRepository.findByStudent_HocSinhIdIn(studentIds);
         List<StudentProgress> recentProgress = progressList.stream()
                 .filter(p -> p.getLastViewedAt() != null && p.getLastViewedAt().isAfter(since))
                 .collect(Collectors.toList());
 
         Set<Long> studentsActiveYesterday = recentProgress.stream()
-                .map(p -> p.getStudent().getId())
+                .map(p -> p.getStudent().getHocSinhId())
                 .collect(Collectors.toSet());
         Set<Long> studentsCompletedSomething = recentProgress.stream()
                 .filter(p -> Boolean.TRUE.equals(p.getCompleted()))
-                .map(p -> p.getStudent().getId())
+                .map(p -> p.getStudent().getHocSinhId())
                 .collect(Collectors.toSet());
 
-        List<ContentDistribution> distributed = contentDistributionRepository.findByClassRoom_Id(classRoom.getId());
+        List<PhanPhoiDangBai> distributed = contentDistributionRepository.findByLopHoc_LopHocId(classRoom.getLopHocId());
 
         Map<Long, Set<Integer>> completedByStudent = progressList.stream()
                 .filter(p -> Boolean.TRUE.equals(p.getCompleted()))
-                .collect(Collectors.groupingBy(p -> p.getStudent().getId(),
-                        Collectors.mapping(p -> p.getContentNode().getId(), Collectors.toSet())));
+                .collect(Collectors.groupingBy(p -> p.getStudent().getHocSinhId(),
+                        Collectors.mapping(p -> p.getContentNode().getDangBaiId(), Collectors.toSet())));
 
         List<String> notCompletedNames = new ArrayList<>();
         if (!distributed.isEmpty()) {
-            for (StudentProfile s : students) {
-                Set<Integer> done = completedByStudent.getOrDefault(s.getId(), Set.of());
+            for (HoSoHocSinh s : students) {
+                Set<Integer> done = completedByStudent.getOrDefault(s.getHocSinhId(), Set.of());
                 boolean missingAny = distributed.stream()
-                        .anyMatch(d -> !done.contains(d.getContentNode().getId()));
-                if (missingAny) notCompletedNames.add(s.getFullName());
+                        .anyMatch(d -> !done.contains(d.getDangBai().getDangBaiId()));
+                if (missingAny) notCompletedNames.add(s.getHoTen());
             }
         }
 
-        List<Submission> submissions = submissionRepository.findByStudent_IdIn(studentIds);
-        List<Submission> recentSubmissions = submissions.stream()
-                .filter(sub -> sub.getSubmittedAt() != null && sub.getSubmittedAt().isAfter(since))
+        List<BaiNop> submissions = submissionRepository.findByHocSinh_HocSinhIdIn(studentIds);
+        List<BaiNop> recentSubmissions = submissions.stream()
+                .filter(sub -> sub.getThoiDiemNop() != null && sub.getThoiDiemNop().isAfter(since))
                 .collect(Collectors.toList());
-        long lateCount = recentSubmissions.stream().filter(sub -> Boolean.TRUE.equals(sub.getIsLate())).count();
+        long lateCount = recentSubmissions.stream().filter(sub -> Boolean.TRUE.equals(sub.getLaNopTre())).count();
         List<BigDecimal> scores = recentSubmissions.stream()
-                .map(Submission::getAutoScore)
+                .map(BaiNop::getDiemTuDong)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         Double avgScore = scores.isEmpty() ? null
@@ -141,7 +141,7 @@ public class MorningReportService {
             Bắt buộc: toàn bộ câu trả lời phải 100% tiếng Việt, tuyệt đối không chèn bất kỳ từ hay cụm từ tiếng Anh nào vào giữa câu.
             """;
 
-    private String callGemmaForSummary(ClassRoom classRoom, Map<String, Object> analysis, List<String> notCompletedNames) {
+    private String callGemmaForSummary(LopHoc classRoom, Map<String, Object> analysis, List<String> notCompletedNames) {
         String prompt = buildPrompt(classRoom, analysis, notCompletedNames);
         return ollamaClient.generate(ANALYST_PERSONA, prompt)
                 .map(this::cleanOutput)
@@ -149,10 +149,10 @@ public class MorningReportService {
                 .orElseGet(() -> buildFallbackSummary(classRoom, analysis, notCompletedNames));
     }
 
-    private String buildPrompt(ClassRoom classRoom, Map<String, Object> analysis, List<String> notCompletedNames) {
+    private String buildPrompt(LopHoc classRoom, Map<String, Object> analysis, List<String> notCompletedNames) {
         StringBuilder sb = new StringBuilder();
         sb.append("Viết 1 đoạn tóm tắt ngắn (2-4 câu) cho giáo viên xem đầu ngày, dựa trên số liệu tiến độ học tập của lớp ")
-                .append(classRoom.getName()).append(" trong ngày hôm qua. Nêu số liệu cụ thể, giọng ngắn gọn chuyên nghiệp.\n\n");
+                .append(classRoom.getTenLop()).append(" trong ngày hôm qua. Nêu số liệu cụ thể, giọng ngắn gọn chuyên nghiệp.\n\n");
         sb.append("Số liệu:\n");
         sb.append("- Tổng số học sinh: ").append(analysis.get("totalStudents")).append("\n");
         sb.append("- Số học sinh có hoạt động học tập hôm qua: ").append(analysis.get("activeYesterday")).append("\n");
@@ -170,9 +170,9 @@ public class MorningReportService {
         return sb.toString();
     }
 
-    private String buildFallbackSummary(ClassRoom classRoom, Map<String, Object> analysis, List<String> notCompletedNames) {
+    private String buildFallbackSummary(LopHoc classRoom, Map<String, Object> analysis, List<String> notCompletedNames) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Lớp ").append(classRoom.getName()).append(": ")
+        sb.append("Lớp ").append(classRoom.getTenLop()).append(": ")
                 .append(analysis.get("activeYesterday")).append("/").append(analysis.get("totalStudents"))
                 .append(" học sinh có hoạt động học tập hôm qua, ")
                 .append(analysis.get("submissionsYesterday")).append(" bài tập đã nộp");
@@ -197,7 +197,7 @@ public class MorningReportService {
         return cleaned;
     }
 
-    private MorningReport persist(TeacherProfile teacher, ClassRoom classRoom, LocalDate today, String summary, Map<String, Object> analysis) {
+    private MorningReport persist(HoSoGiaoVien teacher, LopHoc classRoom, LocalDate today, String summary, Map<String, Object> analysis) {
         MorningReport report = new MorningReport();
         report.setTeacher(teacher);
         report.setClassRoom(classRoom);
@@ -213,16 +213,16 @@ public class MorningReportService {
         } catch (DataIntegrityViolationException e) {
             // Race: 2 request cùng lúc cho cùng GV/lớp/ngày — đọc lại bản request kia vừa lưu.
             return morningReportRepository
-                    .findByTeacher_IdAndClassRoom_IdAndReportDate(teacher.getId(), classRoom.getId(), today)
+                    .findByTeacher_GiaoVienIdAndClassRoom_LopHocIdAndReportDate(teacher.getGiaoVienId(), classRoom.getLopHocId(), today)
                     .orElseThrow(() -> e);
         }
     }
 
-    private Map<String, Object> toDto(MorningReport report, ClassRoom classRoom) {
+    private Map<String, Object> toDto(MorningReport report, LopHoc classRoom) {
         Map<String, Object> dto = new LinkedHashMap<>();
         dto.put("id", report.getId());
-        dto.put("classId", classRoom.getId());
-        dto.put("className", classRoom.getName());
+        dto.put("classId", classRoom.getLopHocId());
+        dto.put("className", classRoom.getTenLop());
         dto.put("reportDate", report.getReportDate().toString());
         dto.put("summary", report.getSummary());
         dto.put("generatedAt", report.getCreatedAt().toString());

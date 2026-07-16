@@ -7,18 +7,9 @@ import { Input } from '../../components/ui/Input';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
 import { teacherService } from '../../services/teacher.service';
-import type { ClassRoom } from '../../services/teacher.service';
+import type { ClassRoom, Submission, Assignment } from '../../services/teacher.service';
 import { GradedDetailsModal } from './components/GradedDetailsModal';
 import { useGradingSystem } from './hooks/useGradingSystem';
-
-interface Submission {
-  id: number;
-  textContent: string;
-  status: string;
-  isLate: boolean;
-  submittedAt: string;
-  h5pScore: number | null;
-}
 
 export default function TeacherGrading() {
   const navigate = useNavigate();
@@ -39,7 +30,7 @@ export default function TeacherGrading() {
 
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
-  const [assignments, setAssignments] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
 
@@ -69,7 +60,7 @@ export default function TeacherGrading() {
       try {
         const data = await teacherService.getAssignmentsByClass(selectedClassId);
         setAssignments(data);
-        setSelectedAssignmentId(data.length > 0 ? data[0].id : null);
+        setSelectedAssignmentId(data.length > 0 ? data[0].baiTapId : null);
         setSubmissions([]);
       } catch (err) {
         console.error('Lỗi tải bài tập', err);
@@ -131,7 +122,7 @@ export default function TeacherGrading() {
                 <option value="">-- Chưa có bài tập --</option>
               ) : (
                 assignments.map((asgn) => (
-                  <option key={asgn.id} value={asgn.id}>{asgn.title}</option>
+                  <option key={asgn.baiTapId} value={asgn.baiTapId}>{asgn.tieuDe}</option>
                 ))
               )}
             </select>
@@ -165,37 +156,37 @@ export default function TeacherGrading() {
                 </TableRow>
               ) : (
                 submissions.map((sub) => (
-                  <TableRow key={sub.id}>
-                    <TableCell className="font-medium">#{sub.id}</TableCell>
+                  <TableRow key={sub.baiNopId}>
+                    <TableCell className="font-medium">#{sub.baiNopId}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{sub.h5pScore !== null ? 'H5P Auto' : 'Tự luận'}</Badge>
+                      <Badge variant="outline">{sub.diemTuDong !== null ? 'H5P Auto' : 'Tự luận'}</Badge>
                     </TableCell>
                     <TableCell className="text-sm text-slate-500">
-                      {sub.submittedAt ? new Date(sub.submittedAt).toLocaleString('vi-VN') : '—'}
+                      {sub.thoiDiemNop ? new Date(sub.thoiDiemNop).toLocaleString('vi-VN') : '—'}
                     </TableCell>
                     <TableCell>
-                      {sub.status === 'DA_NOP' && (
-                        <Badge variant={sub.isLate ? 'danger' : 'warning'}>
-                          {sub.isLate ? 'Nộp trễ' : 'Chờ chấm'}
+                      {sub.trangThai === 'DA_NOP' && (
+                        <Badge variant={sub.laNopTre ? 'danger' : 'warning'}>
+                          {sub.laNopTre ? 'Nộp trễ' : 'Chờ chấm'}
                         </Badge>
                       )}
-                      {sub.status === 'DA_CHAM' && <Badge variant="success">Đã chấm</Badge>}
-                      {sub.status === 'YEU_CAU_LAM_LAI' && <Badge variant="danger">Làm lại</Badge>}
+                      {sub.trangThai === 'DA_CHAM' && <Badge variant="success">Đã chấm</Badge>}
+                      {sub.trangThai === 'YC_LAM_LAI' && <Badge variant="danger">Làm lại</Badge>}
                     </TableCell>
                     <TableCell className="text-right">
-                      {sub.status === 'DA_CHAM' ? (
+                      {sub.trangThai === 'DA_CHAM' ? (
                         <Button
                           variant="ghost"
                           size="sm"
-                          isLoading={loadingDetailId === sub.id}
-                          onClick={() => openGradedDetails(sub.id)}
+                          isLoading={loadingDetailId === sub.baiNopId}
+                          onClick={() => openGradedDetails(sub.baiNopId)}
                         >
                           Xem chi tiết
                         </Button>
-                      ) : sub.h5pScore !== null ? (
+                      ) : sub.diemTuDong !== null ? (
                         <Button variant="ghost" size="sm">Xem tiến độ</Button>
                       ) : (
-                        <Button variant="outline" size="sm" onClick={() => navigate(`/teacher/grading/${sub.id}`)}>
+                        <Button variant="outline" size="sm" onClick={() => navigate(`/teacher/grading/${sub.baiNopId}`)}>
                           Chấm bài
                         </Button>
                       )}

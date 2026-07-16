@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface ClassTransferHistoryRepository extends JpaRepository<ClassTransferHistory, Long> {
-    List<ClassTransferHistory> findByStudent_IdOrderByTransferredAtDesc(Long studentId);
+    List<ClassTransferHistory> findByStudent_HocSinhIdOrderByTransferredAtDesc(Long studentId);
 }

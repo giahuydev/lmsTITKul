@@ -36,40 +36,40 @@ public class StudentService {
             List.of(NotificationAudience.TAT_CA, NotificationAudience.HOC_SINH);
 
     private final UserRepository userRepository;
-    private final StudentProfileRepository studentProfileRepository;
-    private final EvaluationRepository evaluationRepository;
-    private final AssignmentRepository assignmentRepository;
-    private final SubmissionRepository submissionRepository;
+    private final HoSoHocSinhRepository studentProfileRepository;
+    private final DanhGiaBaiLamRepository evaluationRepository;
+    private final BaiTapRepository assignmentRepository;
+    private final BaiNopRepository submissionRepository;
     private final SubmissionService submissionService;
-    private final ContentNodeRepository contentNodeRepository;
+    private final DangBaiRepository contentNodeRepository;
     private final StudentProgressRepository studentProgressRepository;
-    private final SemesterRepository semesterRepository;
+    private final HocKyRepository semesterRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationReadStatusRepository notificationReadStatusRepository;
-    private final BadgeRepository badgeRepository;
-    private final StudentRewardRepository studentRewardRepository;
+    private final HuyHieuRepository huyHieuRepository;
+    private final KhenThuongHocSinhRepository khenThuongHocSinhRepository;
 
     public StudentDashboardDto getDashboard(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        StudentProfile profile = studentProfileRepository.findByUserId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
-        ClassRoom classRoom = profile.getClassRoom();
+        LopHoc classRoom = profile.getLopHoc();
 
-        List<Evaluation> recentEvaluations = evaluationRepository
-                .findBySubmission_Student_IdOrderByEvaluatedAtDesc(profile.getId(), PageRequest.of(0, 5));
+        List<DanhGiaBaiLam> recentEvaluations = evaluationRepository
+                .findByBaiNop_HocSinh_HocSinhIdOrderByThoiDiemChamDesc(profile.getHocSinhId(), PageRequest.of(0, 5));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         List<StudentDashboardDto.EvaluationDto> evalDtos = recentEvaluations.stream()
                 .map(eval -> StudentDashboardDto.EvaluationDto.builder()
-                        .assignmentTitle(eval.getSubmission().getAssignment().getTitle())
-                        .score(eval.getScore() != null ? eval.getScore().toString() : null)
-                        .grade(eval.getGrade() != null ? eval.getGrade().name() : null)
-                        .comment(eval.getComment())
-                        .evaluatedAt(eval.getEvaluatedAt().format(formatter))
+                        .assignmentTitle(eval.getBaiNop().getBaiTap().getTieuDe())
+                        .score(eval.getDiemSo() != null ? eval.getDiemSo().toString() : null)
+                        .grade(eval.getXepLoai() != null ? eval.getXepLoai().name() : null)
+                        .comment(eval.getNhanXet())
+                        .evaluatedAt(eval.getThoiDiemCham().format(formatter))
                         .build())
                 .collect(Collectors.toList());
 
@@ -80,7 +80,7 @@ public class StudentService {
         );
 
         List<Notification> visibleNotifications = classRoom != null
-                ? notificationRepository.findVisibleToClass(classRoom.getId(), STUDENT_AUDIENCE)
+                ? notificationRepository.findVisibleToClass(classRoom.getLopHocId(), STUDENT_AUDIENCE)
                 : notificationRepository.findGlobalOnly(STUDENT_AUDIENCE);
         DateTimeFormatter notiFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         List<StudentDashboardDto.NotificationDto> notifications = visibleNotifications.stream()
@@ -103,10 +103,10 @@ public class StudentService {
                 .collect(Collectors.toList());
 
         return StudentDashboardDto.builder()
-                .fullName(profile.getFullName())
-                .className(classRoom != null ? classRoom.getName() : "Chưa có lớp")
-                .academicYear(classRoom != null && classRoom.getAcademicYear() != null ? classRoom.getAcademicYear().getName() : "")
-                .totalXp(profile.getTotalXp())
+                .fullName(profile.getHoTen())
+                .className(classRoom != null ? classRoom.getTenLop() : "Chưa có lớp")
+                .academicYear(classRoom != null && classRoom.getNamHoc() != null ? classRoom.getNamHoc().getTenNamHoc() : "")
+                .totalXp(profile.getTongXp())
                 .recentEvaluations(evalDtos)
                 .subjects(subjects)
                 .upcomingTasks(upcomingTasks)
@@ -123,20 +123,20 @@ public class StudentService {
 
     // Chỉ hiện những môn ĐÃ có nội dung thật trong cây SGK cho đúng khối của lớp học sinh —
     // không hiện môn giả/rỗng. % tiến độ tính thật từ StudentProgress.
-    private List<StudentDashboardDto.SubjectProgressDto> buildSubjectProgress(StudentProfile profile, ClassRoom classRoom) {
-        if (classRoom == null || classRoom.getGrade() == null) return List.of();
-        Integer grade = classRoom.getGrade().intValue();
-        List<Subject> subjectsWithContent = contentNodeRepository.findDistinctSubjectsByGrade(grade);
+    private List<StudentDashboardDto.SubjectProgressDto> buildSubjectProgress(HoSoHocSinh profile, LopHoc classRoom) {
+        if (classRoom == null || classRoom.getKhoiLop() == null) return List.of();
+        Integer grade = classRoom.getKhoiLop().intValue();
+        List<MonHoc> subjectsWithContent = contentNodeRepository.findDistinctSubjectsByGrade(grade);
 
         return subjectsWithContent.stream().map(subject -> {
-            List<ContentNode> nodes = contentNodeRepository.findBySubjectAndGradeOrdered(subject.getId(), grade);
-            long completed = studentProgressRepository.countByStudent_IdAndContentNode_Subject_IdAndCompletedTrue(profile.getId(), subject.getId());
+            List<DangBai> nodes = contentNodeRepository.findBySubjectAndGradeOrdered(subject.getMonHocId(), grade);
+            long completed = studentProgressRepository.countByStudent_HocSinhIdAndContentNode_MonHoc_MonHocIdAndCompletedTrue(profile.getHocSinhId(), subject.getMonHocId());
             int progress = nodes.isEmpty() ? 0 : (int) Math.round(completed * 100.0 / nodes.size());
-            String[] style = SUBJECT_STYLE.getOrDefault(subject.getName(), DEFAULT_SUBJECT_STYLE);
+            String[] style = SUBJECT_STYLE.getOrDefault(subject.getTenMon(), DEFAULT_SUBJECT_STYLE);
 
             return StudentDashboardDto.SubjectProgressDto.builder()
-                    .id(String.valueOf(subject.getId()))
-                    .name(subject.getName())
+                    .id(String.valueOf(subject.getMonHocId()))
+                    .name(subject.getTenMon())
                     .desc(nodes.size() + " bài học")
                     .icon(style[0])
                     .color("bg-white border-slate-200 " + style[1])
@@ -152,43 +152,43 @@ public class StudentService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        StudentProfile profile = studentProfileRepository.findByUserId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
-        ClassRoom classRoom = profile.getClassRoom();
+        LopHoc classRoom = profile.getLopHoc();
         if (classRoom == null) return List.of();
 
-        List<Assignment> assignments = assignmentRepository
-                .findByClassRoomId(classRoom.getId(), PageRequest.of(0, 100))
+        List<BaiTap> assignments = assignmentRepository
+                .findByLopHoc_LopHocId(classRoom.getLopHocId(), PageRequest.of(0, 100))
                 .getContent();
 
-        Map<Long, Submission> submissionMap = submissionRepository.findByStudent_Id(profile.getId())
+        Map<Long, BaiNop> submissionMap = submissionRepository.findByHocSinh_HocSinhId(profile.getHocSinhId())
                 .stream()
-                .collect(Collectors.toMap(s -> s.getAssignment().getId(), s -> s, (a, b) -> a));
+                .collect(Collectors.toMap(s -> s.getBaiTap().getBaiTapId(), s -> s, (a, b) -> a));
 
         return assignments.stream()
-                .map(a -> AssignmentStatusUtils.toDto(a, submissionMap.get(a.getId())))
+                .map(a -> AssignmentStatusUtils.toDto(a, submissionMap.get(a.getBaiTapId())))
                 .collect(Collectors.toList());
     }
 
     public H5PAssignmentDetailDto getH5PAssignmentDetail(String username, Long assignmentId) {
-        StudentProfile profile = resolveProfile(username);
-        Assignment assignment = resolveH5PAssignmentForStudent(assignmentId, profile);
+        HoSoHocSinh profile = resolveProfile(username);
+        BaiTap assignment = resolveH5PAssignmentForStudent(assignmentId, profile);
 
-        List<Submission> attempts = submissionRepository.findByAssignmentIdAndStudent_Id(assignmentId, profile.getId());
+        List<BaiNop> attempts = submissionRepository.findByBaiTap_BaiTapIdAndHocSinh_HocSinhId(assignmentId, profile.getHocSinhId());
         int attemptsUsed = attempts.size();
         boolean hasSubmitted = attemptsUsed > 0;
         boolean pastDeadline = assignment.getDeadline() != null && assignment.getDeadline().isBefore(LocalDateTime.now());
         boolean canSubmit = !hasSubmitted
-                || (Boolean.TRUE.equals(assignment.getAllowResubmit()) && attemptsUsed < assignment.getMaxResubmitCount());
+                || (Boolean.TRUE.equals(assignment.getChoNopLai()) && attemptsUsed < assignment.getSoLanNopLaiToiDa());
 
         return H5PAssignmentDetailDto.builder()
-                .assignmentId(assignment.getId())
-                .title(assignment.getTitle())
+                .assignmentId(assignment.getBaiTapId())
+                .title(assignment.getTieuDe())
                 .h5pContentId(resolveH5pContentId(assignment))
                 .xpReward(resolveXpReward(assignment))
-                .allowResubmit(assignment.getAllowResubmit())
-                .maxResubmitCount(assignment.getMaxResubmitCount())
+                .allowResubmit(assignment.getChoNopLai())
+                .maxResubmitCount(assignment.getSoLanNopLaiToiDa())
                 .attemptsUsed(attemptsUsed)
                 .canSubmit(canSubmit)
                 .deadline(assignment.getDeadline() != null ? assignment.getDeadline().format(DEADLINE_FMT) : null)
@@ -198,17 +198,17 @@ public class StudentService {
 
     @Transactional
     public H5PSubmissionResultDto submitH5PAssignment(String username, Long assignmentId, H5PSubmissionRequest request) {
-        StudentProfile profile = resolveProfile(username);
-        Assignment assignment = resolveH5PAssignmentForStudent(assignmentId, profile);
+        HoSoHocSinh profile = resolveProfile(username);
+        BaiTap assignment = resolveH5PAssignmentForStudent(assignmentId, profile);
         Integer xpReward = resolveXpReward(assignment);
 
         if (request.getMaxScore() == null || request.getMaxScore() <= 0) {
             throw new IllegalArgumentException("Dữ liệu điểm số không hợp lệ.");
         }
 
-        List<Submission> previousAttempts = submissionRepository.findByAssignmentIdAndStudent_Id(assignmentId, profile.getId());
+        List<BaiNop> previousAttempts = submissionRepository.findByBaiTap_BaiTapIdAndHocSinh_HocSinhId(assignmentId, profile.getHocSinhId());
         boolean hasSubmitted = !previousAttempts.isEmpty();
-        boolean canResubmit = Boolean.TRUE.equals(assignment.getAllowResubmit()) && previousAttempts.size() < assignment.getMaxResubmitCount();
+        boolean canResubmit = Boolean.TRUE.equals(assignment.getChoNopLai()) && previousAttempts.size() < assignment.getSoLanNopLaiToiDa();
         if (hasSubmitted && !canResubmit) {
             throw new RuntimeException("Bạn đã hết lượt làm lại cho bài tập này.");
         }
@@ -218,133 +218,133 @@ public class StudentService {
                 .multiply(BigDecimal.valueOf(10))
                 .setScale(1, RoundingMode.HALF_UP);
 
-        Submission submission = new Submission();
-        submission.setAssignment(assignment);
-        submission.setStudent(profile);
-        submission.setContentNode(assignment.getContentNode());
-        submission.setAutoScore(score);
-        submission.setInteractionDetails(request.getInteractionDetails());
-        submission.setAttemptNumber((short) (previousAttempts.size() + 1));
+        BaiNop submission = new BaiNop();
+        submission.setBaiTap(assignment);
+        submission.setHocSinh(profile);
+        submission.setDangBai(assignment.getDangBai());
+        submission.setDiemTuDong(score);
+        submission.setChiTietBaiLam(request.getInteractionDetails());
+        submission.setSoLanLam((short) (previousAttempts.size() + 1));
 
         // Chỉ thưởng XP ở lần nộp đầu tiên hoàn thành, tránh cày XP qua nộp lại nhiều lần
         boolean completed = Boolean.TRUE.equals(request.getCompleted());
         int xpEarned = (completed && !hasSubmitted && xpReward != null) ? xpReward : 0;
-        submission.setXpEarned(xpEarned);
+        submission.setXpNhanDuoc(xpEarned);
 
-        Submission saved = submissionService.submitAssignment(submission);
+        BaiNop saved = submissionService.submitAssignment(submission);
 
         if (xpEarned > 0) {
-            profile.setTotalXp(profile.getTotalXp() + xpEarned);
+            profile.setTongXp(profile.getTongXp() + xpEarned);
             studentProfileRepository.save(profile);
         }
 
         return H5PSubmissionResultDto.builder()
-                .submissionId(saved.getId())
+                .submissionId(saved.getBaiNopId())
                 .score(score)
                 .xpEarned(xpEarned)
-                .totalXp(profile.getTotalXp())
-                .status(saved.getStatus().name())
-                .isLate(saved.getIsLate())
+                .totalXp(profile.getTongXp())
+                .status(saved.getTrangThai().name())
+                .isLate(saved.getLaNopTre())
                 .build();
     }
 
     public EssayAssignmentDetailDto getEssayAssignmentDetail(String username, Long assignmentId) {
-        StudentProfile profile = resolveProfile(username);
-        Assignment assignment = resolveEssayAssignmentForStudent(assignmentId, profile);
+        HoSoHocSinh profile = resolveProfile(username);
+        BaiTap assignment = resolveEssayAssignmentForStudent(assignmentId, profile);
 
-        List<Submission> attempts = submissionRepository.findByAssignmentIdAndStudent_Id(assignmentId, profile.getId());
-        Submission draft = attempts.stream().filter(s -> s.getStatus() == SubmissionStatus.LUU_NHAP).findFirst().orElse(null);
-        long finalizedCount = attempts.stream().filter(s -> s.getStatus() != SubmissionStatus.LUU_NHAP).count();
+        List<BaiNop> attempts = submissionRepository.findByBaiTap_BaiTapIdAndHocSinh_HocSinhId(assignmentId, profile.getHocSinhId());
+        BaiNop draft = attempts.stream().filter(s -> s.getTrangThai() == TrangThaiBaiNop.LUU_NHAP).findFirst().orElse(null);
+        long finalizedCount = attempts.stream().filter(s -> s.getTrangThai() != TrangThaiBaiNop.LUU_NHAP).count();
 
         boolean hasFinalized = finalizedCount > 0;
         boolean pastDeadline = assignment.getDeadline() != null && assignment.getDeadline().isBefore(LocalDateTime.now());
         boolean canSubmit = !hasFinalized
-                || (Boolean.TRUE.equals(assignment.getAllowResubmit()) && finalizedCount < assignment.getMaxResubmitCount());
+                || (Boolean.TRUE.equals(assignment.getChoNopLai()) && finalizedCount < assignment.getSoLanNopLaiToiDa());
 
         return EssayAssignmentDetailDto.builder()
-                .assignmentId(assignment.getId())
-                .title(assignment.getTitle())
-                .description(assignment.getDescription())
+                .assignmentId(assignment.getBaiTapId())
+                .title(assignment.getTieuDe())
+                .description(assignment.getMoTa())
                 .deadline(assignment.getDeadline() != null ? assignment.getDeadline().format(DEADLINE_FMT) : null)
                 .isPastDeadline(pastDeadline)
-                .allowResubmit(assignment.getAllowResubmit())
-                .maxResubmitCount(assignment.getMaxResubmitCount())
+                .allowResubmit(assignment.getChoNopLai())
+                .maxResubmitCount(assignment.getSoLanNopLaiToiDa())
                 .attemptsUsed((int) finalizedCount)
                 .canSubmit(canSubmit)
-                .draftText(draft != null ? draft.getTextContent() : null)
-                .draftAttachmentUrl(draft != null ? draft.getAttachmentUrl() : null)
+                .draftText(draft != null ? draft.getNoiDungText() : null)
+                .draftAttachmentUrl(draft != null ? draft.getFileDinhKem() : null)
                 .build();
     }
 
     @Transactional
     public EssaySubmissionResultDto submitEssay(String username, Long assignmentId, EssaySubmissionRequest request) {
-        StudentProfile profile = resolveProfile(username);
-        Assignment assignment = resolveEssayAssignmentForStudent(assignmentId, profile);
+        HoSoHocSinh profile = resolveProfile(username);
+        BaiTap assignment = resolveEssayAssignmentForStudent(assignmentId, profile);
 
-        List<Submission> attempts = submissionRepository.findByAssignmentIdAndStudent_Id(assignmentId, profile.getId());
-        Submission draft = attempts.stream().filter(s -> s.getStatus() == SubmissionStatus.LUU_NHAP).findFirst().orElse(null);
-        long finalizedCount = attempts.stream().filter(s -> s.getStatus() != SubmissionStatus.LUU_NHAP).count();
+        List<BaiNop> attempts = submissionRepository.findByBaiTap_BaiTapIdAndHocSinh_HocSinhId(assignmentId, profile.getHocSinhId());
+        BaiNop draft = attempts.stream().filter(s -> s.getTrangThai() == TrangThaiBaiNop.LUU_NHAP).findFirst().orElse(null);
+        long finalizedCount = attempts.stream().filter(s -> s.getTrangThai() != TrangThaiBaiNop.LUU_NHAP).count();
 
         boolean isDraft = Boolean.TRUE.equals(request.getIsDraft());
         if (!isDraft) {
             boolean hasFinalized = finalizedCount > 0;
-            boolean canResubmit = Boolean.TRUE.equals(assignment.getAllowResubmit()) && finalizedCount < assignment.getMaxResubmitCount();
+            boolean canResubmit = Boolean.TRUE.equals(assignment.getChoNopLai()) && finalizedCount < assignment.getSoLanNopLaiToiDa();
             if (hasFinalized && !canResubmit) {
                 throw new RuntimeException("Bạn đã hết lượt nộp lại cho bài tập này.");
             }
         }
 
-        Submission submission = draft != null ? draft : new Submission();
-        submission.setAssignment(assignment);
-        submission.setStudent(profile);
-        submission.setTextContent(request.getTextContent());
-        submission.setAttachmentUrl(request.getAttachmentUrl());
-        submission.setAttemptNumber((short) (finalizedCount + 1));
+        BaiNop submission = draft != null ? draft : new BaiNop();
+        submission.setBaiTap(assignment);
+        submission.setHocSinh(profile);
+        submission.setNoiDungText(request.getTextContent());
+        submission.setFileDinhKem(request.getAttachmentUrl());
+        submission.setSoLanLam((short) (finalizedCount + 1));
 
         if (isDraft) {
-            submission.setStatus(SubmissionStatus.LUU_NHAP);
-            Submission saved = submissionRepository.save(submission);
+            submission.setTrangThai(TrangThaiBaiNop.LUU_NHAP);
+            BaiNop saved = submissionRepository.save(submission);
             return EssaySubmissionResultDto.builder()
-                    .submissionId(saved.getId())
-                    .status(saved.getStatus().name())
+                    .submissionId(saved.getBaiNopId())
+                    .status(saved.getTrangThai().name())
                     .isLate(false)
                     .build();
         }
 
-        Submission saved = submissionService.submitAssignment(submission);
+        BaiNop saved = submissionService.submitAssignment(submission);
         return EssaySubmissionResultDto.builder()
-                .submissionId(saved.getId())
-                .status(saved.getStatus().name())
-                .isLate(saved.getIsLate())
+                .submissionId(saved.getBaiNopId())
+                .status(saved.getTrangThai().name())
+                .isLate(saved.getLaNopTre())
                 .build();
     }
 
-    private Assignment resolveEssayAssignmentForStudent(Long assignmentId, StudentProfile profile) {
-        Assignment assignment = assignmentRepository.findById(assignmentId)
+    private BaiTap resolveEssayAssignmentForStudent(Long assignmentId, HoSoHocSinh profile) {
+        BaiTap assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài tập"));
-        if (assignment.getType() != AssignmentType.TU_LUAN) {
+        if (assignment.getLoaiBaiTap() != LoaiBaiTap.TU_LUAN) {
             throw new RuntimeException("Bài tập này không phải dạng tự luận.");
         }
-        if (profile.getClassRoom() == null || !assignment.getClassRoom().getId().equals(profile.getClassRoom().getId())) {
+        if (profile.getLopHoc() == null || !assignment.getLopHoc().getLopHocId().equals(profile.getLopHoc().getLopHocId())) {
             throw new RuntimeException("Bạn không thuộc lớp được giao bài tập này.");
         }
         return assignment;
     }
 
-    private StudentProfile resolveProfile(String username) {
+    private HoSoHocSinh resolveProfile(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        return studentProfileRepository.findByUserId(user.getId())
+        return studentProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
     }
 
-    private Assignment resolveH5PAssignmentForStudent(Long assignmentId, StudentProfile profile) {
-        Assignment assignment = assignmentRepository.findById(assignmentId)
+    private BaiTap resolveH5PAssignmentForStudent(Long assignmentId, HoSoHocSinh profile) {
+        BaiTap assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài tập"));
-        if (assignment.getType() != AssignmentType.H5P) {
+        if (assignment.getLoaiBaiTap() != LoaiBaiTap.H5P) {
             throw new RuntimeException("Bài tập này không phải dạng H5P.");
         }
-        if (profile.getClassRoom() == null || !assignment.getClassRoom().getId().equals(profile.getClassRoom().getId())) {
+        if (profile.getLopHoc() == null || !assignment.getLopHoc().getLopHocId().equals(profile.getLopHoc().getLopHocId())) {
             throw new RuntimeException("Bạn không thuộc lớp được giao bài tập này.");
         }
         if (resolveH5pContentId(assignment) == null) {
@@ -353,30 +353,30 @@ public class StudentService {
         return assignment;
     }
 
-    // Bài H5P có thể nguồn từ HocLieu (kho học liệu GV tự soạn) hoặc ContentNode (cây SGK) — ưu tiên HocLieu.
-    private String resolveH5pContentId(Assignment assignment) {
+    // Bài H5P có thể nguồn từ HocLieu (kho học liệu GV tự soạn) hoặc DangBai (cây SGK) — ưu tiên HocLieu.
+    private String resolveH5pContentId(BaiTap assignment) {
         if (assignment.getHocLieu() != null && assignment.getHocLieu().getH5pContentId() != null) {
             return assignment.getHocLieu().getH5pContentId();
         }
-        return assignment.getContentNode() != null ? assignment.getContentNode().getH5pContentId() : null;
+        return assignment.getDangBai() != null ? assignment.getDangBai().getH5pNoiDungId() : null;
     }
 
-    private Integer resolveXpReward(Assignment assignment) {
+    private Integer resolveXpReward(BaiTap assignment) {
         if (assignment.getHocLieu() != null) {
             return assignment.getHocLieu().getXpReward();
         }
-        return assignment.getContentNode() != null ? assignment.getContentNode().getXpReward() : null;
+        return assignment.getDangBai() != null ? assignment.getDangBai().getXpThuong() : null;
     }
 
     public List<Map<String, Object>> getNotifications(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        StudentProfile profile = studentProfileRepository.findByUserId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        List<Notification> notifications = profile.getClassRoom() != null
-                ? notificationRepository.findVisibleToClass(profile.getClassRoom().getId(), STUDENT_AUDIENCE)
+        List<Notification> notifications = profile.getLopHoc() != null
+                ? notificationRepository.findVisibleToClass(profile.getLopHoc().getLopHocId(), STUDENT_AUDIENCE)
                 : notificationRepository.findGlobalOnly(STUDENT_AUDIENCE);
 
         return notifications.stream()
@@ -409,11 +409,11 @@ public class StudentService {
     public void markAllNotificationsRead(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        StudentProfile profile = studentProfileRepository.findByUserId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
-        List<Notification> notifications = profile.getClassRoom() != null
-                ? notificationRepository.findVisibleToClass(profile.getClassRoom().getId(), STUDENT_AUDIENCE)
+        List<Notification> notifications = profile.getLopHoc() != null
+                ? notificationRepository.findVisibleToClass(profile.getLopHoc().getLopHocId(), STUDENT_AUDIENCE)
                 : notificationRepository.findGlobalOnly(STUDENT_AUDIENCE);
         notifications.forEach(n -> markNotificationReadForUser(user, n.getId()));
     }
@@ -434,7 +434,7 @@ public class StudentService {
     public Map<String, Object> getRewards(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        StudentProfile profile = studentProfileRepository.findByUserId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
         return buildRewardsPayload(profile);
@@ -442,42 +442,42 @@ public class StudentService {
 
     // Dùng chung cho cả HS xem của mình và PH xem của con — ghép danh mục huy hiệu
     // thật (huy_hieu) với những huy hiệu học sinh này đã thật sự được trao (khen_thuong_hoc_sinh).
-    Map<String, Object> buildRewardsPayload(StudentProfile profile) {
+    Map<String, Object> buildRewardsPayload(HoSoHocSinh profile) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        List<StudentReward> earned = studentRewardRepository.findByStudent_IdOrderByAwardedAtDesc(profile.getId());
-        Map<Integer, StudentReward> earnedByBadgeId = earned.stream()
-                .collect(Collectors.toMap(r -> r.getBadge().getId(), r -> r, (a, b) -> a));
+        List<KhenThuongHocSinh> earned = khenThuongHocSinhRepository.findByHocSinh_HocSinhIdOrderByThoiDiemTraoDesc(profile.getHocSinhId());
+        Map<Integer, KhenThuongHocSinh> earnedByHuyHieuId = earned.stream()
+                .collect(Collectors.toMap(r -> r.getHuyHieu().getHuyHieuId(), r -> r, (a, b) -> a));
 
-        List<Map<String, Object>> badges = badgeRepository.findAll().stream()
-                .map(badge -> {
-                    StudentReward reward = earnedByBadgeId.get(badge.getId());
+        List<Map<String, Object>> huyHieu = huyHieuRepository.findAll().stream()
+                .map(hh -> {
+                    KhenThuongHocSinh khenThuong = earnedByHuyHieuId.get(hh.getHuyHieuId());
                     Map<String, Object> map = new LinkedHashMap<>();
-                    map.put("id", badge.getId());
-                    map.put("name", badge.getName());
-                    map.put("desc", badge.getDescription());
-                    map.put("icon", badge.getIconUrl());
-                    map.put("date", reward != null ? reward.getAwardedAt().format(fmt) : "");
-                    map.put("unlocked", reward != null);
+                    map.put("id", hh.getHuyHieuId());
+                    map.put("ten", hh.getTenHuyHieu());
+                    map.put("moTa", hh.getMoTa());
+                    map.put("icon", hh.getIconUrl());
+                    map.put("ngayTrao", khenThuong != null ? khenThuong.getThoiDiemTrao().format(fmt) : "");
+                    map.put("daMoKhoa", khenThuong != null);
                     return map;
                 })
                 .collect(Collectors.toList());
 
-        List<Map<String, Object>> letters = earned.stream()
-                .filter(r -> r.getComplimentLetter() != null && !r.getComplimentLetter().isBlank())
+        List<Map<String, Object>> thuKhen = earned.stream()
+                .filter(r -> r.getThuKhen() != null && !r.getThuKhen().isBlank())
                 .map(r -> {
                     Map<String, Object> map = new LinkedHashMap<>();
-                    map.put("id", r.getId());
-                    map.put("teacher", r.getTeacher() != null ? r.getTeacher().getFullName() : "Giáo viên");
-                    map.put("subject", r.getTeacher() != null ? r.getTeacher().getDepartment() : "");
-                    map.put("content", r.getComplimentLetter());
-                    map.put("date", r.getAwardedAt().format(fmt));
+                    map.put("id", r.getKhenThuongId());
+                    map.put("giaoVien", r.getGiaoVien() != null ? r.getGiaoVien().getHoTen() : "Giáo viên");
+                    map.put("monHoc", r.getGiaoVien() != null ? r.getGiaoVien().getBoMon() : "");
+                    map.put("noiDung", r.getThuKhen());
+                    map.put("ngayTrao", r.getThoiDiemTrao().format(fmt));
                     return map;
                 })
                 .collect(Collectors.toList());
 
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("badges", badges);
-        result.put("letters", letters);
+        result.put("huyHieu", huyHieu);
+        result.put("thuKhen", thuKhen);
         return result;
     }
 
@@ -486,39 +486,39 @@ public class StudentService {
     public Map<String, Object> getSubjectTree(String username, Integer subjectId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        StudentProfile profile = studentProfileRepository.findByUserId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
-        if (profile.getClassRoom() == null || profile.getClassRoom().getGrade() == null || subjectId == null) {
+        if (profile.getLopHoc() == null || profile.getLopHoc().getKhoiLop() == null || subjectId == null) {
             return Map.of("subjectName", "", "totalLessons", 0, "completedLessons", 0, "chapters", List.of());
         }
-        Integer grade = profile.getClassRoom().getGrade().intValue();
-        List<ContentNode> nodes = contentNodeRepository.findBySubjectAndGradeOrdered(subjectId, grade);
+        Integer grade = profile.getLopHoc().getKhoiLop().intValue();
+        List<DangBai> nodes = contentNodeRepository.findBySubjectAndGradeOrdered(subjectId, grade);
         if (nodes.isEmpty()) {
             return Map.of("subjectName", "", "totalLessons", 0, "completedLessons", 0, "chapters", List.of());
         }
 
         List<StudentProgress> progressList = studentProgressRepository
-                .findByStudent_IdAndContentNode_Subject_Id(profile.getId(), subjectId);
+                .findByStudent_HocSinhIdAndContentNode_MonHoc_MonHocId(profile.getHocSinhId(), subjectId);
         Map<Integer, StudentProgress> progressByNodeId = progressList.stream()
-                .collect(Collectors.toMap(p -> p.getContentNode().getId(), p -> p, (a, b) -> a));
+                .collect(Collectors.toMap(p -> p.getContentNode().getDangBaiId(), p -> p, (a, b) -> a));
 
         java.util.LinkedHashMap<Integer, Map<String, Object>> chaptersByTopicId = new java.util.LinkedHashMap<>();
         boolean foundCurrent = false;
         int completedCount = 0;
 
-        for (ContentNode node : nodes) {
-            Topic topic = node.getLesson().getTopic();
-            Map<String, Object> chapter = chaptersByTopicId.computeIfAbsent(topic.getId(), tid -> {
+        for (DangBai node : nodes) {
+            ChuDe chuDe = node.getBaiHoc().getChuDe();
+            Map<String, Object> chapter = chaptersByTopicId.computeIfAbsent(chuDe.getChuDeId(), tid -> {
                 Map<String, Object> c = new java.util.HashMap<>();
                 c.put("id", tid);
-                c.put("title", topic.getName());
+                c.put("title", chuDe.getTenChuDe());
                 c.put("icon", "https://img.icons8.com/color/96/1-circle.png");
                 c.put("lessons", new java.util.ArrayList<Map<String, Object>>());
                 return c;
             });
 
-            StudentProgress progress = progressByNodeId.get(node.getId());
+            StudentProgress progress = progressByNodeId.get(node.getDangBaiId());
             boolean completed = progress != null && Boolean.TRUE.equals(progress.getCompleted());
             String status;
             if (completed) {
@@ -532,9 +532,9 @@ public class StudentService {
             }
 
             Map<String, Object> lesson = new java.util.HashMap<>();
-            lesson.put("id", node.getId());
-            lesson.put("title", node.getName());
-            lesson.put("type", node.getH5pContentId() != null ? "h5p" : "document");
+            lesson.put("id", node.getDangBaiId());
+            lesson.put("title", node.getTenDangBai());
+            lesson.put("type", node.getH5pNoiDungId() != null ? "h5p" : "document");
             lesson.put("status", status);
 
             @SuppressWarnings("unchecked")
@@ -543,7 +543,7 @@ public class StudentService {
         }
 
         Map<String, Object> result = new java.util.HashMap<>();
-        result.put("subjectName", nodes.get(0).getSubject().getName());
+        result.put("subjectName", nodes.get(0).getMonHoc().getTenMon());
         result.put("totalLessons", nodes.size());
         result.put("completedLessons", completedCount);
         result.put("chapters", new java.util.ArrayList<>(chaptersByTopicId.values()));
@@ -553,21 +553,21 @@ public class StudentService {
     public ContentNodeDetailDto getContentNodeDetail(String username, Integer contentNodeId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        StudentProfile profile = studentProfileRepository.findByUserId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
-        ContentNode contentNode = contentNodeRepository.findById(contentNodeId)
+        DangBai contentNode = contentNodeRepository.findById(contentNodeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nội dung bài học"));
 
         boolean completed = studentProgressRepository
-                .findByStudent_IdAndContentNode_Id(profile.getId(), contentNodeId)
+                .findByStudent_HocSinhIdAndContentNode_DangBaiId(profile.getHocSinhId(), contentNodeId)
                 .map(p -> Boolean.TRUE.equals(p.getCompleted()))
                 .orElse(false);
 
         return ContentNodeDetailDto.builder()
-                .id(contentNode.getId())
-                .title(contentNode.getName())
-                .h5pContentId(contentNode.getH5pContentId())
-                .xpReward(contentNode.getXpReward())
+                .id(contentNode.getDangBaiId())
+                .title(contentNode.getTenDangBai())
+                .h5pContentId(contentNode.getH5pNoiDungId())
+                .xpReward(contentNode.getXpThuong())
                 .completed(completed)
                 .build();
     }
@@ -577,13 +577,13 @@ public class StudentService {
     public ContentNodeCompleteResultDto markContentNodeComplete(String username, Integer contentNodeId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        StudentProfile profile = studentProfileRepository.findByUserId(user.getId())
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
-        ContentNode contentNode = contentNodeRepository.findById(contentNodeId)
+        DangBai contentNode = contentNodeRepository.findById(contentNodeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nội dung bài học"));
 
         StudentProgress progress = studentProgressRepository
-                .findByStudent_IdAndContentNode_Id(profile.getId(), contentNodeId)
+                .findByStudent_HocSinhIdAndContentNode_DangBaiId(profile.getHocSinhId(), contentNodeId)
                 .orElseGet(StudentProgress::new);
 
         boolean wasCompleted = Boolean.TRUE.equals(progress.getCompleted());
@@ -591,7 +591,7 @@ public class StudentService {
         if (progress.getId() == null) {
             progress.setStudent(profile);
             progress.setContentNode(contentNode);
-            Semester semester = semesterRepository.findTopByOrderByIdDesc()
+            HocKy semester = semesterRepository.findTopByOrderByHocKyIdDesc()
                     .orElseThrow(() -> new RuntimeException("Chưa cấu hình học kỳ nào trong hệ thống"));
             progress.setSemester(semester);
         }
@@ -602,16 +602,16 @@ public class StudentService {
 
         int xpEarned = 0;
         if (!wasCompleted) {
-            xpEarned = contentNode.getXpReward() != null ? contentNode.getXpReward() : 0;
+            xpEarned = contentNode.getXpThuong() != null ? contentNode.getXpThuong() : 0;
             if (xpEarned > 0) {
-                profile.setTotalXp(profile.getTotalXp() + xpEarned);
+                profile.setTongXp(profile.getTongXp() + xpEarned);
                 studentProfileRepository.save(profile);
             }
         }
 
         return ContentNodeCompleteResultDto.builder()
                 .xpEarned(xpEarned)
-                .totalXp(profile.getTotalXp())
+                .totalXp(profile.getTongXp())
                 .alreadyCompleted(wasCompleted)
                 .build();
     }

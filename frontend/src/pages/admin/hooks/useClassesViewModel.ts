@@ -44,8 +44,8 @@ export function useClassesViewModel() {
 
   const filteredClasses = useMemo(() =>
     classes.filter((cls) => {
-      const matchSearch = cls.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchGrade = filterGrade === 'all' || cls.grade.toString() === filterGrade;
+      const matchSearch = cls.tenLop.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchGrade = filterGrade === 'all' || cls.khoiLop.toString() === filterGrade;
       return matchSearch && matchGrade;
     }), [classes, searchQuery, filterGrade]);
 
@@ -58,11 +58,11 @@ export function useClassesViewModel() {
   const openEditModal = (cls: ClassRoom) => {
     setEditingClass(cls);
     setFormData({
-      name: cls.name,
-      grade: cls.grade.toString(),
-      academicYear: cls.academicYear,
-      maxCapacity: cls.maxCapacity.toString(),
-      homeroomTeacherId: cls.homeroomTeacher?.id?.toString() ?? '',
+      name: cls.tenLop,
+      grade: cls.khoiLop.toString(),
+      academicYear: cls.namHoc?.tenNamHoc ?? '',
+      maxCapacity: cls.siSoToiDa.toString(),
+      homeroomTeacherId: cls.giaoVienChuNhiem?.giaoVienId?.toString() ?? '',
     });
     setShowClassModal(true);
   };
@@ -92,7 +92,7 @@ export function useClassesViewModel() {
         await classService.createClass(dto as any);
         toast.success('Tạo lớp học thành công!');
       } else {
-        await classService.updateClass(editingClass.id, dto as any);
+        await classService.updateClass(editingClass.lopHocId, dto as any);
         toast.success('Sửa lớp học thành công!');
       }
       setShowClassModal(false);

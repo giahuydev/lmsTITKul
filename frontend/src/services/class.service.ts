@@ -1,17 +1,20 @@
 import { api } from '../lib/axios';
 
 export interface ClassRoom {
-  id: number;
-  name: string;
-  grade: number;
-  academicYear: string;
-  maxCapacity: number;
-  status: string;
-  homeroomTeacher?: {
-    id: number;
-    fullName: string;
+  lopHocId: number;
+  tenLop: string;
+  khoiLop: number;
+  namHoc: {
+    namHocId: number;
+    tenNamHoc: string;
   };
-  currentStudentCount?: number;
+  siSoToiDa: number;
+  trangThai: string;
+  giaoVienChuNhiem?: {
+    giaoVienId: number;
+    hoTen: string;
+  };
+  siSoHienTai?: number;
 }
 
 export interface ClassRoomDto {

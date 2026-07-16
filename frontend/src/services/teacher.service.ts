@@ -31,40 +31,40 @@ export interface Material {
 }
 
 export interface Subject {
-  id: number;
-  name: string;
-  code: string | null;
+  monHocId: number;
+  tenMon: string;
+  maMon: string | null;
 }
 
 export interface TeacherProfile {
-  id: number;
-  teacherCode: string | null;
-  fullName: string;
-  department: string | null;
-  dateOfBirth: string | null;
+  giaoVienId: number;
+  maGiaoVien: string | null;
+  hoTen: string;
+  boMon: string | null;
+  ngaySinh: string | null;
 }
 
 export interface Assignment {
-  id: number;
-  title: string;
-  description: string;
-  type: string;
+  baiTapId: number;
+  tieuDe: string;
+  moTa: string;
+  loaiBaiTap: string;
   deadline: string;
-  status: string;
-  maxResubmitCount: number;
-  createdAt: string;
+  trangThai: string;
+  soLanNopLaiToiDa: number;
+  ngayTao: string;
 }
 
 export interface Submission {
-  id: number;
-  textContent: string;
-  attachmentUrl: string;
-  h5pScore: number | null;
-  xpEarned: number;
-  attemptNumber: number;
-  status: 'CHUA_NOP' | 'DA_NOP' | 'DA_CHAM' | 'YEU_CAU_LAM_LAI' | 'LUU_NHAP';
-  isLate: boolean;
-  submittedAt: string;
+  baiNopId: number;
+  noiDungText: string;
+  fileDinhKem: string;
+  diemTuDong: number | null;
+  xpNhanDuoc: number;
+  soLanLam: number;
+  trangThai: 'CHUA_NOP' | 'DA_NOP' | 'DA_CHAM' | 'YC_LAM_LAI' | 'LUU_NHAP' | 'NOP_TRE';
+  laNopTre: boolean;
+  thoiDiemNop: string;
 }
 
 export interface SubmissionDetail {
@@ -202,12 +202,12 @@ export const teacherService = {
     return response.data;
   },
 
-  getBadges: async (): Promise<{ id: number; name: string; description: string | null; iconUrl: string | null }[]> => {
+  getBadges: async (): Promise<{ huyHieuId: number; tenHuyHieu: string; moTa: string | null; iconUrl: string | null }[]> => {
     const response = await api.get('/badges');
     return response.data;
   },
 
-  awardBadge: async (studentId: number, dto: { badgeId: number; complimentLetter: string }): Promise<void> => {
+  awardBadge: async (studentId: number, dto: { huyHieuId: number; thuKhen: string }): Promise<void> => {
     await api.post(`/teachers/me/students/${studentId}/rewards`, dto);
   },
 

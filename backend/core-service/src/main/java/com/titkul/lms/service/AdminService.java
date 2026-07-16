@@ -25,12 +25,12 @@ public class AdminService {
 
     private final ExcelImportService excelImportService;
     private final UserRepository userRepository;
-    private final TeacherProfileRepository teacherProfileRepository;
-    private final StudentProfileRepository studentProfileRepository;
-    private final ParentProfileRepository parentProfileRepository;
-    private final ClassRoomRepository classRoomRepository;
+    private final HoSoGiaoVienRepository teacherProfileRepository;
+    private final HoSoHocSinhRepository studentProfileRepository;
+    private final HoSoPhuHuynhRepository parentProfileRepository;
+    private final LopHocRepository classRoomRepository;
     private final ImportBatchRepository importBatchRepository;
-    private final AcademicYearRepository academicYearRepository;
+    private final NamHocRepository academicYearRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
 
@@ -39,8 +39,8 @@ public class AdminService {
         List<ParsedStudentExcelRow> parsedRows = excelImportService.parseStudentImportFile(file);
 
         String defaultPasswordHash = passwordEncoder.encode(AppConstants.DEFAULT_PASSWORD);
-        Map<String, ClassRoom> classCache = new HashMap<>();
-        Map<String, ParentProfile> parentCache = new HashMap<>();
+        Map<String, LopHoc> classCache = new HashMap<>();
+        Map<String, HoSoPhuHuynh> parentCache = new HashMap<>();
 
         List<ImportRecordDTO> failures = new ArrayList<>();
         int successCount = 0;
@@ -51,13 +51,13 @@ public class AdminService {
                 continue;
             }
             try {
-                ClassRoom classRoom = resolveClassRoom(row.getClassName(), classCache);
+                LopHoc classRoom = resolveClassRoom(row.getClassName(), classCache);
 
                 if (userRepository.existsByUsername(row.getStudentCode())) {
                     throw new RuntimeException("Mã học sinh (Username) đã tồn tại trong hệ thống.");
                 }
 
-                ParentProfile parentProfile = resolveOrCreateParent(row, parentCache, defaultPasswordHash);
+                HoSoPhuHuynh parentProfile = resolveOrCreateParent(row, parentCache, defaultPasswordHash);
                 createStudent(row, classRoom, parentProfile, defaultPasswordHash);
                 successCount++;
             } catch (Exception e) {
@@ -98,26 +98,26 @@ public class AdminService {
 
     // ── Private helpers ───────────────────────────────────────────────────────────
 
-    private ClassRoom resolveClassRoom(String rawName, Map<String, ClassRoom> cache) {
+    private LopHoc resolveClassRoom(String rawName, Map<String, LopHoc> cache) {
         return cache.computeIfAbsent(rawName.trim(), name -> {
-            ClassRoom found = classRoomRepository.findByName(name).orElse(null);
+            LopHoc found = classRoomRepository.findByTenLop(name).orElse(null);
             if (found == null && !name.toLowerCase().startsWith("lớp ")) {
-                found = classRoomRepository.findByName("Lớp " + name).orElse(null);
+                found = classRoomRepository.findByTenLop("Lớp " + name).orElse(null);
             }
             if (found == null && name.toLowerCase().startsWith("lớp ")) {
-                found = classRoomRepository.findByName(name.substring(4).trim()).orElse(null);
+                found = classRoomRepository.findByTenLop(name.substring(4).trim()).orElse(null);
             }
             return found != null ? found : createClassRoom(name);
         });
     }
 
-    private ClassRoom createClassRoom(String name) {
-        ClassRoom cls = new ClassRoom();
-        cls.setName(name);
-        cls.setGrade(extractGrade(name));
-        cls.setAcademicYear(resolveCurrentAcademicYear());
-        cls.setMaxCapacity((short) 40);
-        cls.setStatus(ClassStatus.ACTIVE);
+    private LopHoc createClassRoom(String name) {
+        LopHoc cls = new LopHoc();
+        cls.setTenLop(name);
+        cls.setKhoiLop(extractGrade(name));
+        cls.setNamHoc(resolveCurrentAcademicYear());
+        cls.setSiSoToiDa((short) 40);
+        cls.setTrangThai(TrangThaiLopHoc.ACTIVE);
         return classRoomRepository.save(cls);
     }
 
@@ -128,25 +128,25 @@ public class AdminService {
         return 1;
     }
 
-    private AcademicYear resolveCurrentAcademicYear() {
-        return academicYearRepository.findByName("2026-2027").orElseGet(() -> {
-            AcademicYear y = new AcademicYear();
-            y.setName("2026-2027");
-            y.setStartDate(java.time.LocalDate.of(2026, 9, 5));
-            y.setEndDate(java.time.LocalDate.of(2027, 5, 31));
+    private NamHoc resolveCurrentAcademicYear() {
+        return academicYearRepository.findByTenNamHoc("2026-2027").orElseGet(() -> {
+            NamHoc y = new NamHoc();
+            y.setTenNamHoc("2026-2027");
+            y.setNgayBatDau(java.time.LocalDate.of(2026, 9, 5));
+            y.setNgayKetThuc(java.time.LocalDate.of(2027, 5, 31));
             return academicYearRepository.save(y);
         });
     }
 
-    private ParentProfile resolveOrCreateParent(ParsedStudentExcelRow row, Map<String, ParentProfile> cache, String passwordHash) {
+    private HoSoPhuHuynh resolveOrCreateParent(ParsedStudentExcelRow row, Map<String, HoSoPhuHuynh> cache, String passwordHash) {
         String phone = row.getParentPhone();
         if (cache.containsKey(phone)) return cache.get(phone);
 
         Optional<User> existingUser = userRepository.findByUsername(phone);
-        ParentProfile profile;
+        HoSoPhuHuynh profile;
 
         if (existingUser.isPresent()) {
-            profile = parentProfileRepository.findByUserId(existingUser.get().getId())
+            profile = parentProfileRepository.findByNguoiDungId(existingUser.get().getId())
                     .orElseThrow(() -> new RuntimeException("Dữ liệu lỗi: SĐT đã tồn tại nhưng không phải phụ huynh."));
         } else {
             User pUser = new User();
@@ -160,10 +160,10 @@ public class AdminService {
             if (email != null && !email.trim().isEmpty()) pUser.setEmail(email.trim());
             pUser = userRepository.save(pUser);
 
-            profile = new ParentProfile();
-            profile.setUser(pUser);
-            profile.setFullName(row.getParentName());
-            profile.setNotificationEmail(row.getParentEmail());
+            profile = new HoSoPhuHuynh();
+            profile.setNguoiDung(pUser);
+            profile.setHoTen(row.getParentName());
+            profile.setEmailNhanThongBao(row.getParentEmail());
             profile = parentProfileRepository.save(profile);
         }
 
@@ -171,7 +171,7 @@ public class AdminService {
         return profile;
     }
 
-    private void createStudent(ParsedStudentExcelRow row, ClassRoom cls, ParentProfile parent, String passwordHash) {
+    private void createStudent(ParsedStudentExcelRow row, LopHoc cls, HoSoPhuHuynh parent, String passwordHash) {
         User sUser = new User();
         sUser.setUsername(row.getStudentCode());
         sUser.setPasswordHash(passwordHash);
@@ -181,13 +181,13 @@ public class AdminService {
         sUser.setEmail("hs" + row.getStudentCode().toLowerCase() + "@titkul.edu.vn");
         sUser = userRepository.save(sUser);
 
-        StudentProfile student = new StudentProfile();
-        student.setUser(sUser);
-        student.setStudentCode(row.getStudentCode());
-        student.setFullName(row.getStudentName());
-        student.setDateOfBirth(row.getStudentDob());
-        student.setClassRoom(cls);
-        student.setParent(parent);
+        HoSoHocSinh student = new HoSoHocSinh();
+        student.setNguoiDung(sUser);
+        student.setMaHocSinh(row.getStudentCode());
+        student.setHoTen(row.getStudentName());
+        student.setNgaySinh(row.getStudentDob());
+        student.setLopHoc(cls);
+        student.setPhuHuynh(parent);
         studentProfileRepository.save(student);
     }
 
@@ -201,12 +201,12 @@ public class AdminService {
         if (row.getPhone() != null && !row.getPhone().trim().isEmpty()) user.setPhone(row.getPhone());
         user = userRepository.save(user);
 
-        TeacherProfile profile = new TeacherProfile();
-        profile.setUser(user);
-        profile.setTeacherCode(row.getTeacherCode());
-        profile.setFullName(row.getFullName());
-        profile.setDepartment(row.getDepartment());
-        profile.setDateOfBirth(row.getDateOfBirth());
+        HoSoGiaoVien profile = new HoSoGiaoVien();
+        profile.setNguoiDung(user);
+        profile.setMaGiaoVien(row.getTeacherCode());
+        profile.setHoTen(row.getFullName());
+        profile.setBoMon(row.getDepartment());
+        profile.setNgaySinh(row.getDateOfBirth());
         teacherProfileRepository.save(profile);
     }
 

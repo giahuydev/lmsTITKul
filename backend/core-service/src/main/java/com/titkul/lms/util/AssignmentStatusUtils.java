@@ -1,8 +1,8 @@
 package com.titkul.lms.util;
 
 import com.titkul.lms.dto.AssignmentResponseDto;
-import com.titkul.lms.entity.Assignment;
-import com.titkul.lms.entity.Submission;
+import com.titkul.lms.entity.BaiTap;
+import com.titkul.lms.entity.BaiNop;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -14,7 +14,7 @@ public final class AssignmentStatusUtils {
 
     private AssignmentStatusUtils() {}
 
-    public static AssignmentResponseDto toDto(Assignment assignment, Submission sub) {
+    public static AssignmentResponseDto toDto(BaiTap assignment, BaiNop sub) {
         boolean isLate = false;
         String status;
 
@@ -28,10 +28,10 @@ public final class AssignmentStatusUtils {
         }
 
         return AssignmentResponseDto.builder()
-                .id(assignment.getId())
-                .title(assignment.getTitle())
+                .id(assignment.getBaiTapId())
+                .title(assignment.getTieuDe())
                 .subject("Bài tập")
-                .type(assignment.getType().name())
+                .type(assignment.getLoaiBaiTap().name())
                 .status(status)
                 .deadline(assignment.getDeadline() != null
                         ? assignment.getDeadline().format(DEADLINE_FMT)
@@ -41,7 +41,7 @@ public final class AssignmentStatusUtils {
                 .build();
     }
 
-    private static String calcTimeRemaining(Assignment assignment, Submission sub, boolean isLate) {
+    private static String calcTimeRemaining(BaiTap assignment, BaiNop sub, boolean isLate) {
         if (isLate || assignment.getDeadline() == null || sub != null) return "-";
         Duration d = Duration.between(LocalDateTime.now(), assignment.getDeadline());
         if (d.toDays() > 0) return d.toDays() + " ngày";

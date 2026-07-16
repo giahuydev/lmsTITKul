@@ -9,13 +9,13 @@ import java.util.Optional;
 
 @Repository
 public interface StudentProgressRepository extends JpaRepository<StudentProgress, Long> {
-    Optional<StudentProgress> findByStudent_IdAndContentNode_Id(Long studentId, Integer contentNodeId);
+    Optional<StudentProgress> findByStudent_HocSinhIdAndContentNode_DangBaiId(Long studentId, Integer contentNodeId);
 
-    List<StudentProgress> findByStudent_Id(Long studentId);
+    List<StudentProgress> findByStudent_HocSinhId(Long studentId);
 
-    List<StudentProgress> findByStudent_IdIn(List<Long> studentIds);
+    List<StudentProgress> findByStudent_HocSinhIdIn(List<Long> studentIds);
 
-    List<StudentProgress> findByStudent_IdAndContentNode_Subject_Id(Long studentId, Integer subjectId);
+    List<StudentProgress> findByStudent_HocSinhIdAndContentNode_MonHoc_MonHocId(Long studentId, Integer subjectId);
 
-    long countByStudent_IdAndContentNode_Subject_IdAndCompletedTrue(Long studentId, Integer subjectId);
+    long countByStudent_HocSinhIdAndContentNode_MonHoc_MonHocIdAndCompletedTrue(Long studentId, Integer subjectId);
 }

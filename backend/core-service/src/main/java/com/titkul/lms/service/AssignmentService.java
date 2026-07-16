@@ -1,19 +1,19 @@
 package com.titkul.lms.service;
 
 import com.titkul.lms.dto.AssignmentRequestDTO;
-import com.titkul.lms.entity.Assignment;
-import com.titkul.lms.entity.AssignmentType;
-import com.titkul.lms.entity.ClassRoom;
-import com.titkul.lms.entity.ClassStatus;
+import com.titkul.lms.entity.BaiTap;
+import com.titkul.lms.entity.LoaiBaiTap;
+import com.titkul.lms.entity.LopHoc;
+import com.titkul.lms.entity.TrangThaiLopHoc;
 import com.titkul.lms.entity.HocLieu;
-import com.titkul.lms.entity.TeacherProfile;
-import com.titkul.lms.repository.AssignmentRepository;
-import com.titkul.lms.repository.ClassRoomRepository;
+import com.titkul.lms.entity.HoSoGiaoVien;
+import com.titkul.lms.repository.BaiTapRepository;
+import com.titkul.lms.repository.LopHocRepository;
 import com.titkul.lms.repository.HocLieuRepository;
-import com.titkul.lms.repository.TeacherProfileRepository;
-import com.titkul.lms.repository.LessonRepository;
-import com.titkul.lms.repository.ContentNodeRepository;
-import com.titkul.lms.repository.SemesterRepository;
+import com.titkul.lms.repository.HoSoGiaoVienRepository;
+import com.titkul.lms.repository.BaiHocRepository;
+import com.titkul.lms.repository.DangBaiRepository;
+import com.titkul.lms.repository.HocKyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,53 +23,53 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AssignmentService {
 
-    private final AssignmentRepository assignmentRepository;
-    private final ClassRoomRepository classRoomRepository;
-    private final TeacherProfileRepository teacherProfileRepository;
-    private final LessonRepository lessonRepository;
-    private final ContentNodeRepository contentNodeRepository;
-    private final SemesterRepository semesterRepository;
+    private final BaiTapRepository assignmentRepository;
+    private final LopHocRepository classRoomRepository;
+    private final HoSoGiaoVienRepository teacherProfileRepository;
+    private final BaiHocRepository baiHocRepository;
+    private final DangBaiRepository contentNodeRepository;
+    private final HocKyRepository semesterRepository;
     private final HocLieuRepository hocLieuRepository;
 
-    public Assignment createAssignment(AssignmentRequestDTO dto) {
-        Assignment assignment = new Assignment();
-        assignment.setTitle(dto.getTitle());
-        assignment.setDescription(dto.getDescription());
+    public BaiTap createAssignment(AssignmentRequestDTO dto) {
+        BaiTap assignment = new BaiTap();
+        assignment.setTieuDe(dto.getTitle());
+        assignment.setMoTa(dto.getDescription());
         assignment.setDeadline(dto.getDeadline());
         if (dto.getMaxResubmitCount() != null) {
-            assignment.setMaxResubmitCount(dto.getMaxResubmitCount());
+            assignment.setSoLanNopLaiToiDa(dto.getMaxResubmitCount());
         }
-        
+
         if (dto.getType() != null) {
-            assignment.setType(AssignmentType.valueOf(dto.getType()));
+            assignment.setLoaiBaiTap(LoaiBaiTap.valueOf(dto.getType()));
         } else {
-            assignment.setType(AssignmentType.TU_LUAN); // Default
+            assignment.setLoaiBaiTap(LoaiBaiTap.TU_LUAN); // Default
         }
 
         if (dto.getClassId() != null) {
-            ClassRoom classRoom = classRoomRepository.findById(dto.getClassId())
+            LopHoc classRoom = classRoomRepository.findById(dto.getClassId())
                     .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy Lớp học với ID: " + dto.getClassId()));
-            if (classRoom.getStatus() != ClassStatus.ACTIVE) {
+            if (classRoom.getTrangThai() != TrangThaiLopHoc.ACTIVE) {
                 throw new IllegalArgumentException("Lớp học đã đóng băng (DONG_BANG), không thể giao bài tập mới.");
             }
-            assignment.setClassRoom(classRoom);
+            assignment.setLopHoc(classRoom);
         } else {
             throw new IllegalArgumentException("classId không được để trống!");
         }
 
         if (dto.getTeacherId() != null) {
-            TeacherProfile teacher = teacherProfileRepository.findByUserId(dto.getTeacherId())
+            HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDungId(dto.getTeacherId())
                     .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy Giáo viên với User ID: " + dto.getTeacherId()));
-            assignment.setTeacher(teacher);
+            assignment.setGiaoVien(teacher);
         } else {
             throw new IllegalArgumentException("teacherId không được để trống!");
         }
 
         if (dto.getLessonId() != null) {
-            assignment.setLesson(lessonRepository.findById(dto.getLessonId()).orElse(null));
+            assignment.setBaiHoc(baiHocRepository.findById(dto.getLessonId()).orElse(null));
         }
         if (dto.getContentNodeId() != null) {
-            assignment.setContentNode(contentNodeRepository.findById(dto.getContentNodeId()).orElse(null));
+            assignment.setDangBai(contentNodeRepository.findById(dto.getContentNodeId()).orElse(null));
         }
         if (dto.getHocLieuId() != null) {
             HocLieu hocLieu = hocLieuRepository.findById(dto.getHocLieuId())
@@ -77,12 +77,12 @@ public class AssignmentService {
             assignment.setHocLieu(hocLieu);
         }
         if (dto.getSemesterId() != null) {
-            assignment.setSemester(semesterRepository.findById(dto.getSemesterId()).orElse(null));
+            assignment.setHocKy(semesterRepository.findById(dto.getSemesterId()).orElse(null));
         }
 
-        if (assignment.getType() == AssignmentType.H5P) {
+        if (assignment.getLoaiBaiTap() == LoaiBaiTap.H5P) {
             String h5pContentId = assignment.getHocLieu() != null ? assignment.getHocLieu().getH5pContentId()
-                    : assignment.getContentNode() != null ? assignment.getContentNode().getH5pContentId() : null;
+                    : assignment.getDangBai() != null ? assignment.getDangBai().getH5pNoiDungId() : null;
             if (h5pContentId == null || h5pContentId.isBlank()) {
                 throw new IllegalArgumentException("Bài tập H5P phải gắn với một học liệu (hoặc bài giảng) đã có nội dung H5P.");
             }
@@ -91,7 +91,7 @@ public class AssignmentService {
         return assignmentRepository.save(assignment);
     }
 
-    public org.springframework.data.domain.Page<Assignment> getAssignmentsByClassId(Long classId, org.springframework.data.domain.Pageable pageable) {
-        return assignmentRepository.findByClassRoomId(classId, pageable);
+    public org.springframework.data.domain.Page<BaiTap> getAssignmentsByClassId(Long classId, org.springframework.data.domain.Pageable pageable) {
+        return assignmentRepository.findByLopHoc_LopHocId(classId, pageable);
     }
 }

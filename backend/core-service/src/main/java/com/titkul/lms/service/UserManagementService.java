@@ -18,10 +18,10 @@ import java.util.List;
 public class UserManagementService {
 
     private final UserRepository userRepository;
-    private final TeacherProfileRepository teacherProfileRepository;
-    private final StudentProfileRepository studentProfileRepository;
-    private final ParentProfileRepository parentProfileRepository;
-    private final ClassRoomRepository classRoomRepository;
+    private final HoSoGiaoVienRepository teacherProfileRepository;
+    private final HoSoHocSinhRepository studentProfileRepository;
+    private final HoSoPhuHuynhRepository parentProfileRepository;
+    private final LopHocRepository classRoomRepository;
     private final com.titkul.lms.repository.ClassTransferHistoryRepository classTransferHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final List<UserCreationStrategy> userCreationStrategies;
@@ -55,26 +55,26 @@ public class UserManagementService {
             dto.setCreatedAt(user.getCreatedAt());
 
             if (user.getRole() == Role.HOC_SINH) {
-                studentProfileRepository.findByUserId(user.getId()).ifPresent(p -> {
-                    dto.setFullName(p.getFullName());
-                    if (p.getClassRoom() != null) {
-                        dto.setClassName(p.getClassRoom().getName());
-                        dto.setClassId(p.getClassRoom().getId());
-                        dto.getClassIds().add(p.getClassRoom().getId());
+                studentProfileRepository.findByNguoiDungId(user.getId()).ifPresent(p -> {
+                    dto.setFullName(p.getHoTen());
+                    if (p.getLopHoc() != null) {
+                        dto.setClassName(p.getLopHoc().getTenLop());
+                        dto.setClassId(p.getLopHoc().getLopHocId());
+                        dto.getClassIds().add(p.getLopHoc().getLopHocId());
                     }
                 });
             } else if (user.getRole() == Role.GIAO_VIEN) {
-                teacherProfileRepository.findByUserId(user.getId()).ifPresent(p -> {
-                    dto.setFullName(p.getFullName());
+                teacherProfileRepository.findByNguoiDungId(user.getId()).ifPresent(p -> {
+                    dto.setFullName(p.getHoTen());
                 });
             } else if (user.getRole() == Role.PHU_HUYNH) {
-                parentProfileRepository.findByUserId(user.getId()).ifPresent(p -> {
-                    dto.setFullName(p.getFullName());
-                    List<StudentProfile> children = studentProfileRepository.findByParentId(p.getId());
+                parentProfileRepository.findByNguoiDungId(user.getId()).ifPresent(p -> {
+                    dto.setFullName(p.getHoTen());
+                    List<HoSoHocSinh> children = studentProfileRepository.findByPhuHuynh_PhuHuynhId(p.getPhuHuynhId());
                     if (children != null) {
                         children.forEach(child -> {
-                            if (child.getClassRoom() != null) {
-                                dto.getClassIds().add(child.getClassRoom().getId());
+                            if (child.getLopHoc() != null) {
+                                dto.getClassIds().add(child.getLopHoc().getLopHocId());
                             }
                         });
                     }
@@ -113,15 +113,15 @@ public class UserManagementService {
     
     @Transactional
     public void transferClass(Long userId, Long newClassId, String adminUsername, TransferReason reason, String note) {
-        StudentProfile profile = studentProfileRepository.findByUserId(userId)
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDungId(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
-        ClassRoom newClass = classRoomRepository.findById(newClassId)
+        LopHoc newClass = classRoomRepository.findById(newClassId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
         User admin = userRepository.findByUsername(adminUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người thực hiện"));
 
-        ClassRoom oldClass = profile.getClassRoom();
-        if (oldClass != null && oldClass.getId().equals(newClass.getId())) {
+        LopHoc oldClass = profile.getLopHoc();
+        if (oldClass != null && oldClass.getLopHocId().equals(newClass.getLopHocId())) {
             throw new RuntimeException("Học sinh đã thuộc lớp này rồi.");
         }
 
@@ -129,14 +129,14 @@ public class UserManagementService {
         history.setStudent(profile);
         history.setOldClass(oldClass);
         history.setNewClass(newClass);
-        history.setOldAcademicYear(oldClass != null ? oldClass.getAcademicYear().getName() : null);
-        history.setNewAcademicYear(newClass.getAcademicYear().getName());
+        history.setOldAcademicYear(oldClass != null ? oldClass.getNamHoc().getTenNamHoc() : null);
+        history.setNewAcademicYear(newClass.getNamHoc().getTenNamHoc());
         history.setReason(reason != null ? reason : TransferReason.DOI_LOP);
         history.setNote(note);
         history.setPerformedBy(admin);
         classTransferHistoryRepository.save(history);
 
-        profile.setClassRoom(newClass);
+        profile.setLopHoc(newClass);
         studentProfileRepository.save(profile);
     }
 }

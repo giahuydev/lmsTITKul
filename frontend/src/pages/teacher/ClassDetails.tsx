@@ -26,14 +26,14 @@ export default function TeacherClassDetails() {
     try {
       // Get all classes to find this class info
       const classes = await classService.getAllClasses();
-      const currentClass = classes.find((c: any) => c.id === Number(classId));
+      const currentClass = classes.find((c: any) => c.lopHocId === Number(classId));
       if (currentClass) {
         // For Teacher view we can map the students count locally after fetching
         const studentsData = await classService.getStudentsByClass(Number(classId));
         setClassInfo({
           ...currentClass,
           studentsCount: studentsData.length,
-          role: currentClass.homeroomTeacher?.fullName || 'Chưa phân công'
+          role: currentClass.giaoVienChuNhiem?.hoTen || 'Chưa phân công'
         });
         setStudents(studentsData);
       }
@@ -84,7 +84,7 @@ export default function TeacherClassDetails() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Chi tiết Lớp {classInfo.name}</h1>
+          <h1 className="text-2xl font-bold text-slate-800">Chi tiết Lớp {classInfo.tenLop}</h1>
           <p className="text-sm text-slate-500">Sĩ số: {classInfo.studentsCount} Học sinh | Giáo viên: {classInfo.role}</p>
         </div>
       </div>
@@ -181,7 +181,7 @@ export default function TeacherClassDetails() {
               <div>
                 <p className="text-sm text-slate-500 mb-1">Học sinh:</p>
                 <p className="font-bold text-slate-800">{resetStudent.name} ({resetStudent.code})</p>
-                <p className="text-xs text-slate-500 mt-1">Lớp {classInfo.name}</p>
+                <p className="text-xs text-slate-500 mt-1">Lớp {classInfo.tenLop}</p>
               </div>
 
               <div>

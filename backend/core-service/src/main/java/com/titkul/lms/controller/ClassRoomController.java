@@ -1,6 +1,6 @@
 package com.titkul.lms.controller;
 
-import com.titkul.lms.entity.ClassRoom;
+import com.titkul.lms.entity.LopHoc;
 import com.titkul.lms.service.ClassRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +18,12 @@ public class ClassRoomController {
     private final ClassRoomService classRoomService;
 
     @GetMapping
-    public ResponseEntity<List<ClassRoom>> getAllClasses() {
+    public ResponseEntity<List<LopHoc>> getAllClasses() {
         return ResponseEntity.ok(classRoomService.getAllClasses());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClassRoom> getClassById(@PathVariable Long id) {
+    public ResponseEntity<LopHoc> getClassById(@PathVariable Long id) {
         return ResponseEntity.ok(classRoomService.getClassById(id));
     }
 
@@ -36,7 +36,7 @@ public class ClassRoomController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createClass(@jakarta.validation.Valid @RequestBody com.titkul.lms.dto.ClassRoomDto dto) {
         try {
-            ClassRoom classRoom = classRoomService.createClass(dto);
+            LopHoc classRoom = classRoomService.createClass(dto);
             return ResponseEntity.ok(classRoom);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
@@ -47,7 +47,7 @@ public class ClassRoomController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateClass(@PathVariable Long id, @jakarta.validation.Valid @RequestBody com.titkul.lms.dto.ClassRoomDto dto) {
         try {
-            ClassRoom classRoom = classRoomService.updateClass(id, dto);
+            LopHoc classRoom = classRoomService.updateClass(id, dto);
             return ResponseEntity.ok(classRoom);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
@@ -58,7 +58,7 @@ public class ClassRoomController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> toggleStatus(@PathVariable Long id) {
         try {
-            ClassRoom classRoom = classRoomService.toggleStatus(id);
+            LopHoc classRoom = classRoomService.toggleStatus(id);
             return ResponseEntity.ok(classRoom);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));

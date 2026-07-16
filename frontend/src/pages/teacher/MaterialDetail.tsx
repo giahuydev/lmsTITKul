@@ -259,7 +259,7 @@ export default function TeacherMaterialDetail() {
             >
               <option value="">-- Chưa chọn --</option>
               {subjects.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
+                <option key={s.monHocId} value={s.monHocId}>{s.tenMon}</option>
               ))}
             </select>
           </div>

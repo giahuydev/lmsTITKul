@@ -116,7 +116,7 @@ export default function TeacherEditor() {
             >
               <option value="">-- Chọn Môn học --</option>
               {subjects.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
+                <option key={s.monHocId} value={s.monHocId}>{s.tenMon}</option>
               ))}
             </select>
           </div>

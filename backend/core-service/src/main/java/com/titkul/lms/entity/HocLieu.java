@@ -32,22 +32,22 @@ public class HocLieu {
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bai_hoc_id")
-    private Lesson lesson;
+    private BaiHoc baiHoc;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "giao_vien_id", referencedColumnName = "giao_vien_id")
-    private TeacherProfile teacher;
+    private HoSoGiaoVien teacher;
 
     // Phân loại Khối/Môn do GV tự gán sau khi soạn — hoc_lieu không nằm trong cây SGK
-    // (Book/Topic/Lesson) nên không suy ra được tự động như ContentNode.
+    // (Sach/ChuDe/BaiHoc) nên không suy ra được tự động như DangBai.
     @Column(name = "khoi_lop")
     private Short grade;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mon_hoc_id")
-    private Subject subject;
+    private MonHoc subject;
 
     @Column(name = "file_url", length = 500)
     private String fileUrl;
@@ -70,15 +70,15 @@ public class HocLieu {
 
     // teacher bị @JsonIgnore (lazy) nên expose riêng id qua đây cho FE.
     public Long getTeacherUserId() {
-        return teacher != null && teacher.getUser() != null ? teacher.getUser().getId() : null;
+        return teacher != null && teacher.getNguoiDung() != null ? teacher.getNguoiDung().getId() : null;
     }
 
     // subject bị @JsonIgnore (lazy) nên expose riêng id/tên qua đây cho FE.
     public Integer getSubjectId() {
-        return subject != null ? subject.getId() : null;
+        return subject != null ? subject.getMonHocId() : null;
     }
 
     public String getSubjectName() {
-        return subject != null ? subject.getName() : null;
+        return subject != null ? subject.getTenMon() : null;
     }
 }

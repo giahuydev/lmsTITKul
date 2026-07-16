@@ -2,9 +2,9 @@ package com.titkul.lms.service;
 
 import com.titkul.lms.dto.UserProfileDto;
 import com.titkul.lms.entity.User;
-import com.titkul.lms.repository.ParentProfileRepository;
-import com.titkul.lms.repository.StudentProfileRepository;
-import com.titkul.lms.repository.TeacherProfileRepository;
+import com.titkul.lms.repository.HoSoPhuHuynhRepository;
+import com.titkul.lms.repository.HoSoHocSinhRepository;
+import com.titkul.lms.repository.HoSoGiaoVienRepository;
 import com.titkul.lms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,9 +14,9 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final StudentProfileRepository studentProfileRepository;
-    private final TeacherProfileRepository teacherProfileRepository;
-    private final ParentProfileRepository parentProfileRepository;
+    private final HoSoHocSinhRepository studentProfileRepository;
+    private final HoSoGiaoVienRepository teacherProfileRepository;
+    private final HoSoPhuHuynhRepository parentProfileRepository;
 
     public UserProfileDto getMyProfile(String username) {
         User user = userRepository.findByUsername(username)
@@ -31,18 +31,18 @@ public class UserService {
 
         switch (user.getRole()) {
             case HOC_SINH:
-                studentProfileRepository.findByUserId(user.getId()).ifPresent(profile -> {
-                    dto.setFullName(profile.getFullName());
+                studentProfileRepository.findByNguoiDungId(user.getId()).ifPresent(profile -> {
+                    dto.setFullName(profile.getHoTen());
                 });
                 break;
             case GIAO_VIEN:
-                teacherProfileRepository.findByUserId(user.getId()).ifPresent(profile -> {
-                    dto.setFullName(profile.getFullName());
+                teacherProfileRepository.findByNguoiDungId(user.getId()).ifPresent(profile -> {
+                    dto.setFullName(profile.getHoTen());
                 });
                 break;
             case PHU_HUYNH:
-                parentProfileRepository.findByUserId(user.getId()).ifPresent(profile -> {
-                    dto.setFullName(profile.getFullName());
+                parentProfileRepository.findByNguoiDungId(user.getId()).ifPresent(profile -> {
+                    dto.setFullName(profile.getHoTen());
                 });
                 break;
             case ADMIN:

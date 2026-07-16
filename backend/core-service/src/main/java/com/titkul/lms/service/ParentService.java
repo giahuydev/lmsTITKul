@@ -24,38 +24,38 @@ public class ParentService {
             List.of(NotificationAudience.TAT_CA, NotificationAudience.PHU_HUYNH);
 
     private final UserRepository userRepository;
-    private final ParentProfileRepository parentProfileRepository;
-    private final EvaluationRepository evaluationRepository;
-    private final AssignmentRepository assignmentRepository;
+    private final HoSoPhuHuynhRepository parentProfileRepository;
+    private final DanhGiaBaiLamRepository evaluationRepository;
+    private final BaiTapRepository assignmentRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationReadStatusRepository notificationReadStatusRepository;
-    private final SubmissionRepository submissionRepository;
+    private final BaiNopRepository submissionRepository;
     private final PasswordEncoder passwordEncoder;
     private final StudentService studentService;
 
     @Transactional(readOnly = true)
     public ParentDashboardDto getDashboard(String username) {
         User user = resolveUser(username);
-        ParentProfile profile = resolveProfile(user);
+        HoSoPhuHuynh profile = resolveProfile(user);
 
-        List<StudentProfile> children = profile.getChildren() != null ? profile.getChildren() : Collections.emptyList();
+        List<HoSoHocSinh> children = profile.getDanhSachHocSinh() != null ? profile.getDanhSachHocSinh() : Collections.emptyList();
 
         List<ParentDashboardDto.ChildDto> childDtos = children.stream()
                 .map(c -> ParentDashboardDto.ChildDto.builder()
-                        .id(c.getId())
-                        .studentName(c.getFullName())
-                        .className(c.getClassRoom() != null ? c.getClassRoom().getName() : "Chưa có lớp")
+                        .id(c.getHocSinhId())
+                        .studentName(c.getHoTen())
+                        .className(c.getLopHoc() != null ? c.getLopHoc().getTenLop() : "Chưa có lớp")
                         .build())
                 .collect(Collectors.toList());
 
-        List<Long> childIds = children.stream().map(StudentProfile::getId).collect(Collectors.toList());
+        List<Long> childIds = children.stream().map(HoSoHocSinh::getHocSinhId).collect(Collectors.toList());
 
         List<ParentDashboardDto.ActivityDto> activities = buildActivities(childIds);
         List<ParentDashboardDto.AlertDto> alerts = buildAlerts(children);
         List<ParentDashboardDto.AnnouncementDto> announcements = buildAnnouncements(profile);
 
         return ParentDashboardDto.builder()
-                .fullName(profile.getFullName())
+                .fullName(profile.getHoTen())
                 .childrenCount(children.size())
                 .children(childDtos)
                 .recentActivities(activities)
@@ -66,51 +66,51 @@ public class ParentService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getChildren(String username) {
-        ParentProfile profile = resolveProfile(resolveUser(username));
-        if (profile.getChildren() == null) return Collections.emptyList();
+        HoSoPhuHuynh profile = resolveProfile(resolveUser(username));
+        if (profile.getDanhSachHocSinh() == null) return Collections.emptyList();
 
-        return profile.getChildren().stream().map(child -> {
+        return profile.getDanhSachHocSinh().stream().map(child -> {
             Map<String, Object> map = new LinkedHashMap<>();
-            map.put("id", child.getId());
-            map.put("name", child.getFullName());
-            map.put("grade", child.getClassRoom() != null ? child.getClassRoom().getName() : "Chưa có lớp");
+            map.put("id", child.getHocSinhId());
+            map.put("name", child.getHoTen());
+            map.put("grade", child.getLopHoc() != null ? child.getLopHoc().getTenLop() : "Chưa có lớp");
             map.put("school", "Tiểu học Titkul Kids");
-            map.put("username", child.getStudentCode());
-            map.put("className", child.getClassRoom() != null ? child.getClassRoom().getName() : "Chưa phân lớp");
-            map.put("totalXp", child.getTotalXp());
+            map.put("username", child.getMaHocSinh());
+            map.put("className", child.getLopHoc() != null ? child.getLopHoc().getTenLop() : "Chưa phân lớp");
+            map.put("totalXp", child.getTongXp());
             return map;
         }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getGrades(String username) {
-        ParentProfile profile = resolveProfile(resolveUser(username));
-        List<Long> childIds = profile.getChildren() != null
-                ? profile.getChildren().stream().map(StudentProfile::getId).collect(Collectors.toList())
+        HoSoPhuHuynh profile = resolveProfile(resolveUser(username));
+        List<Long> childIds = profile.getDanhSachHocSinh() != null
+                ? profile.getDanhSachHocSinh().stream().map(HoSoHocSinh::getHocSinhId).collect(Collectors.toList())
                 : Collections.emptyList();
 
         if (childIds.isEmpty()) return Collections.emptyList();
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        return evaluationRepository.findBySubmission_Student_IdInOrderByEvaluatedAtDesc(childIds)
+        return evaluationRepository.findByBaiNop_HocSinh_HocSinhIdInOrderByThoiDiemChamDesc(childIds)
                 .stream()
                 .map(eval -> {
-                    com.titkul.lms.entity.Assignment assignment = eval.getSubmission().getAssignment();
+                    com.titkul.lms.entity.BaiTap assignment = eval.getBaiNop().getBaiTap();
                     String subjectName = "Chưa phân loại";
                     if (assignment.getHocLieu() != null && assignment.getHocLieu().getSubject() != null) {
-                        subjectName = assignment.getHocLieu().getSubject().getName();
-                    } else if (assignment.getContentNode() != null && assignment.getContentNode().getSubject() != null) {
-                        subjectName = assignment.getContentNode().getSubject().getName();
+                        subjectName = assignment.getHocLieu().getSubject().getTenMon();
+                    } else if (assignment.getDangBai() != null && assignment.getDangBai().getMonHoc() != null) {
+                        subjectName = assignment.getDangBai().getMonHoc().getTenMon();
                     }
 
                     Map<String, Object> map = new LinkedHashMap<>();
-                    map.put("id", eval.getId());
+                    map.put("id", eval.getDanhGiaId());
                     map.put("subject", subjectName);
-                    map.put("assignment", assignment.getTitle());
-                    map.put("score", eval.getGrade() != null ? eval.getGrade().name() : (eval.getScore() != null ? eval.getScore().toString() : "Đã chấm"));
-                    map.put("type", assignment.getType().name());
-                    map.put("date", eval.getEvaluatedAt() != null ? eval.getEvaluatedAt().format(fmt) : "");
-                    map.put("studentName", eval.getSubmission().getStudent().getFullName());
+                    map.put("assignment", assignment.getTieuDe());
+                    map.put("score", eval.getXepLoai() != null ? eval.getXepLoai().name() : (eval.getDiemSo() != null ? eval.getDiemSo().toString() : "Đã chấm"));
+                    map.put("type", assignment.getLoaiBaiTap().name());
+                    map.put("date", eval.getThoiDiemCham() != null ? eval.getThoiDiemCham().format(fmt) : "");
+                    map.put("studentName", eval.getBaiNop().getHocSinh().getHoTen());
                     return map;
                 })
                 .collect(Collectors.toList());
@@ -118,33 +118,33 @@ public class ParentService {
 
     @Transactional(readOnly = true)
     public List<AssignmentResponseDto> getAssignments(String username, Long childId) {
-        ParentProfile profile = resolveProfile(resolveUser(username));
+        HoSoPhuHuynh profile = resolveProfile(resolveUser(username));
 
-        StudentProfile child = profile.getChildren().stream()
-                .filter(c -> c.getId().equals(childId))
+        HoSoHocSinh child = profile.getDanhSachHocSinh().stream()
+                .filter(c -> c.getHocSinhId().equals(childId))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Học sinh không thuộc phụ huynh này"));
 
-        ClassRoom classRoom = child.getClassRoom();
+        LopHoc classRoom = child.getLopHoc();
         if (classRoom == null) return Collections.emptyList();
 
-        List<Assignment> assignments = assignmentRepository
-                .findByClassRoomId(classRoom.getId(), PageRequest.of(0, 100))
+        List<BaiTap> assignments = assignmentRepository
+                .findByLopHoc_LopHocId(classRoom.getLopHocId(), PageRequest.of(0, 100))
                 .getContent();
 
-        Map<Long, Submission> submissionMap = submissionRepository.findByStudent_Id(child.getId())
+        Map<Long, BaiNop> submissionMap = submissionRepository.findByHocSinh_HocSinhId(child.getHocSinhId())
                 .stream()
-                .collect(Collectors.toMap(s -> s.getAssignment().getId(), s -> s, (a, b) -> a));
+                .collect(Collectors.toMap(s -> s.getBaiTap().getBaiTapId(), s -> s, (a, b) -> a));
 
         return assignments.stream()
-                .map(a -> AssignmentStatusUtils.toDto(a, submissionMap.get(a.getId())))
+                .map(a -> AssignmentStatusUtils.toDto(a, submissionMap.get(a.getBaiTapId())))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getNotifications(String username) {
         User user = resolveUser(username);
-        ParentProfile profile = resolveProfile(user);
+        HoSoPhuHuynh profile = resolveProfile(user);
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
         return resolveVisibleNotifications(profile).stream()
@@ -175,7 +175,7 @@ public class ParentService {
     @Transactional
     public void markAllNotificationsRead(String username) {
         User user = resolveUser(username);
-        ParentProfile profile = resolveProfile(user);
+        HoSoPhuHuynh profile = resolveProfile(user);
         resolveVisibleNotifications(profile).forEach(n -> markNotificationReadForUser(user, n.getId()));
     }
 
@@ -193,10 +193,10 @@ public class ParentService {
     }
 
     // Thông báo hiển thị cho phụ huynh: theo lớp của TẤT CẢ các con + thông báo hệ thống toàn trường.
-    private List<Notification> resolveVisibleNotifications(ParentProfile profile) {
-        List<Long> classIds = profile.getChildren() == null ? List.of() : profile.getChildren().stream()
-                .filter(c -> c.getClassRoom() != null)
-                .map(c -> c.getClassRoom().getId())
+    private List<Notification> resolveVisibleNotifications(HoSoPhuHuynh profile) {
+        List<Long> classIds = profile.getDanhSachHocSinh() == null ? List.of() : profile.getDanhSachHocSinh().stream()
+                .filter(c -> c.getLopHoc() != null)
+                .map(c -> c.getLopHoc().getLopHocId())
                 .distinct()
                 .collect(Collectors.toList());
 
@@ -215,9 +215,9 @@ public class ParentService {
     }
 
     public Map<String, Object> getRewards(String username, Long childId) {
-        ParentProfile profile = resolveProfile(resolveUser(username));
-        StudentProfile child = profile.getChildren().stream()
-                .filter(c -> c.getId().equals(childId))
+        HoSoPhuHuynh profile = resolveProfile(resolveUser(username));
+        HoSoHocSinh child = profile.getDanhSachHocSinh().stream()
+                .filter(c -> c.getHocSinhId().equals(childId))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Học sinh không thuộc phụ huynh này"));
         return studentService.buildRewardsPayload(child);
@@ -226,14 +226,14 @@ public class ParentService {
     // QT01.3 - Luồng 2, Ưu tiên 1: PH tự cấp lại mật khẩu cho con
     @Transactional
     public void resetChildPassword(String username, Long childId, String newPassword) {
-        ParentProfile profile = resolveProfile(resolveUser(username));
+        HoSoPhuHuynh profile = resolveProfile(resolveUser(username));
 
-        StudentProfile child = profile.getChildren().stream()
-                .filter(c -> c.getId().equals(childId))
+        HoSoHocSinh child = profile.getDanhSachHocSinh().stream()
+                .filter(c -> c.getHocSinhId().equals(childId))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Học sinh không thuộc phụ huynh này"));
 
-        User childUser = child.getUser();
+        User childUser = child.getNguoiDung();
         childUser.setPasswordHash(passwordEncoder.encode(newPassword));
         childUser.setRequirePasswordChange(true);
         userRepository.save(childUser);
@@ -258,45 +258,45 @@ public class ParentService {
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
     }
 
-    private ParentProfile resolveProfile(User user) {
-        return parentProfileRepository.findByUserId(user.getId())
+    private HoSoPhuHuynh resolveProfile(User user) {
+        return parentProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ phụ huynh"));
     }
 
     private List<ParentDashboardDto.ActivityDto> buildActivities(List<Long> childIds) {
         if (childIds.isEmpty()) return Collections.emptyList();
-        return evaluationRepository.findBySubmission_Student_IdInOrderByEvaluatedAtDesc(childIds, PageRequest.of(0, 5))
+        return evaluationRepository.findByBaiNop_HocSinh_HocSinhIdInOrderByThoiDiemChamDesc(childIds, PageRequest.of(0, 5))
                 .stream()
                 .map(eval -> ParentDashboardDto.ActivityDto.builder()
-                        .title("Bài tập - " + eval.getSubmission().getAssignment().getTitle())
-                        .type(eval.getSubmission().getAssignment().getType() == AssignmentType.H5P ? "Bài tập H5P" : "Bài tự luận")
-                        .badge(eval.getGrade() != null ? eval.getGrade().name() : "Đã chấm điểm")
+                        .title("Bài tập - " + eval.getBaiNop().getBaiTap().getTieuDe())
+                        .type(eval.getBaiNop().getBaiTap().getLoaiBaiTap() == LoaiBaiTap.H5P ? "Bài tập H5P" : "Bài tự luận")
+                        .badge(eval.getXepLoai() != null ? eval.getXepLoai().name() : "Đã chấm điểm")
                         .build())
                 .collect(Collectors.toList());
     }
 
-    private List<ParentDashboardDto.AlertDto> buildAlerts(List<StudentProfile> children) {
+    private List<ParentDashboardDto.AlertDto> buildAlerts(List<HoSoHocSinh> children) {
         List<Long> classRoomIds = children.stream()
-                .filter(c -> c.getClassRoom() != null)
-                .map(c -> c.getClassRoom().getId())
+                .filter(c -> c.getLopHoc() != null)
+                .map(c -> c.getLopHoc().getLopHocId())
                 .distinct()
                 .collect(Collectors.toList());
 
         if (classRoomIds.isEmpty()) return Collections.emptyList();
 
-        return assignmentRepository.findByClassRoom_IdInOrderByDeadlineAsc(classRoomIds)
+        return assignmentRepository.findByLopHoc_LopHocIdInOrderByDeadlineAsc(classRoomIds)
                 .stream()
                 .filter(a -> a.getDeadline() != null && a.getDeadline().isAfter(LocalDateTime.now()))
                 .limit(3)
                 .map(a -> ParentDashboardDto.AlertDto.builder()
                         .title("Sắp đến hạn nộp bài!")
-                        .description("Bài tập \"" + a.getTitle() + "\" sẽ hết hạn vào "
+                        .description("Bài tập \"" + a.getTieuDe() + "\" sẽ hết hạn vào "
                                 + a.getDeadline().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + ".")
                         .build())
                 .collect(Collectors.toList());
     }
 
-    private List<ParentDashboardDto.AnnouncementDto> buildAnnouncements(ParentProfile profile) {
+    private List<ParentDashboardDto.AnnouncementDto> buildAnnouncements(HoSoPhuHuynh profile) {
         return resolveVisibleNotifications(profile).stream()
                 .limit(3)
                 .map(n -> ParentDashboardDto.AnnouncementDto.builder()

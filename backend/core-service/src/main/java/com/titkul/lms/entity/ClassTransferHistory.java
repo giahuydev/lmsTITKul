@@ -19,15 +19,15 @@ public class ClassTransferHistory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hoc_sinh_id", nullable = false)
-    private StudentProfile student;
+    private HoSoHocSinh student;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lop_cu_id")
-    private ClassRoom oldClass;
+    private LopHoc oldClass;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lop_moi_id", nullable = false)
-    private ClassRoom newClass;
+    private LopHoc newClass;
 
     @Column(name = "nam_hoc_cu", length = 10)
     private String oldAcademicYear;

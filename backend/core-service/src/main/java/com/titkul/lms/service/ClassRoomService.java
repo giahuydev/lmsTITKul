@@ -1,7 +1,7 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.entity.ClassRoom;
-import com.titkul.lms.repository.ClassRoomRepository;
+import com.titkul.lms.entity.LopHoc;
+import com.titkul.lms.repository.LopHocRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,108 +11,108 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ClassRoomService {
 
-    private final ClassRoomRepository classRoomRepository;
-    private final com.titkul.lms.repository.TeacherProfileRepository teacherProfileRepository;
-    private final com.titkul.lms.repository.StudentProfileRepository studentProfileRepository;
-    private final com.titkul.lms.repository.AcademicYearRepository academicYearRepository;
+    private final LopHocRepository classRoomRepository;
+    private final com.titkul.lms.repository.HoSoGiaoVienRepository teacherProfileRepository;
+    private final com.titkul.lms.repository.HoSoHocSinhRepository studentProfileRepository;
+    private final com.titkul.lms.repository.NamHocRepository academicYearRepository;
 
-    public List<ClassRoom> getAllClasses() {
-        List<ClassRoom> classes = classRoomRepository.findAll();
-        for (ClassRoom c : classes) {
-            c.setCurrentStudentCount((int) studentProfileRepository.countByClassRoomId(c.getId()));
+    public List<LopHoc> getAllClasses() {
+        List<LopHoc> classes = classRoomRepository.findAll();
+        for (LopHoc c : classes) {
+            c.setSiSoHienTai((int) studentProfileRepository.countByLopHoc_LopHocId(c.getLopHocId()));
         }
         return classes;
     }
 
-    public ClassRoom getClassById(Long id) {
-        ClassRoom c = classRoomRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
-        c.setCurrentStudentCount((int) studentProfileRepository.countByClassRoomId(c.getId()));
+    public LopHoc getClassById(Long id) {
+        LopHoc c = classRoomRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
+        c.setSiSoHienTai((int) studentProfileRepository.countByLopHoc_LopHocId(c.getLopHocId()));
         return c;
     }
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<com.titkul.lms.dto.ClassStudentDto> getStudentsByClassId(Long classId) {
-        return studentProfileRepository.findByClassRoomId(classId).stream().map(student -> {
+        return studentProfileRepository.findByLopHoc_LopHocId(classId).stream().map(student -> {
             com.titkul.lms.dto.ClassStudentDto dto = new com.titkul.lms.dto.ClassStudentDto();
-            dto.setId(student.getUser().getId());
-            dto.setCode(student.getStudentCode());
-            dto.setName(student.getFullName());
-            if (student.getParent() != null && student.getParent().getUser() != null) {
-                dto.setParentName(student.getParent().getFullName());
-                dto.setPhone(student.getParent().getUser().getPhone() != null ? student.getParent().getUser().getPhone() : "");
+            dto.setId(student.getNguoiDung().getId());
+            dto.setCode(student.getMaHocSinh());
+            dto.setName(student.getHoTen());
+            if (student.getPhuHuynh() != null && student.getPhuHuynh().getNguoiDung() != null) {
+                dto.setParentName(student.getPhuHuynh().getHoTen());
+                dto.setPhone(student.getPhuHuynh().getNguoiDung().getPhone() != null ? student.getPhuHuynh().getNguoiDung().getPhone() : "");
             } else {
                 dto.setParentName("");
-                dto.setPhone(student.getUser().getPhone() != null ? student.getUser().getPhone() : "");
+                dto.setPhone(student.getNguoiDung().getPhone() != null ? student.getNguoiDung().getPhone() : "");
             }
-            dto.setDob(student.getDateOfBirth() != null ? student.getDateOfBirth().toString() : "");
+            dto.setDob(student.getNgaySinh() != null ? student.getNgaySinh().toString() : "");
             dto.setEvaluation("Chưa đánh giá");
             dto.setAttendance(100);
-            dto.setBadges(student.getTotalXp());
+            dto.setBadges(student.getTongXp());
             return dto;
         }).toList();
     }
 
-    public ClassRoom createClass(com.titkul.lms.dto.ClassRoomDto dto) {
-        com.titkul.lms.entity.AcademicYear academicYear = academicYearRepository.findById(dto.getAcademicYearId())
+    public LopHoc createClass(com.titkul.lms.dto.ClassRoomDto dto) {
+        com.titkul.lms.entity.NamHoc academicYear = academicYearRepository.findById(dto.getAcademicYearId())
                 .orElseThrow(() -> new RuntimeException("Niên khóa không tồn tại"));
 
-        if (classRoomRepository.existsByNameAndAcademicYear(dto.getName(), academicYear)) {
+        if (classRoomRepository.existsByTenLopAndNamHoc(dto.getName(), academicYear)) {
             throw new RuntimeException("Lớp học đã tồn tại trong niên khóa này");
         }
 
-        ClassRoom classRoom = new ClassRoom();
-        classRoom.setName(dto.getName());
-        classRoom.setGrade(dto.getGrade());
-        classRoom.setAcademicYear(academicYear);
-        classRoom.setMaxCapacity(dto.getMaxCapacity());
-        classRoom.setStatus(com.titkul.lms.entity.ClassStatus.ACTIVE);
+        LopHoc classRoom = new LopHoc();
+        classRoom.setTenLop(dto.getName());
+        classRoom.setKhoiLop(dto.getGrade());
+        classRoom.setNamHoc(academicYear);
+        classRoom.setSiSoToiDa(dto.getMaxCapacity());
+        classRoom.setTrangThai(com.titkul.lms.entity.TrangThaiLopHoc.ACTIVE);
 
         if (dto.getHomeroomTeacherId() != null) {
-            com.titkul.lms.entity.TeacherProfile teacher = teacherProfileRepository.findById(dto.getHomeroomTeacherId())
+            com.titkul.lms.entity.HoSoGiaoVien teacher = teacherProfileRepository.findById(dto.getHomeroomTeacherId())
                     .orElseThrow(() -> new RuntimeException("Giáo viên không tồn tại"));
-            classRoom.setHomeroomTeacher(teacher);
+            classRoom.setGiaoVienChuNhiem(teacher);
         }
 
         return classRoomRepository.save(classRoom);
     }
 
-    public ClassRoom updateClass(Long id, com.titkul.lms.dto.ClassRoomDto dto) {
-        ClassRoom classRoom = classRoomRepository.findById(id)
+    public LopHoc updateClass(Long id, com.titkul.lms.dto.ClassRoomDto dto) {
+        LopHoc classRoom = classRoomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Lớp học không tồn tại"));
 
-        com.titkul.lms.entity.AcademicYear academicYear = academicYearRepository.findById(dto.getAcademicYearId())
+        com.titkul.lms.entity.NamHoc academicYear = academicYearRepository.findById(dto.getAcademicYearId())
                 .orElseThrow(() -> new RuntimeException("Niên khóa không tồn tại"));
 
-        if (!classRoom.getName().equals(dto.getName()) || !classRoom.getAcademicYear().getId().equals(dto.getAcademicYearId())) {
-            if (classRoomRepository.existsByNameAndAcademicYear(dto.getName(), academicYear)) {
+        if (!classRoom.getTenLop().equals(dto.getName()) || !classRoom.getNamHoc().getNamHocId().equals(dto.getAcademicYearId())) {
+            if (classRoomRepository.existsByTenLopAndNamHoc(dto.getName(), academicYear)) {
                 throw new RuntimeException("Tên lớp đã tồn tại trong niên khóa này");
             }
         }
 
-        classRoom.setName(dto.getName());
-        classRoom.setGrade(dto.getGrade());
-        classRoom.setAcademicYear(academicYear);
-        classRoom.setMaxCapacity(dto.getMaxCapacity());
+        classRoom.setTenLop(dto.getName());
+        classRoom.setKhoiLop(dto.getGrade());
+        classRoom.setNamHoc(academicYear);
+        classRoom.setSiSoToiDa(dto.getMaxCapacity());
 
         if (dto.getHomeroomTeacherId() != null) {
-            com.titkul.lms.entity.TeacherProfile teacher = teacherProfileRepository.findById(dto.getHomeroomTeacherId())
+            com.titkul.lms.entity.HoSoGiaoVien teacher = teacherProfileRepository.findById(dto.getHomeroomTeacherId())
                     .orElseThrow(() -> new RuntimeException("Giáo viên không tồn tại"));
-            classRoom.setHomeroomTeacher(teacher);
+            classRoom.setGiaoVienChuNhiem(teacher);
         } else {
-            classRoom.setHomeroomTeacher(null);
+            classRoom.setGiaoVienChuNhiem(null);
         }
 
         return classRoomRepository.save(classRoom);
     }
 
-    public ClassRoom toggleStatus(Long id) {
-        ClassRoom classRoom = classRoomRepository.findById(id)
+    public LopHoc toggleStatus(Long id) {
+        LopHoc classRoom = classRoomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Lớp học không tồn tại"));
 
-        if (classRoom.getStatus() == com.titkul.lms.entity.ClassStatus.ACTIVE) {
-            classRoom.setStatus(com.titkul.lms.entity.ClassStatus.DONG_BANG);
+        if (classRoom.getTrangThai() == com.titkul.lms.entity.TrangThaiLopHoc.ACTIVE) {
+            classRoom.setTrangThai(com.titkul.lms.entity.TrangThaiLopHoc.DONG_BANG);
         } else {
-            classRoom.setStatus(com.titkul.lms.entity.ClassStatus.ACTIVE);
+            classRoom.setTrangThai(com.titkul.lms.entity.TrangThaiLopHoc.ACTIVE);
         }
         return classRoomRepository.save(classRoom);
     }

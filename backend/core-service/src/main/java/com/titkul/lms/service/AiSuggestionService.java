@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.titkul.lms.entity.AiCommentSuggestion;
 import com.titkul.lms.entity.AiSuggestionStatus;
-import com.titkul.lms.entity.Submission;
+import com.titkul.lms.entity.BaiNop;
 import com.titkul.lms.repository.AiCommentSuggestionRepository;
-import com.titkul.lms.repository.SubmissionRepository;
+import com.titkul.lms.repository.BaiNopRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AiSuggestionService {
 
-    private final SubmissionRepository submissionRepository;
+    private final BaiNopRepository submissionRepository;
     private final AiCommentSuggestionRepository suggestionRepository;
     private final ObjectMapper objectMapper;
     private final OllamaClient ollamaClient;
@@ -40,13 +40,13 @@ public class AiSuggestionService {
 
     @Transactional
     public Map<String, Object> generateCommentSuggestions(Long submissionId) {
-        Submission submission = submissionRepository.findById(submissionId)
+        BaiNop submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài nộp"));
 
-        String text = submission.getTextContent() != null ? submission.getTextContent().trim() : "";
+        String text = submission.getNoiDungText() != null ? submission.getNoiDungText().trim() : "";
         int length = text.length();
-        boolean isLate = Boolean.TRUE.equals(submission.getIsLate());
-        BigDecimal score = submission.getAutoScore();
+        boolean isLate = Boolean.TRUE.equals(submission.getLaNopTre());
+        BigDecimal score = submission.getDiemTuDong();
 
         List<String> suggestions = generateWithGemma(text, isLate, score);
         if (suggestions.size() < 2) {

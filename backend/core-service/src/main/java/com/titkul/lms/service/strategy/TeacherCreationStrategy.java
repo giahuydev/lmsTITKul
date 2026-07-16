@@ -2,10 +2,10 @@ package com.titkul.lms.service.strategy;
 
 import com.titkul.lms.dto.CreateUserDto;
 import com.titkul.lms.entity.Role;
-import com.titkul.lms.entity.TeacherProfile;
+import com.titkul.lms.entity.HoSoGiaoVien;
 import com.titkul.lms.entity.User;
 import com.titkul.lms.entity.UserStatus;
-import com.titkul.lms.repository.TeacherProfileRepository;
+import com.titkul.lms.repository.HoSoGiaoVienRepository;
 import com.titkul.lms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TeacherCreationStrategy implements UserCreationStrategy {
 
     private final UserRepository userRepository;
-    private final TeacherProfileRepository teacherProfileRepository;
+    private final HoSoGiaoVienRepository teacherProfileRepository;
 
     @Override
     public boolean supports(String roleStr) {
@@ -45,11 +45,11 @@ public class TeacherCreationStrategy implements UserCreationStrategy {
 
         user = userRepository.save(user);
 
-        TeacherProfile tp = new TeacherProfile();
-        tp.setUser(user);
-        tp.setFullName(dto.getFullName());
-        tp.setDepartment(dto.getDepartment());
-        tp.setDateOfBirth(dto.getDateOfBirth());
+        HoSoGiaoVien tp = new HoSoGiaoVien();
+        tp.setNguoiDung(user);
+        tp.setHoTen(dto.getFullName());
+        tp.setBoMon(dto.getDepartment());
+        tp.setNgaySinh(dto.getDateOfBirth());
         teacherProfileRepository.save(tp);
 
         return user;

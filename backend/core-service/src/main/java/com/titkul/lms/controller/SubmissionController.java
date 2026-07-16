@@ -2,8 +2,8 @@ package com.titkul.lms.controller;
 
 import com.titkul.lms.dto.EvaluateDTO;
 import com.titkul.lms.dto.SubmissionDetailDto;
-import com.titkul.lms.entity.Evaluation;
-import com.titkul.lms.entity.Submission;
+import com.titkul.lms.entity.DanhGiaBaiLam;
+import com.titkul.lms.entity.BaiNop;
 import com.titkul.lms.service.AiSuggestionService;
 import com.titkul.lms.service.SubmissionService;
 import lombok.RequiredArgsConstructor;
@@ -23,15 +23,15 @@ public class SubmissionController {
     private final AiSuggestionService aiSuggestionService;
 
     @PostMapping("/submissions")
-    public ResponseEntity<Submission> submitAssignment(@RequestBody Submission submission) {
+    public ResponseEntity<BaiNop> submitAssignment(@RequestBody BaiNop submission) {
         return ResponseEntity.ok(submissionService.submitAssignment(submission));
     }
 
     @GetMapping("/assignments/{id}/submissions")
-    public ResponseEntity<List<Submission>> getSubmissions(@PathVariable Long id) {
-        List<Submission> submissions = submissionService.getSubmissionsByAssignment(id);
-        List<Submission> filtered = submissions.stream()
-                .filter(s -> s.getStatus() != com.titkul.lms.entity.SubmissionStatus.LUU_NHAP)
+    public ResponseEntity<List<BaiNop>> getSubmissions(@PathVariable Long id) {
+        List<BaiNop> submissions = submissionService.getSubmissionsByAssignment(id);
+        List<BaiNop> filtered = submissions.stream()
+                .filter(s -> s.getTrangThai() != com.titkul.lms.entity.TrangThaiBaiNop.LUU_NHAP)
                 .collect(java.util.stream.Collectors.toList());
         return ResponseEntity.ok(filtered);
     }
@@ -42,7 +42,7 @@ public class SubmissionController {
     }
 
     @PostMapping("/submissions/{id}/evaluate")
-    public ResponseEntity<Evaluation> evaluateSubmission(
+    public ResponseEntity<DanhGiaBaiLam> evaluateSubmission(
             @PathVariable Long id,
             @RequestBody EvaluateDTO dto) {
         return ResponseEntity.ok(submissionService.evaluateSubmission(id, dto));

@@ -20,7 +20,7 @@ public class SubmissionDetailDto {
     private Boolean isLate;
     private String submittedAt;
 
-    // Null nếu chưa được giáo viên chấm (chưa có Evaluation)
+    // Null nếu chưa được giáo viên chấm (chưa có DanhGiaBaiLam)
     private BigDecimal evaluationScore;
     private String evaluationGrade;
     private String evaluationComment;

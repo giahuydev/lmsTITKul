@@ -1,6 +1,6 @@
 package com.titkul.lms.controller;
 
-import com.titkul.lms.repository.SemesterRepository;
+import com.titkul.lms.repository.HocKyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,17 +15,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SemesterController {
 
-    private final SemesterRepository semesterRepository;
+    private final HocKyRepository semesterRepository;
 
     @GetMapping("/api/v1/semesters")
     @Transactional(readOnly = true)
     public ResponseEntity<List<Map<String, Object>>> list() {
         List<Map<String, Object>> semesters = semesterRepository.findAll().stream()
                 .map(s -> {
-                    String yearName = s.getAcademicYear() != null ? s.getAcademicYear().getName() : "";
+                    String yearName = s.getNamHoc() != null ? s.getNamHoc().getTenNamHoc() : "";
                     return Map.<String, Object>of(
-                            "id", s.getId(),
-                            "label", "Học kỳ " + s.getSemesterNumber() + " (" + yearName + ")"
+                            "id", s.getHocKyId(),
+                            "label", "Học kỳ " + s.getSoHocKy() + " (" + yearName + ")"
                     );
                 })
                 .collect(Collectors.toList());

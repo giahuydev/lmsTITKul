@@ -1,31 +1,32 @@
 package com.titkul.lms.service;
 
 import com.titkul.lms.dto.AnnouncementCreateDTO;
-import com.titkul.lms.dto.AwardBadgeDTO;
+import com.titkul.lms.dto.TraoHuyHieuRequest;
 import com.titkul.lms.dto.TeacherDashboardDto;
-import com.titkul.lms.entity.Assignment;
-import com.titkul.lms.entity.Badge;
-import com.titkul.lms.entity.ClassRoom;
-import com.titkul.lms.entity.Evaluation;
-import com.titkul.lms.entity.EvaluationGrade;
+import com.titkul.lms.entity.BaiTap;
+import com.titkul.lms.entity.HuyHieu;
+import com.titkul.lms.entity.LopHoc;
+import com.titkul.lms.entity.DanhGiaBaiLam;
+import com.titkul.lms.entity.XepLoai;
 import com.titkul.lms.entity.Notification;
 import com.titkul.lms.entity.NotificationAudience;
 import com.titkul.lms.entity.NotificationType;
-import com.titkul.lms.entity.StudentProfile;
-import com.titkul.lms.entity.StudentReward;
-import com.titkul.lms.entity.Subject;
-import com.titkul.lms.entity.TeacherProfile;
+import com.titkul.lms.entity.HoSoHocSinh;
+import com.titkul.lms.entity.KhenThuongHocSinh;
+import com.titkul.lms.entity.NguonCap;
+import com.titkul.lms.entity.MonHoc;
+import com.titkul.lms.entity.HoSoGiaoVien;
 import com.titkul.lms.entity.User;
-import com.titkul.lms.repository.AssignmentRepository;
-import com.titkul.lms.repository.BadgeRepository;
-import com.titkul.lms.repository.ClassRoomRepository;
-import com.titkul.lms.repository.EvaluationRepository;
+import com.titkul.lms.repository.BaiTapRepository;
+import com.titkul.lms.repository.HuyHieuRepository;
+import com.titkul.lms.repository.LopHocRepository;
+import com.titkul.lms.repository.DanhGiaBaiLamRepository;
 import com.titkul.lms.repository.NotificationRepository;
-import com.titkul.lms.repository.StudentRewardRepository;
-import com.titkul.lms.repository.SubjectRepository;
-import com.titkul.lms.repository.TeacherProfileRepository;
+import com.titkul.lms.repository.KhenThuongHocSinhRepository;
+import com.titkul.lms.repository.MonHocRepository;
+import com.titkul.lms.repository.HoSoGiaoVienRepository;
 import com.titkul.lms.repository.UserRepository;
-import com.titkul.lms.repository.StudentProfileRepository;
+import com.titkul.lms.repository.HoSoHocSinhRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,33 +42,33 @@ import java.util.stream.Collectors;
 public class TeacherService {
 
     private final UserRepository userRepository;
-    private final TeacherProfileRepository teacherProfileRepository;
-    private final ClassRoomRepository classRoomRepository;
-    private final AssignmentRepository assignmentRepository;
-    private final StudentProfileRepository studentProfileRepository;
-    private final EvaluationRepository evaluationRepository;
-    private final SubjectRepository subjectRepository;
+    private final HoSoGiaoVienRepository teacherProfileRepository;
+    private final LopHocRepository classRoomRepository;
+    private final BaiTapRepository assignmentRepository;
+    private final HoSoHocSinhRepository studentProfileRepository;
+    private final DanhGiaBaiLamRepository evaluationRepository;
+    private final MonHocRepository subjectRepository;
     private final NotificationRepository notificationRepository;
-    private final BadgeRepository badgeRepository;
-    private final StudentRewardRepository studentRewardRepository;
+    private final HuyHieuRepository huyHieuRepository;
+    private final KhenThuongHocSinhRepository khenThuongHocSinhRepository;
     private final EmailService emailService;
 
     public TeacherDashboardDto getDashboard(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        TeacherProfile profile = teacherProfileRepository.findByUserId(user.getId())
+        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
 
-        List<ClassRoom> homeroomClasses = classRoomRepository.findByHomeroomTeacher_Id(profile.getId());
-        String homeroomClassStr = homeroomClasses.isEmpty() ? "Không có" : homeroomClasses.get(0).getName();
-        long totalAssignments = assignmentRepository.countByTeacher_Id(profile.getId());
+        List<LopHoc> homeroomClasses = classRoomRepository.findByGiaoVienChuNhiem_GiaoVienId(profile.getGiaoVienId());
+        String homeroomClassStr = homeroomClasses.isEmpty() ? "Không có" : homeroomClasses.get(0).getTenLop();
+        long totalAssignments = assignmentRepository.countByGiaoVien_GiaoVienId(profile.getGiaoVienId());
 
         return TeacherDashboardDto.builder()
-                .fullName(profile.getFullName())
+                .fullName(profile.getHoTen())
                 .classesCount(1)
                 .homeroomClass(homeroomClassStr)
-                .department(profile.getDepartment())
+                .department(profile.getBoMon())
                 .totalAssignments(totalAssignments)
                 .build();
     }
@@ -77,19 +78,19 @@ public class TeacherService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        TeacherProfile profile = teacherProfileRepository.findByUserId(user.getId())
+        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
 
-        List<ClassRoom> homeroomClasses = classRoomRepository.findByHomeroomTeacher_Id(profile.getId());
+        List<LopHoc> homeroomClasses = classRoomRepository.findByGiaoVienChuNhiem_GiaoVienId(profile.getGiaoVienId());
 
         return homeroomClasses.stream().map(c -> {
             java.util.Map<String, Object> map = new java.util.HashMap<>();
-            map.put("id", c.getId());
-            map.put("name", c.getName());
+            map.put("id", c.getLopHocId());
+            map.put("name", c.getTenLop());
             map.put("role", "GV Chủ Nhiệm");
-            map.put("students", studentProfileRepository.countByClassRoomId(c.getId()));
-            map.put("grade", c.getGrade());
-            map.put("academicYear", c.getAcademicYear() != null ? c.getAcademicYear().getName() : null);
+            map.put("students", studentProfileRepository.countByLopHoc_LopHocId(c.getLopHocId()));
+            map.put("grade", c.getKhoiLop());
+            map.put("academicYear", c.getNamHoc() != null ? c.getNamHoc().getTenNamHoc() : null);
             return map;
         }).collect(java.util.stream.Collectors.toList());
     }
@@ -114,40 +115,40 @@ public class TeacherService {
     public Map<String, Object> getReports(String username, Long classId, Integer semesterId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        TeacherProfile profile = teacherProfileRepository.findByUserId(user.getId())
+        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
 
         Long targetClassId = classId;
         if (targetClassId == null) {
-            List<ClassRoom> homeroomClasses = classRoomRepository.findByHomeroomTeacher_Id(profile.getId());
+            List<LopHoc> homeroomClasses = classRoomRepository.findByGiaoVienChuNhiem_GiaoVienId(profile.getGiaoVienId());
             if (homeroomClasses.isEmpty()) {
                 return Map.of("students", List.of());
             }
-            targetClassId = homeroomClasses.get(0).getId();
+            targetClassId = homeroomClasses.get(0).getLopHocId();
         }
 
-        List<StudentProfile> students = studentProfileRepository.findByClassRoomId(targetClassId);
+        List<HoSoHocSinh> students = studentProfileRepository.findByLopHoc_LopHocId(targetClassId);
         if (students.isEmpty()) {
             return Map.of("students", List.of());
         }
-        List<Long> studentIds = students.stream().map(StudentProfile::getId).collect(java.util.stream.Collectors.toList());
+        List<Long> studentIds = students.stream().map(HoSoHocSinh::getHocSinhId).collect(java.util.stream.Collectors.toList());
 
-        List<Evaluation> evaluations = evaluationRepository.findBySubmission_Student_IdInOrderByEvaluatedAtDesc(studentIds);
-        Subject mathSubject = subjectRepository.findByName("Toán").orElse(null);
-        Subject vietSubject = subjectRepository.findByName("Tiếng Việt").orElse(null);
+        List<DanhGiaBaiLam> evaluations = evaluationRepository.findByBaiNop_HocSinh_HocSinhIdInOrderByThoiDiemChamDesc(studentIds);
+        MonHoc mathSubject = subjectRepository.findByTenMon("Toán").orElse(null);
+        MonHoc vietSubject = subjectRepository.findByTenMon("Tiếng Việt").orElse(null);
 
         List<Map<String, Object>> result = students.stream().map(s -> {
-            EvaluationGrade mathGrade = latestGradeForSubject(evaluations, s.getId(), mathSubject, semesterId);
-            EvaluationGrade vietGrade = latestGradeForSubject(evaluations, s.getId(), vietSubject, semesterId);
-            EvaluationGrade overall = worstGrade(mathGrade, vietGrade);
+            XepLoai mathGrade = latestGradeForSubject(evaluations, s.getHocSinhId(), mathSubject, semesterId);
+            XepLoai vietGrade = latestGradeForSubject(evaluations, s.getHocSinhId(), vietSubject, semesterId);
+            XepLoai overall = worstGrade(mathGrade, vietGrade);
 
             Map<String, Object> map = new java.util.HashMap<>();
-            map.put("id", s.getId());
-            map.put("name", s.getFullName());
+            map.put("id", s.getHocSinhId());
+            map.put("name", s.getHoTen());
             map.put("math", gradeLabel(mathGrade));
             map.put("viet", gradeLabel(vietGrade));
             map.put("avg", gradeLabel(overall));
-            map.put("isExcellent", overall == EvaluationGrade.HOAN_THANH_TOT);
+            map.put("isExcellent", overall == XepLoai.HOAN_THANH_TOT);
             return map;
         }).collect(java.util.stream.Collectors.toList());
 
@@ -155,42 +156,42 @@ public class TeacherService {
     }
 
     // Ưu tiên hocLieu.subject (Kho Học Liệu GV tự soạn), fallback contentNode.subject (cây SGK).
-    private Subject resolveAssignmentSubject(Assignment assignment) {
+    private MonHoc resolveAssignmentSubject(BaiTap assignment) {
         if (assignment.getHocLieu() != null && assignment.getHocLieu().getSubject() != null) {
             return assignment.getHocLieu().getSubject();
         }
-        return assignment.getContentNode() != null ? assignment.getContentNode().getSubject() : null;
+        return assignment.getDangBai() != null ? assignment.getDangBai().getMonHoc() : null;
     }
 
-    private EvaluationGrade latestGradeForSubject(List<Evaluation> evaluations, Long studentId, Subject subject, Integer semesterId) {
+    private XepLoai latestGradeForSubject(List<DanhGiaBaiLam> evaluations, Long studentId, MonHoc subject, Integer semesterId) {
         if (subject == null) return null;
         return evaluations.stream()
-                .filter(e -> e.getSubmission().getStudent().getId().equals(studentId))
+                .filter(e -> e.getBaiNop().getHocSinh().getHocSinhId().equals(studentId))
                 .filter(e -> {
-                    Assignment a = e.getSubmission().getAssignment();
-                    Subject assignmentSubject = resolveAssignmentSubject(a);
-                    if (assignmentSubject == null || !assignmentSubject.getId().equals(subject.getId())) return false;
+                    BaiTap a = e.getBaiNop().getBaiTap();
+                    MonHoc assignmentSubject = resolveAssignmentSubject(a);
+                    if (assignmentSubject == null || !assignmentSubject.getMonHocId().equals(subject.getMonHocId())) return false;
                     if (semesterId != null) {
-                        return a.getSemester() != null && semesterId.equals(a.getSemester().getId());
+                        return a.getHocKy() != null && semesterId.equals(a.getHocKy().getHocKyId());
                     }
                     return true;
                 })
-                .map(Evaluation::getGrade)
+                .map(DanhGiaBaiLam::getXepLoai)
                 .filter(java.util.Objects::nonNull)
                 .findFirst() // list đã sắp evaluatedAt desc nên phần tử đầu là mới nhất
                 .orElse(null);
     }
 
-    private EvaluationGrade worstGrade(EvaluationGrade... grades) {
-        EvaluationGrade worst = null;
-        for (EvaluationGrade g : grades) {
+    private XepLoai worstGrade(XepLoai... grades) {
+        XepLoai worst = null;
+        for (XepLoai g : grades) {
             if (g == null) continue;
             if (worst == null || rank(g) < rank(worst)) worst = g;
         }
         return worst;
     }
 
-    private int rank(EvaluationGrade g) {
+    private int rank(XepLoai g) {
         return switch (g) {
             case CHUA_HOAN_THANH -> 0;
             case HOAN_THANH -> 1;
@@ -198,7 +199,7 @@ public class TeacherService {
         };
     }
 
-    private String gradeLabel(EvaluationGrade g) {
+    private String gradeLabel(XepLoai g) {
         if (g == null) return "Chưa có";
         return switch (g) {
             case HOAN_THANH_TOT -> "Tốt";
@@ -207,7 +208,7 @@ public class TeacherService {
         };
     }
 
-    public List<TeacherProfile> getAllTeachers() {
+    public List<HoSoGiaoVien> getAllTeachers() {
         return teacherProfileRepository.findAll();
     }
 
@@ -215,15 +216,15 @@ public class TeacherService {
     public Notification createAnnouncement(String username, AnnouncementCreateDTO dto) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        TeacherProfile profile = teacherProfileRepository.findByUserId(user.getId())
+        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
 
-        ClassRoom classRoom;
+        LopHoc classRoom;
         if (dto.getClassId() != null) {
             classRoom = classRoomRepository.findById(dto.getClassId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
         } else {
-            List<ClassRoom> homeroomClasses = classRoomRepository.findByHomeroomTeacher_Id(profile.getId());
+            List<LopHoc> homeroomClasses = classRoomRepository.findByGiaoVienChuNhiem_GiaoVienId(profile.getGiaoVienId());
             if (homeroomClasses.isEmpty()) {
                 throw new RuntimeException("Bạn chưa là giáo viên chủ nhiệm của lớp nào để đăng thông báo.");
             }
@@ -268,28 +269,28 @@ public class TeacherService {
     }
 
     @Transactional
-    public StudentReward awardBadge(String username, Long studentId, AwardBadgeDTO dto) {
+    public KhenThuongHocSinh awardBadge(String username, Long studentId, TraoHuyHieuRequest dto) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-        TeacherProfile teacher = teacherProfileRepository.findByUserId(user.getId())
+        HoSoGiaoVien teacher = teacherProfileRepository.findByNguoiDungId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
-        StudentProfile student = studentProfileRepository.findById(studentId)
+        HoSoHocSinh student = studentProfileRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
-        if (dto.getBadgeId() == null) {
+        if (dto.getHuyHieuId() == null) {
             throw new IllegalArgumentException("Vui lòng chọn huy hiệu để trao.");
         }
-        Badge badge = badgeRepository.findById(dto.getBadgeId())
+        HuyHieu huyHieu = huyHieuRepository.findById(dto.getHuyHieuId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy huy hiệu"));
 
         boolean emailSent = false;
-        if (student.getParent() != null && student.getParent().getNotificationEmail() != null
-                && !student.getParent().getNotificationEmail().isBlank()) {
+        if (student.getPhuHuynh() != null && student.getPhuHuynh().getEmailNhanThongBao() != null
+                && !student.getPhuHuynh().getEmailNhanThongBao().isBlank()) {
             try {
-                String body = "Con " + student.getFullName() + " vừa được trao huy hiệu \"" + badge.getName() + "\"!\n\n"
-                        + (dto.getComplimentLetter() != null && !dto.getComplimentLetter().isBlank()
-                                ? "Lời nhắn từ giáo viên: " + dto.getComplimentLetter()
-                                : badge.getDescription() != null ? badge.getDescription() : "");
-                emailService.sendSimpleEmail(student.getParent().getNotificationEmail(),
+                String body = "Con " + student.getHoTen() + " vừa được trao huy hiệu \"" + huyHieu.getTenHuyHieu() + "\"!\n\n"
+                        + (dto.getThuKhen() != null && !dto.getThuKhen().isBlank()
+                                ? "Lời nhắn từ giáo viên: " + dto.getThuKhen()
+                                : huyHieu.getMoTa() != null ? huyHieu.getMoTa() : "");
+                emailService.sendSimpleEmail(student.getPhuHuynh().getEmailNhanThongBao(),
                         "Titkul LMS - Con bạn vừa nhận được huy hiệu mới!", body);
                 emailSent = true;
             } catch (Exception e) {
@@ -297,14 +298,14 @@ public class TeacherService {
             }
         }
 
-        StudentReward reward = StudentReward.builder()
-                .student(student)
-                .badge(badge)
-                .teacher(teacher)
-                .complimentLetter(dto.getComplimentLetter())
-                .source(StudentReward.Source.THU_CONG)
-                .emailSent(emailSent)
+        KhenThuongHocSinh khenThuong = KhenThuongHocSinh.builder()
+                .hocSinh(student)
+                .huyHieu(huyHieu)
+                .giaoVien(teacher)
+                .thuKhen(dto.getThuKhen())
+                .nguonCap(NguonCap.THU_CONG)
+                .daGuiEmail(emailSent)
                 .build();
-        return studentRewardRepository.save(reward);
+        return khenThuongHocSinhRepository.save(khenThuong);
     }
 }

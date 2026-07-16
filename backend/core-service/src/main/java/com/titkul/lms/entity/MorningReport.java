@@ -25,11 +25,11 @@ public class MorningReport {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "giao_vien_id", nullable = false)
-    private TeacherProfile teacher;
+    private HoSoGiaoVien teacher;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lop_hoc_id", nullable = false)
-    private ClassRoom classRoom;
+    private LopHoc classRoom;
 
     @Column(name = "ngay_bao_cao", nullable = false)
     private LocalDate reportDate;

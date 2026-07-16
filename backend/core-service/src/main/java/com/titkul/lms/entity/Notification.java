@@ -28,7 +28,7 @@ public class Notification {
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lop_hoc_id")
-    private ClassRoom classRoom;
+    private LopHoc classRoom;
 
     @Column(name = "tieu_de", nullable = false, length = 300)
     private String title;
