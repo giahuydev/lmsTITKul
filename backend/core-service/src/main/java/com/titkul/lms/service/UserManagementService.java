@@ -22,7 +22,7 @@ public class UserManagementService {
     private final HoSoHocSinhRepository studentProfileRepository;
     private final HoSoPhuHuynhRepository parentProfileRepository;
     private final LopHocRepository classRoomRepository;
-    private final com.titkul.lms.repository.ClassTransferHistoryRepository classTransferHistoryRepository;
+    private final com.titkul.lms.repository.LichSuChuyenLopRepository classTransferHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final List<UserCreationStrategy> userCreationStrategies;
 
@@ -112,7 +112,7 @@ public class UserManagementService {
     }
     
     @Transactional
-    public void transferClass(Long userId, Long newClassId, String adminUsername, TransferReason reason, String note) {
+    public void transferClass(Long userId, Long newClassId, String adminUsername, LyDoChuyenLop reason, String note) {
         HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
         LopHoc newClass = classRoomRepository.findById(newClassId)
@@ -125,15 +125,15 @@ public class UserManagementService {
             throw new RuntimeException("Học sinh đã thuộc lớp này rồi.");
         }
 
-        ClassTransferHistory history = new ClassTransferHistory();
+        LichSuChuyenLop history = new LichSuChuyenLop();
         history.setStudent(profile);
-        history.setOldClass(oldClass);
-        history.setNewClass(newClass);
-        history.setOldAcademicYear(oldClass != null ? oldClass.getNamHoc().getTenNamHoc() : null);
-        history.setNewAcademicYear(newClass.getNamHoc().getTenNamHoc());
-        history.setReason(reason != null ? reason : TransferReason.DOI_LOP);
-        history.setNote(note);
-        history.setPerformedBy(admin);
+        history.setLopCu(oldClass);
+        history.setLopMoi(newClass);
+        history.setNamHocCu(oldClass != null ? oldClass.getNamHoc().getTenNamHoc() : null);
+        history.setNamHocMoi(newClass.getNamHoc().getTenNamHoc());
+        history.setLyDo(reason != null ? reason : LyDoChuyenLop.DOI_LOP);
+        history.setGhiChu(note);
+        history.setNguoiThucHien(admin);
         classTransferHistoryRepository.save(history);
 
         profile.setLopHoc(newClass);

@@ -3,10 +3,10 @@ package com.titkul.lms.service;
 import com.titkul.lms.dto.ProcessTicketRequest;
 import com.titkul.lms.dto.SupportTicketDto;
 import com.titkul.lms.dto.SupportTicketRequest;
-import com.titkul.lms.entity.SupportTicket;
-import com.titkul.lms.entity.SupportTicketStatus;
+import com.titkul.lms.entity.PhieuHoTro;
+import com.titkul.lms.entity.TrangThaiPhieu;
 import com.titkul.lms.entity.NguoiDung;
-import com.titkul.lms.repository.SupportTicketRepository;
+import com.titkul.lms.repository.PhieuHoTroRepository;
 import com.titkul.lms.repository.NguoiDungRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SupportTicketService {
 
-    private final SupportTicketRepository ticketRepository;
+    private final PhieuHoTroRepository ticketRepository;
     private final NguoiDungRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -32,12 +32,12 @@ public class SupportTicketService {
         NguoiDung student = userRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
 
-        SupportTicket ticket = new SupportTicket();
+        PhieuHoTro ticket = new PhieuHoTro();
         ticket.setTeacher(teacher);
         ticket.setStudent(student);
-        ticket.setType(request.getType() != null ? request.getType() : "RESET_MAT_KHAU");
-        ticket.setDescription(request.getDescription());
-        ticket.setStatus(SupportTicketStatus.CHO_DUYET);
+        ticket.setLoaiYeuCau(request.getType() != null ? request.getType() : "RESET_MAT_KHAU");
+        ticket.setMoTa(request.getDescription());
+        ticket.setTrangThai(TrangThaiPhieu.CHO_DUYET);
 
         ticket = ticketRepository.save(ticket);
         return mapToDto(ticket);
@@ -47,33 +47,33 @@ public class SupportTicketService {
     public List<SupportTicketDto> getTicketsByTeacherUsername(String teacherUsername) {
         NguoiDung teacher = userRepository.findByTenDangNhap(teacherUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
-        return ticketRepository.findByTeacher_NguoiDungIdOrderByCreatedAtDesc(teacher.getNguoiDungId())
+        return ticketRepository.findByTeacher_NguoiDungIdOrderByNgayTaoDesc(teacher.getNguoiDungId())
                 .stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<SupportTicketDto> getPendingTickets() {
-        return ticketRepository.findByStatusOrderByCreatedAtAsc(SupportTicketStatus.CHO_DUYET)
+        return ticketRepository.findByTrangThaiOrderByNgayTaoAsc(TrangThaiPhieu.CHO_DUYET)
                 .stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Transactional
     public SupportTicketDto processTicket(Long ticketId, String adminUsername, ProcessTicketRequest request) {
-        SupportTicket ticket = ticketRepository.findById(ticketId)
+        PhieuHoTro ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu hỗ trợ"));
         NguoiDung admin = userRepository.findByTenDangNhap(adminUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Admin"));
 
-        if (ticket.getStatus() != SupportTicketStatus.CHO_DUYET) {
+        if (ticket.getTrangThai() != TrangThaiPhieu.CHO_DUYET) {
             throw new RuntimeException("Phiếu này đã được xử lý");
         }
 
-        ticket.setStatus(request.getStatus());
+        ticket.setTrangThai(request.getStatus());
         ticket.setAdmin(admin);
-        ticket.setAdminNote(request.getAdminNote());
-        ticket.setProcessedAt(LocalDateTime.now());
+        ticket.setGhiChuXuLy(request.getAdminNote());
+        ticket.setNgayXuLy(LocalDateTime.now());
 
-        if (request.getStatus() == SupportTicketStatus.DA_DUYET && "RESET_MAT_KHAU".equals(ticket.getType())) {
+        if (request.getStatus() == TrangThaiPhieu.DA_DUYET && "RESET_MAT_KHAU".equals(ticket.getLoaiYeuCau())) {
             NguoiDung student = ticket.getStudent();
             // Reset mật khẩu về mặc định (ví dụ: số điện thoại hoặc mã học sinh, hoặc chuỗi cố định)
             // Lấy username của học sinh làm mật khẩu mặc định luôn
@@ -86,19 +86,19 @@ public class SupportTicketService {
         return mapToDto(ticket);
     }
 
-    private SupportTicketDto mapToDto(SupportTicket ticket) {
+    private SupportTicketDto mapToDto(PhieuHoTro ticket) {
         SupportTicketDto dto = new SupportTicketDto();
-        dto.setId(ticket.getId());
+        dto.setId(ticket.getPhieuId());
         dto.setTeacherId(ticket.getTeacher().getNguoiDungId());
         dto.setTeacherName(ticket.getTeacher().getTenDangNhap()); // Should map to profile name if available
         dto.setStudentId(ticket.getStudent().getNguoiDungId());
         dto.setStudentName(ticket.getStudent().getTenDangNhap()); // Should map to profile name if available
-        dto.setType(ticket.getType());
-        dto.setDescription(ticket.getDescription());
-        dto.setStatus(ticket.getStatus().name());
-        dto.setAdminNote(ticket.getAdminNote());
-        dto.setCreatedAt(ticket.getCreatedAt());
-        dto.setProcessedAt(ticket.getProcessedAt());
+        dto.setType(ticket.getLoaiYeuCau());
+        dto.setDescription(ticket.getMoTa());
+        dto.setStatus(ticket.getTrangThai().name());
+        dto.setAdminNote(ticket.getGhiChuXuLy());
+        dto.setCreatedAt(ticket.getNgayTao());
+        dto.setProcessedAt(ticket.getNgayXuLy());
         return dto;
     }
 }

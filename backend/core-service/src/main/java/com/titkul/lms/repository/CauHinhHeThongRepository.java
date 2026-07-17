@@ -1,10 +1,9 @@
 package com.titkul.lms.repository;
 
-import com.titkul.lms.entity.InvalidatedToken;
+import com.titkul.lms.entity.CauHinhHeThong;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface InvalidatedTokenRepository extends JpaRepository<InvalidatedToken, String> {
+public interface CauHinhHeThongRepository extends JpaRepository<CauHinhHeThong, Long> {
 }
-

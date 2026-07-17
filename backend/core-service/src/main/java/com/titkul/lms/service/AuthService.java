@@ -1,7 +1,7 @@
 package com.titkul.lms.service;
 
 import com.titkul.lms.dto.JwtResponse;
-import com.titkul.lms.entity.LoginSession;
+import com.titkul.lms.entity.PhienDangNhap;
 import com.titkul.lms.entity.NguoiDung;
 import com.titkul.lms.security.JwtUtils;
 import com.titkul.lms.security.UserDetailsImpl;
@@ -40,7 +40,7 @@ public class AuthService {
                 userDetails.getRequirePasswordChange()
         );
 
-        LoginSession refreshToken = refreshTokenService.createRefreshToken(
+        PhienDangNhap refreshToken = refreshTokenService.createRefreshToken(
                 userDetails.getId(),
                 request.getHeader("User-Agent"),
                 request.getRemoteAddr()

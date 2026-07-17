@@ -1,6 +1,6 @@
 package com.titkul.lms.entity;
 
-public enum NotificationAudience {
+public enum DoiTuongNhanThongBao {
     TAT_CA,
     PHU_HUYNH,
     HOC_SINH

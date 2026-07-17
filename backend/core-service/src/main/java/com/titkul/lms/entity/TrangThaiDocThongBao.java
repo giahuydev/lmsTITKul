@@ -11,12 +11,12 @@ import java.time.LocalDateTime;
 @Table(name = "trang_thai_doc_thong_bao")
 @Data
 @NoArgsConstructor
-public class NotificationReadStatus {
+public class TrangThaiDocThongBao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "trang_thai_id")
-    private Long id;
+    private Long trangThaiId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_dung_id", nullable = false)
@@ -24,11 +24,11 @@ public class NotificationReadStatus {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "thong_bao_id", nullable = false)
-    private Notification notification;
+    private ThongBao thongBao;
 
     @Column(name = "da_doc", nullable = false)
-    private boolean read = false;
+    private boolean daDoc = false;
 
     @Column(name = "thoi_diem_doc")
-    private LocalDateTime readAt;
+    private LocalDateTime thoiDiemDoc;
 }

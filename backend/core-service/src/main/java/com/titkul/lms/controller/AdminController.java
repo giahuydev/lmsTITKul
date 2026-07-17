@@ -92,8 +92,8 @@ public class AdminController {
             return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
         }
         try {
-            com.titkul.lms.entity.TransferReason transferReason = reason != null
-                    ? com.titkul.lms.entity.TransferReason.valueOf(reason)
+            com.titkul.lms.entity.LyDoChuyenLop transferReason = reason != null
+                    ? com.titkul.lms.entity.LyDoChuyenLop.valueOf(reason)
                     : null;
             userManagementService.transferClass(id, newClassId, authentication.getName(), transferReason, note);
             return ResponseEntity.ok(java.util.Map.of("message", "Chuyển lớp thành công"));
@@ -108,7 +108,7 @@ public class AdminController {
     }
 
     @PutMapping("/config")
-    public ResponseEntity<?> updateSystemConfig(@RequestBody com.titkul.lms.entity.SystemConfig config) {
+    public ResponseEntity<?> updateSystemConfig(@RequestBody com.titkul.lms.entity.CauHinhHeThong config) {
         return ResponseEntity.ok(systemConfigService.updateSystemConfig(config));
     }
 

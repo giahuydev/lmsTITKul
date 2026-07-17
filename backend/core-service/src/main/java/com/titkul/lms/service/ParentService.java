@@ -20,15 +20,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ParentService {
 
-    private static final List<NotificationAudience> PARENT_AUDIENCE =
-            List.of(NotificationAudience.TAT_CA, NotificationAudience.PHU_HUYNH);
+    private static final List<DoiTuongNhanThongBao> PARENT_AUDIENCE =
+            List.of(DoiTuongNhanThongBao.TAT_CA, DoiTuongNhanThongBao.PHU_HUYNH);
 
     private final NguoiDungRepository userRepository;
     private final HoSoPhuHuynhRepository parentProfileRepository;
     private final DanhGiaBaiLamRepository evaluationRepository;
     private final BaiTapRepository assignmentRepository;
-    private final NotificationRepository notificationRepository;
-    private final NotificationReadStatusRepository notificationReadStatusRepository;
+    private final ThongBaoRepository notificationRepository;
+    private final TrangThaiDocThongBaoRepository notificationReadStatusRepository;
     private final BaiNopRepository submissionRepository;
     private final PasswordEncoder passwordEncoder;
     private final StudentService studentService;
@@ -150,17 +150,17 @@ public class ParentService {
         return resolveVisibleNotifications(profile).stream()
                 .map(n -> {
                     boolean read = notificationReadStatusRepository
-                            .findByUser_NguoiDungIdAndNotification_Id(user.getNguoiDungId(), n.getId())
-                            .map(NotificationReadStatus::isRead)
+                            .findByUser_NguoiDungIdAndThongBao_ThongBaoId(user.getNguoiDungId(), n.getThongBaoId())
+                            .map(TrangThaiDocThongBao::isDaDoc)
                             .orElse(false);
                     Map<String, Object> map = new LinkedHashMap<>();
-                    map.put("id", n.getId());
-                    map.put("title", n.getTitle());
-                    map.put("content", n.getContent());
-                    map.put("date", n.getPostedAt().format(fmt));
+                    map.put("id", n.getThongBaoId());
+                    map.put("title", n.getTieuDe());
+                    map.put("content", n.getNoiDung());
+                    map.put("date", n.getNgayDang().format(fmt));
                     map.put("read", read);
-                    map.put("type", n.getType().name());
-                    map.put("pinned", n.isPinned());
+                    map.put("type", n.getLoaiThongBao().name());
+                    map.put("pinned", n.isLaGhim());
                     return map;
                 })
                 .collect(Collectors.toList());
@@ -176,41 +176,41 @@ public class ParentService {
     public void markAllNotificationsRead(String username) {
         NguoiDung user = resolveUser(username);
         HoSoPhuHuynh profile = resolveProfile(user);
-        resolveVisibleNotifications(profile).forEach(n -> markNotificationReadForUser(user, n.getId()));
+        resolveVisibleNotifications(profile).forEach(n -> markNotificationReadForUser(user, n.getThongBaoId()));
     }
 
     private void markNotificationReadForUser(NguoiDung user, Long notificationId) {
-        NotificationReadStatus status = notificationReadStatusRepository
-                .findByUser_NguoiDungIdAndNotification_Id(user.getNguoiDungId(), notificationId)
-                .orElseGet(NotificationReadStatus::new);
-        if (status.getId() == null) {
+        TrangThaiDocThongBao status = notificationReadStatusRepository
+                .findByUser_NguoiDungIdAndThongBao_ThongBaoId(user.getNguoiDungId(), notificationId)
+                .orElseGet(TrangThaiDocThongBao::new);
+        if (status.getTrangThaiId() == null) {
             status.setUser(user);
-            status.setNotification(notificationRepository.getReferenceById(notificationId));
+            status.setThongBao(notificationRepository.getReferenceById(notificationId));
         }
-        status.setRead(true);
-        status.setReadAt(LocalDateTime.now());
+        status.setDaDoc(true);
+        status.setThoiDiemDoc(LocalDateTime.now());
         notificationReadStatusRepository.save(status);
     }
 
     // Thông báo hiển thị cho phụ huynh: theo lớp của TẤT CẢ các con + thông báo hệ thống toàn trường.
-    private List<Notification> resolveVisibleNotifications(HoSoPhuHuynh profile) {
+    private List<ThongBao> resolveVisibleNotifications(HoSoPhuHuynh profile) {
         List<Long> classIds = profile.getDanhSachHocSinh() == null ? List.of() : profile.getDanhSachHocSinh().stream()
                 .filter(c -> c.getLopHoc() != null)
                 .map(c -> c.getLopHoc().getLopHocId())
                 .distinct()
                 .collect(Collectors.toList());
 
-        Map<Long, Notification> byId = new LinkedHashMap<>();
-        for (Notification n : notificationRepository.findGlobalOnly(PARENT_AUDIENCE)) {
-            byId.putIfAbsent(n.getId(), n);
+        Map<Long, ThongBao> byId = new LinkedHashMap<>();
+        for (ThongBao n : notificationRepository.findGlobalOnly(PARENT_AUDIENCE)) {
+            byId.putIfAbsent(n.getThongBaoId(), n);
         }
         for (Long classId : classIds) {
-            for (Notification n : notificationRepository.findVisibleToClass(classId, PARENT_AUDIENCE)) {
-                byId.putIfAbsent(n.getId(), n);
+            for (ThongBao n : notificationRepository.findVisibleToClass(classId, PARENT_AUDIENCE)) {
+                byId.putIfAbsent(n.getThongBaoId(), n);
             }
         }
         return byId.values().stream()
-                .sorted(Comparator.comparing(Notification::getPostedAt).reversed())
+                .sorted(Comparator.comparing(ThongBao::getNgayDang).reversed())
                 .collect(Collectors.toList());
     }
 
@@ -300,10 +300,10 @@ public class ParentService {
         return resolveVisibleNotifications(profile).stream()
                 .limit(3)
                 .map(n -> ParentDashboardDto.AnnouncementDto.builder()
-                        .title(n.getTitle())
-                        .content(n.getContent())
-                        .date(n.getPostedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-                        .tag(n.isPinned() ? "Ghim" : "Thông báo")
+                        .title(n.getTieuDe())
+                        .content(n.getNoiDung())
+                        .date(n.getNgayDang().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                        .tag(n.isLaGhim() ? "Ghim" : "Thông báo")
                         .build())
                 .collect(Collectors.toList());
     }

@@ -8,9 +8,9 @@ import com.titkul.lms.entity.HuyHieu;
 import com.titkul.lms.entity.LopHoc;
 import com.titkul.lms.entity.DanhGiaBaiLam;
 import com.titkul.lms.entity.XepLoai;
-import com.titkul.lms.entity.Notification;
-import com.titkul.lms.entity.NotificationAudience;
-import com.titkul.lms.entity.NotificationType;
+import com.titkul.lms.entity.ThongBao;
+import com.titkul.lms.entity.DoiTuongNhanThongBao;
+import com.titkul.lms.entity.LoaiThongBao;
 import com.titkul.lms.entity.HoSoHocSinh;
 import com.titkul.lms.entity.KhenThuongHocSinh;
 import com.titkul.lms.entity.NguonCap;
@@ -21,7 +21,7 @@ import com.titkul.lms.repository.BaiTapRepository;
 import com.titkul.lms.repository.HuyHieuRepository;
 import com.titkul.lms.repository.LopHocRepository;
 import com.titkul.lms.repository.DanhGiaBaiLamRepository;
-import com.titkul.lms.repository.NotificationRepository;
+import com.titkul.lms.repository.ThongBaoRepository;
 import com.titkul.lms.repository.KhenThuongHocSinhRepository;
 import com.titkul.lms.repository.MonHocRepository;
 import com.titkul.lms.repository.HoSoGiaoVienRepository;
@@ -48,7 +48,7 @@ public class TeacherService {
     private final HoSoHocSinhRepository studentProfileRepository;
     private final DanhGiaBaiLamRepository evaluationRepository;
     private final MonHocRepository subjectRepository;
-    private final NotificationRepository notificationRepository;
+    private final ThongBaoRepository notificationRepository;
     private final HuyHieuRepository huyHieuRepository;
     private final KhenThuongHocSinhRepository khenThuongHocSinhRepository;
     private final EmailService emailService;
@@ -213,7 +213,7 @@ public class TeacherService {
     }
 
     @Transactional
-    public Notification createAnnouncement(String username, AnnouncementCreateDTO dto) {
+    public ThongBao createAnnouncement(String username, AnnouncementCreateDTO dto) {
         NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
         HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
@@ -235,16 +235,16 @@ public class TeacherService {
             throw new IllegalArgumentException("Tiêu đề thông báo không được để trống.");
         }
 
-        Notification notification = new Notification();
+        ThongBao notification = new ThongBao();
         notification.setSender(user);
         notification.setClassRoom(classRoom);
-        notification.setTitle(dto.getTitle());
-        notification.setContent(dto.getContent());
-        notification.setType(NotificationType.NOI_BO);
-        notification.setPinned(Boolean.TRUE.equals(dto.getPinned()));
-        notification.setAudience(dto.getAudience() != null
-                ? NotificationAudience.valueOf(dto.getAudience())
-                : NotificationAudience.TAT_CA);
+        notification.setTieuDe(dto.getTitle());
+        notification.setNoiDung(dto.getContent());
+        notification.setLoaiThongBao(LoaiThongBao.NOI_BO);
+        notification.setLaGhim(Boolean.TRUE.equals(dto.getPinned()));
+        notification.setDoiTuongNhan(dto.getAudience() != null
+                ? DoiTuongNhanThongBao.valueOf(dto.getAudience())
+                : DoiTuongNhanThongBao.TAT_CA);
 
         return notificationRepository.save(notification);
     }
@@ -254,15 +254,15 @@ public class TeacherService {
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-        return notificationRepository.findBySender_NguoiDungIdOrderByPostedAtDesc(user.getNguoiDungId()).stream()
+        return notificationRepository.findBySender_NguoiDungIdOrderByNgayDangDesc(user.getNguoiDungId()).stream()
                 .map(n -> {
                     Map<String, Object> map = new LinkedHashMap<>();
-                    map.put("id", n.getId());
-                    map.put("title", n.getTitle());
-                    map.put("content", n.getContent());
-                    map.put("date", n.getPostedAt().format(fmt));
-                    map.put("pinned", n.isPinned());
-                    map.put("audience", n.getAudience().name());
+                    map.put("id", n.getThongBaoId());
+                    map.put("title", n.getTieuDe());
+                    map.put("content", n.getNoiDung());
+                    map.put("date", n.getNgayDang().format(fmt));
+                    map.put("pinned", n.isLaGhim());
+                    map.put("audience", n.getDoiTuongNhan().name());
                     return map;
                 })
                 .collect(Collectors.toList());

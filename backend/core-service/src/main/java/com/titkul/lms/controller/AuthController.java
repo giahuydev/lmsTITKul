@@ -1,8 +1,8 @@
 package com.titkul.lms.controller;
 
 import com.titkul.lms.dto.*;
-import com.titkul.lms.entity.LoginSession;
-import com.titkul.lms.repository.LoginSessionRepository;
+import com.titkul.lms.entity.PhienDangNhap;
+import com.titkul.lms.repository.PhienDangNhapRepository;
 import com.titkul.lms.repository.NguoiDungRepository;
 import com.titkul.lms.service.AuthService;
 import com.titkul.lms.service.EmailService;
@@ -36,7 +36,7 @@ public class AuthController {
     private final OtpService otpService;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
-    private final LoginSessionRepository loginSessionRepository;
+    private final PhienDangNhapRepository loginSessionRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
@@ -58,7 +58,7 @@ public class AuthController {
     public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
         return refreshTokenService.findByToken(request.getRefreshToken())
                 .map(refreshTokenService::verifyExpiration)
-                .map(LoginSession::getUser)
+                .map(PhienDangNhap::getNguoiDung)
                 .map(user -> {
                     String token = authService.generateTokenFromUser(user);
                     return ResponseEntity.ok(new TokenRefreshResponse(token, request.getRefreshToken(), "Bearer"));
@@ -151,7 +151,7 @@ public class AuthController {
                     user.setMatKhauHash(passwordEncoder.encode(request.getNewPassword()));
                     user.setBatBuocDoiMk(false);
                     userRepository.save(user);
-                    loginSessionRepository.deleteByUser(user);
+                    loginSessionRepository.deleteByNguoiDung(user);
                     return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công. Vui lòng đăng nhập lại trên các thiết bị khác."));
                 })
                 .orElse(ResponseEntity.badRequest().body(Map.of("message", "Người dùng không tồn tại.")));

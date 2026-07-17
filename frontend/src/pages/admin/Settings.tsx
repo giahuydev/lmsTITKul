@@ -12,12 +12,12 @@ export default function AdminSettings() {
   const [showGradeModal, setShowGradeModal] = useState(false);
   const [showSubjectModal, setShowSubjectModal] = useState(false);
   const [config, setConfig] = useState({
-    schoolName: '',
-    academicYear: '',
-    currentSemester: 1,
+    tenTruong: '',
+    namHocHienTai: '',
+    hocKyHienTai: 1,
     logoUrl: '',
-    grades: '',
-    subjects: ''
+    danhSachKhoi: '',
+    danhSachMon: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [newGrade, setNewGrade] = useState('');
@@ -49,33 +49,33 @@ export default function AdminSettings() {
     }
   };
 
-  const gradesList = config.grades ? config.grades.split(',').map(s => s.trim()).filter(s => s) : [];
-  const subjectsList = config.subjects ? config.subjects.split(',').map(s => s.trim()).filter(s => s) : [];
+  const gradesList = config.danhSachKhoi ? config.danhSachKhoi.split(',').map(s => s.trim()).filter(s => s) : [];
+  const subjectsList = config.danhSachMon ? config.danhSachMon.split(',').map(s => s.trim()).filter(s => s) : [];
 
   const handleAddGrade = () => {
     if (!newGrade) return;
     const updatedGrades = [...gradesList, newGrade].join(',');
-    setConfig({ ...config, grades: updatedGrades });
+    setConfig({ ...config, danhSachKhoi: updatedGrades });
     setNewGrade('');
     setShowGradeModal(false);
   };
 
   const handleRemoveGrade = (gradeToRemove: string) => {
     const updatedGrades = gradesList.filter(g => g !== gradeToRemove).join(',');
-    setConfig({ ...config, grades: updatedGrades });
+    setConfig({ ...config, danhSachKhoi: updatedGrades });
   };
 
   const handleAddSubject = () => {
     if (!newSubject) return;
     const updatedSubjects = [...subjectsList, newSubject].join(',');
-    setConfig({ ...config, subjects: updatedSubjects });
+    setConfig({ ...config, danhSachMon: updatedSubjects });
     setNewSubject('');
     setShowSubjectModal(false);
   };
 
   const handleRemoveSubject = (subjectToRemove: string) => {
     const updatedSubjects = subjectsList.filter(s => s !== subjectToRemove).join(',');
-    setConfig({ ...config, subjects: updatedSubjects });
+    setConfig({ ...config, danhSachMon: updatedSubjects });
   };
 
   return (
@@ -88,10 +88,10 @@ export default function AdminSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input 
-              label="Tên trường" 
-              value={config.schoolName}
-              onChange={(e) => setConfig({...config, schoolName: e.target.value})}
+            <Input
+              label="Tên trường"
+              value={config.tenTruong}
+              onChange={(e) => setConfig({...config, tenTruong: e.target.value})}
             />
             <Input label="Hotline" defaultValue="1900 1234" disabled />
           </div>
@@ -99,17 +99,17 @@ export default function AdminSettings() {
           <Input label="Email liên hệ" type="email" defaultValue="contact@titkul.edu.vn" disabled />
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
-            <Input 
-              label="Năm học hiện tại" 
-              value={config.academicYear}
-              onChange={(e) => setConfig({...config, academicYear: e.target.value})}
+            <Input
+              label="Năm học hiện tại"
+              value={config.namHocHienTai}
+              onChange={(e) => setConfig({...config, namHocHienTai: e.target.value})}
             />
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Học kỳ hiện tại</label>
-              <select 
+              <select
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary focus:ring-1"
-                value={config.currentSemester}
-                onChange={(e) => setConfig({...config, currentSemester: parseInt(e.target.value)})}
+                value={config.hocKyHienTai}
+                onChange={(e) => setConfig({...config, hocKyHienTai: parseInt(e.target.value)})}
               >
                 <option value={1}>Học kỳ 1</option>
                 <option value={2}>Học kỳ 2</option>

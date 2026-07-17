@@ -2,10 +2,10 @@ package com.titkul.lms.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.titkul.lms.entity.AiCommentSuggestion;
-import com.titkul.lms.entity.AiSuggestionStatus;
+import com.titkul.lms.entity.GoiYAiNhanXet;
+import com.titkul.lms.entity.TrangThaiGoiY;
 import com.titkul.lms.entity.BaiNop;
-import com.titkul.lms.repository.AiCommentSuggestionRepository;
+import com.titkul.lms.repository.GoiYAiNhanXetRepository;
 import com.titkul.lms.repository.BaiNopRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class AiSuggestionService {
 
     private final BaiNopRepository submissionRepository;
-    private final AiCommentSuggestionRepository suggestionRepository;
+    private final GoiYAiNhanXetRepository suggestionRepository;
     private final ObjectMapper objectMapper;
     private final OllamaClient ollamaClient;
 
@@ -59,28 +59,28 @@ public class AiSuggestionService {
         input.put("isLate", isLate);
         input.put("autoScore", score);
 
-        AiCommentSuggestion entity = new AiCommentSuggestion();
-        entity.setSubmission(submission);
-        entity.setStatus(AiSuggestionStatus.NHAP);
+        GoiYAiNhanXet entity = new GoiYAiNhanXet();
+        entity.setBaiNop(submission);
+        entity.setTrangThai(TrangThaiGoiY.NHAP);
         try {
-            entity.setInputData(objectMapper.writeValueAsString(input));
-            entity.setSuggestionResult(objectMapper.writeValueAsString(suggestions));
+            entity.setDuLieuDauVao(objectMapper.writeValueAsString(input));
+            entity.setKetQuaGoiY(objectMapper.writeValueAsString(suggestions));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Lỗi tạo gợi ý nhận xét: " + e.getMessage());
         }
-        AiCommentSuggestion saved = suggestionRepository.save(entity);
+        GoiYAiNhanXet saved = suggestionRepository.save(entity);
 
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("id", saved.getId());
+        result.put("id", saved.getGoiYId());
         result.put("suggestions", suggestions);
         return result;
     }
 
     @Transactional
     public void chooseSuggestion(Long suggestionId) {
-        AiCommentSuggestion entity = suggestionRepository.findById(suggestionId)
+        GoiYAiNhanXet entity = suggestionRepository.findById(suggestionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy gợi ý"));
-        entity.setStatus(AiSuggestionStatus.DA_CHON);
+        entity.setTrangThai(TrangThaiGoiY.DA_CHON);
         suggestionRepository.save(entity);
     }
 

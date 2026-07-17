@@ -7,12 +7,12 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @Table(name = "phieu_ho_tro")
-public class SupportTicket {
+public class PhieuHoTro {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "phieu_id")
-    private Long id;
+    private Long phieuId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "giao_vien_tao_id", nullable = false)
@@ -23,10 +23,10 @@ public class SupportTicket {
     private NguoiDung student;
 
     @Column(name = "loai_yeu_cau", nullable = false, length = 100)
-    private String type;
+    private String loaiYeuCau;
 
     @Column(name = "mo_ta", columnDefinition = "TEXT")
-    private String description;
+    private String moTa;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_xu_ly_id")
@@ -34,19 +34,19 @@ public class SupportTicket {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai", nullable = false)
-    private SupportTicketStatus status = SupportTicketStatus.CHO_DUYET;
+    private TrangThaiPhieu trangThai = TrangThaiPhieu.CHO_DUYET;
 
     @Column(name = "ghi_chu_xu_ly", columnDefinition = "TEXT")
-    private String adminNote;
+    private String ghiChuXuLy;
 
     @Column(name = "ngay_tao", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime ngayTao;
 
     @Column(name = "ngay_xu_ly")
-    private LocalDateTime processedAt;
+    private LocalDateTime ngayXuLy;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        ngayTao = LocalDateTime.now();
     }
 }

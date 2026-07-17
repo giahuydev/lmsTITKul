@@ -29,7 +29,7 @@ public class AdminService {
     private final HoSoHocSinhRepository studentProfileRepository;
     private final HoSoPhuHuynhRepository parentProfileRepository;
     private final LopHocRepository classRoomRepository;
-    private final ImportBatchRepository importBatchRepository;
+    private final LoImportRepository importBatchRepository;
     private final NamHocRepository academicYearRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
@@ -225,18 +225,18 @@ public class AdminService {
 
     private void saveImportBatch(String type, String fileName, ImportResultDTO result, List<ImportRecordDTO> failures) {
         try {
-            ImportBatch batch = new ImportBatch();
-            batch.setImportType(type);
-            batch.setFileName(fileName);
-            batch.setSuccessCount(result.getSuccessCount());
-            batch.setStatus(resolveStatus(result.getSuccessCount(), result.getFailureCount()));
-            batch.setErrorDetails(objectMapper.writeValueAsString(failures));
-            batch.setSummary(objectMapper.writeValueAsString(Map.of(
+            LoImport batch = new LoImport();
+            batch.setLoaiImport(type);
+            batch.setTenFile(fileName);
+            batch.setSoThanhCong(result.getSuccessCount());
+            batch.setTrangThai(resolveStatus(result.getSuccessCount(), result.getFailureCount()));
+            batch.setChiTietLoi(objectMapper.writeValueAsString(failures));
+            batch.setTomTatKetQua(objectMapper.writeValueAsString(Map.of(
                     "total", result.getTotalRows(),
                     "success", result.getSuccessCount(),
                     "failure", result.getFailureCount()
             )));
-            userRepository.findByTenDangNhap("AD001").ifPresent(batch::setExecutedBy);
+            userRepository.findByTenDangNhap("AD001").ifPresent(batch::setNguoiThucHien);
             importBatchRepository.save(batch);
         } catch (Exception ex) {
             log.warn("Failed to save import batch log", ex);

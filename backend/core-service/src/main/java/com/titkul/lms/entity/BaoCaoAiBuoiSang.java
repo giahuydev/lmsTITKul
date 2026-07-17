@@ -16,12 +16,12 @@ import java.time.LocalDateTime;
 @Table(name = "bao_cao_ai_buoi_sang")
 @Data
 @NoArgsConstructor
-public class MorningReport {
+public class BaoCaoAiBuoiSang {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "bao_cao_id")
-    private Long id;
+    private Long baoCaoId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "giao_vien_id", nullable = false)
@@ -32,15 +32,15 @@ public class MorningReport {
     private LopHoc classRoom;
 
     @Column(name = "ngay_bao_cao", nullable = false)
-    private LocalDate reportDate;
+    private LocalDate ngayBaoCao;
 
     @Column(name = "noi_dung_tom_tat", nullable = false, columnDefinition = "TEXT")
-    private String summary;
+    private String noiDungTomTat;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "du_lieu_phan_tich")
-    private String analysisData;
+    private String duLieuPhanTich;
 
     @Column(name = "thoi_diem_tao", nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime thoiDiemTao = LocalDateTime.now();
 }

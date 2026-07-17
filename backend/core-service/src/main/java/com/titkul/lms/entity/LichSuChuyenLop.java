@@ -10,12 +10,12 @@ import java.time.LocalDateTime;
 @Table(name = "lich_su_chuyen_lop")
 @Data
 @NoArgsConstructor
-public class ClassTransferHistory {
+public class LichSuChuyenLop {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "chuyen_lop_id")
-    private Long id;
+    private Long chuyenLopId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hoc_sinh_id", nullable = false)
@@ -23,29 +23,29 @@ public class ClassTransferHistory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lop_cu_id")
-    private LopHoc oldClass;
+    private LopHoc lopCu;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lop_moi_id", nullable = false)
-    private LopHoc newClass;
+    private LopHoc lopMoi;
 
     @Column(name = "nam_hoc_cu", length = 10)
-    private String oldAcademicYear;
+    private String namHocCu;
 
     @Column(name = "nam_hoc_moi", nullable = false, length = 10)
-    private String newAcademicYear;
+    private String namHocMoi;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ly_do", nullable = false)
-    private TransferReason reason = TransferReason.DOI_LOP;
+    private LyDoChuyenLop lyDo = LyDoChuyenLop.DOI_LOP;
 
     @Column(name = "ghi_chu", columnDefinition = "TEXT")
-    private String note;
+    private String ghiChu;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_thuc_hien_id", nullable = false)
-    private NguoiDung performedBy;
+    private NguoiDung nguoiThucHien;
 
     @Column(name = "thoi_diem_chuyen", nullable = false, updatable = false)
-    private LocalDateTime transferredAt = LocalDateTime.now();
+    private LocalDateTime thoiDiemChuyen = LocalDateTime.now();
 }

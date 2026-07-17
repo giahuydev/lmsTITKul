@@ -29,7 +29,7 @@ public class MorningReportService {
     private final StudentProgressRepository studentProgressRepository;
     private final BaiNopRepository submissionRepository;
     private final PhanPhoiDangBaiRepository contentDistributionRepository;
-    private final MorningReportRepository morningReportRepository;
+    private final BaoCaoAiBuoiSangRepository morningReportRepository;
     private final OllamaClient ollamaClient;
     private final ObjectMapper objectMapper;
 
@@ -43,13 +43,13 @@ public class MorningReportService {
         LopHoc classRoom = resolveClass(teacher, classId);
         LocalDate today = LocalDate.now();
 
-        Optional<MorningReport> cached = morningReportRepository
-                .findByTeacher_GiaoVienIdAndClassRoom_LopHocIdAndReportDate(teacher.getGiaoVienId(), classRoom.getLopHocId(), today);
+        Optional<BaoCaoAiBuoiSang> cached = morningReportRepository
+                .findByTeacher_GiaoVienIdAndClassRoom_LopHocIdAndNgayBaoCao(teacher.getGiaoVienId(), classRoom.getLopHocId(), today);
         if (cached.isPresent()) {
             return toDto(cached.get(), classRoom);
         }
 
-        MorningReport generated = generate(teacher, classRoom, today);
+        BaoCaoAiBuoiSang generated = generate(teacher, classRoom, today);
         return toDto(generated, classRoom);
     }
 
@@ -65,7 +65,7 @@ public class MorningReportService {
         return homeroom.get(0);
     }
 
-    private MorningReport generate(HoSoGiaoVien teacher, LopHoc classRoom, LocalDate today) {
+    private BaoCaoAiBuoiSang generate(HoSoGiaoVien teacher, LopHoc classRoom, LocalDate today) {
         List<HoSoHocSinh> students = studentProfileRepository.findByLopHoc_LopHocId(classRoom.getLopHocId());
         int totalStudents = students.size();
 
@@ -197,35 +197,35 @@ public class MorningReportService {
         return cleaned;
     }
 
-    private MorningReport persist(HoSoGiaoVien teacher, LopHoc classRoom, LocalDate today, String summary, Map<String, Object> analysis) {
-        MorningReport report = new MorningReport();
+    private BaoCaoAiBuoiSang persist(HoSoGiaoVien teacher, LopHoc classRoom, LocalDate today, String summary, Map<String, Object> analysis) {
+        BaoCaoAiBuoiSang report = new BaoCaoAiBuoiSang();
         report.setTeacher(teacher);
         report.setClassRoom(classRoom);
-        report.setReportDate(today);
-        report.setSummary(summary);
+        report.setNgayBaoCao(today);
+        report.setNoiDungTomTat(summary);
         try {
-            report.setAnalysisData(objectMapper.writeValueAsString(analysis));
+            report.setDuLieuPhanTich(objectMapper.writeValueAsString(analysis));
         } catch (Exception e) {
-            report.setAnalysisData("{}");
+            report.setDuLieuPhanTich("{}");
         }
         try {
             return morningReportRepository.save(report);
         } catch (DataIntegrityViolationException e) {
             // Race: 2 request cùng lúc cho cùng GV/lớp/ngày — đọc lại bản request kia vừa lưu.
             return morningReportRepository
-                    .findByTeacher_GiaoVienIdAndClassRoom_LopHocIdAndReportDate(teacher.getGiaoVienId(), classRoom.getLopHocId(), today)
+                    .findByTeacher_GiaoVienIdAndClassRoom_LopHocIdAndNgayBaoCao(teacher.getGiaoVienId(), classRoom.getLopHocId(), today)
                     .orElseThrow(() -> e);
         }
     }
 
-    private Map<String, Object> toDto(MorningReport report, LopHoc classRoom) {
+    private Map<String, Object> toDto(BaoCaoAiBuoiSang report, LopHoc classRoom) {
         Map<String, Object> dto = new LinkedHashMap<>();
-        dto.put("id", report.getId());
+        dto.put("id", report.getBaoCaoId());
         dto.put("classId", classRoom.getLopHocId());
         dto.put("className", classRoom.getTenLop());
-        dto.put("reportDate", report.getReportDate().toString());
-        dto.put("summary", report.getSummary());
-        dto.put("generatedAt", report.getCreatedAt().toString());
+        dto.put("reportDate", report.getNgayBaoCao().toString());
+        dto.put("summary", report.getNoiDungTomTat());
+        dto.put("generatedAt", report.getThoiDiemTao().toString());
         return dto;
     }
 }

@@ -1,8 +1,8 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.entity.LoginSession;
+import com.titkul.lms.entity.PhienDangNhap;
 import com.titkul.lms.entity.NguoiDung;
-import com.titkul.lms.repository.LoginSessionRepository;
+import com.titkul.lms.repository.PhienDangNhapRepository;
 import com.titkul.lms.repository.NguoiDungRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,36 +19,36 @@ public class RefreshTokenService {
     @Value("${jwt.refreshExpirationMs:2592000000}")
     private Long refreshTokenDurationMs;
 
-    private final LoginSessionRepository loginSessionRepository;
+    private final PhienDangNhapRepository loginSessionRepository;
     private final NguoiDungRepository userRepository;
 
-    public LoginSession createRefreshToken(Long userId, String deviceName, String ipAddress) {
+    public PhienDangNhap createRefreshToken(Long userId, String deviceName, String ipAddress) {
         NguoiDung user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         
-        LoginSession session = LoginSession.builder()
-                .user(user)
+        PhienDangNhap session = PhienDangNhap.builder()
+                .nguoiDung(user)
                 .refreshToken(UUID.randomUUID().toString())
-                .deviceName(deviceName)
-                .ipAddress(ipAddress)
-                .expiresAt(LocalDateTime.now().plusNanos(refreshTokenDurationMs * 1_000_000))
-                .createdAt(LocalDateTime.now())
-                .revoked(false)
+                .tenThietBi(deviceName)
+                .diaChiIp(ipAddress)
+                .hetHan(LocalDateTime.now().plusNanos(refreshTokenDurationMs * 1_000_000))
+                .thoiDiemTao(LocalDateTime.now())
+                .daThuHoi(false)
                 .build();
-                
+
         return loginSessionRepository.save(session);
     }
 
-    public Optional<LoginSession> findByToken(String token) {
+    public Optional<PhienDangNhap> findByToken(String token) {
         return loginSessionRepository.findAll().stream().filter(s -> s.getRefreshToken().equals(token)).findFirst(); // In real app, query DB directly
     }
 
-    public LoginSession verifyExpiration(LoginSession token) {
-        if (token.getExpiresAt().isBefore(LocalDateTime.now()) || token.getRevoked()) {
+    public PhienDangNhap verifyExpiration(PhienDangNhap token) {
+        if (token.getHetHan().isBefore(LocalDateTime.now()) || token.getDaThuHoi()) {
             loginSessionRepository.delete(token);
             throw new RuntimeException("Refresh token was expired or revoked. Please make a new signin request");
         }
-        
-        token.setLastUsedAt(LocalDateTime.now());
+
+        token.setThoiDiemSuDungCuoi(LocalDateTime.now());
         return loginSessionRepository.save(token);
     }
 }

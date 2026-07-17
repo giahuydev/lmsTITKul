@@ -14,29 +14,29 @@ import java.time.LocalDateTime;
 @Table(name = "goi_y_ai_nhan_xet")
 @Data
 @NoArgsConstructor
-public class AiCommentSuggestion {
+public class GoiYAiNhanXet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "goi_y_id")
-    private Long id;
+    private Long goiYId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bai_nop_id", nullable = false)
-    private BaiNop submission;
+    private BaiNop baiNop;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "du_lieu_dau_vao", nullable = false)
-    private String inputData;
+    private String duLieuDauVao;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "ket_qua_goi_y")
-    private String suggestionResult;
+    private String ketQuaGoiY;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai", nullable = false)
-    private AiSuggestionStatus status = AiSuggestionStatus.NHAP;
+    private TrangThaiGoiY trangThai = TrangThaiGoiY.NHAP;
 
     @Column(name = "thoi_diem_goi", nullable = false)
-    private LocalDateTime generatedAt = LocalDateTime.now();
+    private LocalDateTime thoiDiemGoi = LocalDateTime.now();
 }

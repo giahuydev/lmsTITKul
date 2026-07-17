@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
 public class StudentService {
 
     private static final DateTimeFormatter DEADLINE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final List<NotificationAudience> STUDENT_AUDIENCE =
-            List.of(NotificationAudience.TAT_CA, NotificationAudience.HOC_SINH);
+    private static final List<DoiTuongNhanThongBao> STUDENT_AUDIENCE =
+            List.of(DoiTuongNhanThongBao.TAT_CA, DoiTuongNhanThongBao.HOC_SINH);
 
     private final NguoiDungRepository userRepository;
     private final HoSoHocSinhRepository studentProfileRepository;
@@ -44,8 +44,8 @@ public class StudentService {
     private final DangBaiRepository contentNodeRepository;
     private final StudentProgressRepository studentProgressRepository;
     private final HocKyRepository semesterRepository;
-    private final NotificationRepository notificationRepository;
-    private final NotificationReadStatusRepository notificationReadStatusRepository;
+    private final ThongBaoRepository notificationRepository;
+    private final TrangThaiDocThongBaoRepository notificationReadStatusRepository;
     private final HuyHieuRepository huyHieuRepository;
     private final KhenThuongHocSinhRepository khenThuongHocSinhRepository;
 
@@ -79,7 +79,7 @@ public class StudentService {
             StudentDashboardDto.UpcomingTaskDto.builder().id(1L).title("Luyện tập phép cộng trừ").subject("Toán Học").time("3 giờ nữa").build()
         );
 
-        List<Notification> visibleNotifications = classRoom != null
+        List<ThongBao> visibleNotifications = classRoom != null
                 ? notificationRepository.findVisibleToClass(classRoom.getLopHocId(), STUDENT_AUDIENCE)
                 : notificationRepository.findGlobalOnly(STUDENT_AUDIENCE);
         DateTimeFormatter notiFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -87,17 +87,17 @@ public class StudentService {
                 .limit(3)
                 .map(n -> {
                     boolean read = notificationReadStatusRepository
-                            .findByUser_NguoiDungIdAndNotification_Id(user.getNguoiDungId(), n.getId())
-                            .map(NotificationReadStatus::isRead)
+                            .findByUser_NguoiDungIdAndThongBao_ThongBaoId(user.getNguoiDungId(), n.getThongBaoId())
+                            .map(TrangThaiDocThongBao::isDaDoc)
                             .orElse(false);
                     return StudentDashboardDto.NotificationDto.builder()
-                            .id(n.getId())
-                            .title(n.getTitle())
+                            .id(n.getThongBaoId())
+                            .title(n.getTieuDe())
                             .isNew(!read)
-                            .content(n.getContent())
-                            .date(n.getPostedAt().format(notiFmt))
-                            .type(n.getType().name())
-                            .pinned(n.isPinned())
+                            .content(n.getNoiDung())
+                            .date(n.getNgayDang().format(notiFmt))
+                            .type(n.getLoaiThongBao().name())
+                            .pinned(n.isLaGhim())
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -375,24 +375,24 @@ public class StudentService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        List<Notification> notifications = profile.getLopHoc() != null
+        List<ThongBao> notifications = profile.getLopHoc() != null
                 ? notificationRepository.findVisibleToClass(profile.getLopHoc().getLopHocId(), STUDENT_AUDIENCE)
                 : notificationRepository.findGlobalOnly(STUDENT_AUDIENCE);
 
         return notifications.stream()
                 .map(n -> {
                     boolean read = notificationReadStatusRepository
-                            .findByUser_NguoiDungIdAndNotification_Id(user.getNguoiDungId(), n.getId())
-                            .map(NotificationReadStatus::isRead)
+                            .findByUser_NguoiDungIdAndThongBao_ThongBaoId(user.getNguoiDungId(), n.getThongBaoId())
+                            .map(TrangThaiDocThongBao::isDaDoc)
                             .orElse(false);
                     Map<String, Object> map = new LinkedHashMap<>();
-                    map.put("id", n.getId());
-                    map.put("title", n.getTitle());
-                    map.put("content", n.getContent());
-                    map.put("date", n.getPostedAt().format(fmt));
+                    map.put("id", n.getThongBaoId());
+                    map.put("title", n.getTieuDe());
+                    map.put("content", n.getNoiDung());
+                    map.put("date", n.getNgayDang().format(fmt));
                     map.put("read", read);
-                    map.put("type", n.getType().name());
-                    map.put("pinned", n.isPinned());
+                    map.put("type", n.getLoaiThongBao().name());
+                    map.put("pinned", n.isLaGhim());
                     return map;
                 })
                 .collect(Collectors.toList());
@@ -412,22 +412,22 @@ public class StudentService {
         HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
 
-        List<Notification> notifications = profile.getLopHoc() != null
+        List<ThongBao> notifications = profile.getLopHoc() != null
                 ? notificationRepository.findVisibleToClass(profile.getLopHoc().getLopHocId(), STUDENT_AUDIENCE)
                 : notificationRepository.findGlobalOnly(STUDENT_AUDIENCE);
-        notifications.forEach(n -> markNotificationReadForUser(user, n.getId()));
+        notifications.forEach(n -> markNotificationReadForUser(user, n.getThongBaoId()));
     }
 
     private void markNotificationReadForUser(NguoiDung user, Long notificationId) {
-        NotificationReadStatus status = notificationReadStatusRepository
-                .findByUser_NguoiDungIdAndNotification_Id(user.getNguoiDungId(), notificationId)
-                .orElseGet(NotificationReadStatus::new);
-        if (status.getId() == null) {
+        TrangThaiDocThongBao status = notificationReadStatusRepository
+                .findByUser_NguoiDungIdAndThongBao_ThongBaoId(user.getNguoiDungId(), notificationId)
+                .orElseGet(TrangThaiDocThongBao::new);
+        if (status.getTrangThaiId() == null) {
             status.setUser(user);
-            status.setNotification(notificationRepository.getReferenceById(notificationId));
+            status.setThongBao(notificationRepository.getReferenceById(notificationId));
         }
-        status.setRead(true);
-        status.setReadAt(LocalDateTime.now());
+        status.setDaDoc(true);
+        status.setThoiDiemDoc(LocalDateTime.now());
         notificationReadStatusRepository.save(status);
     }
 

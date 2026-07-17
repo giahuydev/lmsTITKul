@@ -1,7 +1,7 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.entity.SystemConfig;
-import com.titkul.lms.repository.SystemConfigRepository;
+import com.titkul.lms.entity.CauHinhHeThong;
+import com.titkul.lms.repository.CauHinhHeThongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,33 +10,33 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SystemConfigService {
 
-    private final SystemConfigRepository systemConfigRepository;
+    private final CauHinhHeThongRepository systemConfigRepository;
 
     @Transactional(readOnly = true)
-    public SystemConfig getSystemConfig() {
+    public CauHinhHeThong getSystemConfig() {
         return systemConfigRepository.findAll().stream().findFirst().orElseGet(() -> {
-            SystemConfig config = new SystemConfig();
+            CauHinhHeThong config = new CauHinhHeThong();
             config.setId(1L);
             return config;
         });
     }
 
     @Transactional
-    public SystemConfig updateSystemConfig(SystemConfig newConfig) {
-        SystemConfig config = getSystemConfig();
-        config.setSchoolName(newConfig.getSchoolName());
-        config.setAcademicYear(newConfig.getAcademicYear());
-        config.setAcademicYearLegacy(newConfig.getAcademicYear());
-        config.setCurrentSemester(newConfig.getCurrentSemester());
+    public CauHinhHeThong updateSystemConfig(CauHinhHeThong newConfig) {
+        CauHinhHeThong config = getSystemConfig();
+        config.setTenTruong(newConfig.getTenTruong());
+        config.setNamHocHienTai(newConfig.getNamHocHienTai());
+        config.setNamHocCu(newConfig.getNamHocHienTai());
+        config.setHocKyHienTai(newConfig.getHocKyHienTai());
         config.setLogoUrl(newConfig.getLogoUrl());
-        
-        if (newConfig.getGrades() != null) {
-            config.setGrades(newConfig.getGrades());
+
+        if (newConfig.getDanhSachKhoi() != null) {
+            config.setDanhSachKhoi(newConfig.getDanhSachKhoi());
         }
-        if (newConfig.getSubjects() != null) {
-            config.setSubjects(newConfig.getSubjects());
+        if (newConfig.getDanhSachMon() != null) {
+            config.setDanhSachMon(newConfig.getDanhSachMon());
         }
-        
+
         return systemConfigRepository.save(config);
     }
 }

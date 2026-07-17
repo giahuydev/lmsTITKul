@@ -1,10 +1,10 @@
 package com.titkul.lms.dto;
 
-import com.titkul.lms.entity.SupportTicketStatus;
+import com.titkul.lms.entity.TrangThaiPhieu;
 import lombok.Data;
 
 @Data
 public class ProcessTicketRequest {
-    private SupportTicketStatus status;
+    private TrangThaiPhieu status;
     private String adminNote;
 }

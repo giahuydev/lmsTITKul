@@ -8,17 +8,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 
 // 1 dòng = 1 thông báo đăng cho cả lớp (hoặc toàn trường nếu classRoom=null) —
-// trạng thái đọc riêng của từng người nằm ở bảng NotificationReadStatus.
+// trạng thái đọc riêng của từng người nằm ở bảng TrangThaiDocThongBao.
 @Entity
 @Table(name = "thong_bao")
 @Data
 @NoArgsConstructor
-public class Notification {
+public class ThongBao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "thong_bao_id")
-    private Long id;
+    private Long thongBaoId;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,25 +31,25 @@ public class Notification {
     private LopHoc classRoom;
 
     @Column(name = "tieu_de", nullable = false, length = 300)
-    private String title;
+    private String tieuDe;
 
     @Column(name = "noi_dung", columnDefinition = "TEXT")
-    private String content;
+    private String noiDung;
 
     @Column(name = "file_dinh_kem", length = 500)
-    private String attachmentUrl;
+    private String fileDinhKem;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "loai_thong_bao", nullable = false, length = 50)
-    private NotificationType type = NotificationType.NOI_BO;
+    private LoaiThongBao loaiThongBao = LoaiThongBao.NOI_BO;
 
     @Column(name = "la_ghim", nullable = false)
-    private boolean pinned = false;
+    private boolean laGhim = false;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "doi_tuong_nhan", nullable = false, length = 20)
-    private NotificationAudience audience = NotificationAudience.TAT_CA;
+    private DoiTuongNhanThongBao doiTuongNhan = DoiTuongNhanThongBao.TAT_CA;
 
     @Column(name = "ngay_dang", nullable = false)
-    private LocalDateTime postedAt = LocalDateTime.now();
+    private LocalDateTime ngayDang = LocalDateTime.now();
 }

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class InvalidatedToken {
+public class TokenVoHieu {
 
     @Id
     @Column(name = "id")

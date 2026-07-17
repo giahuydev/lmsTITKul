@@ -1,9 +1,9 @@
 package com.titkul.lms.repository;
 
-import com.titkul.lms.entity.SystemConfig;
+import com.titkul.lms.entity.PhienXacThuc;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SystemConfigRepository extends JpaRepository<SystemConfig, Long> {
+public interface PhienXacThucRepository extends JpaRepository<PhienXacThuc, Long> {
 }

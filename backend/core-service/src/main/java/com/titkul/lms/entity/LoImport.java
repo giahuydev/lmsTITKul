@@ -6,34 +6,34 @@ import lombok.Data;
 @Entity
 @Table(name = "lo_import")
 @Data
-public class ImportBatch {
+public class LoImport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "lo_id")
-    private Long id;
+    private Long loId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_thuc_hien_id")
-    private NguoiDung executedBy;
+    private NguoiDung nguoiThucHien;
 
     @Column(name = "loai_import")
-    private String importType;
+    private String loaiImport;
 
     @Column(name = "ten_file")
-    private String fileName;
+    private String tenFile;
 
     @Column(name = "trang_thai")
-    private String status;
+    private String trangThai;
 
     @Column(name = "so_thanh_cong")
-    private Integer successCount;
+    private Integer soThanhCong;
 
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(name = "chi_tiet_loi")
-    private String errorDetails;
+    private String chiTietLoi;
 
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(name = "tom_tat_ket_qua")
-    private String summary;
+    private String tomTatKetQua;
 }
