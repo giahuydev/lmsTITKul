@@ -3,7 +3,7 @@ package com.titkul.lms.dto;
 import lombok.Data;
 
 @Data
-public class ClassStudentDto {
+public class HocSinhLopResponse {
     private Long id; // User ID of the student
     private String code;
     private String name;

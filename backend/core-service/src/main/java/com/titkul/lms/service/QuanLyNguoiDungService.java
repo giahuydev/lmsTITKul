@@ -1,8 +1,8 @@
 package com.titkul.lms.service;
 
 import com.titkul.lms.constant.AppConstants;
-import com.titkul.lms.dto.AdminUserDto;
-import com.titkul.lms.dto.CreateUserDto;
+import com.titkul.lms.dto.NguoiDungQuanTriResponse;
+import com.titkul.lms.dto.TaoNguoiDungRequest;
 import com.titkul.lms.entity.*;
 import com.titkul.lms.repository.*;
 import com.titkul.lms.service.strategy.TaoNguoiDungStrategy;
@@ -27,7 +27,7 @@ public class QuanLyNguoiDungService {
     private final List<TaoNguoiDungStrategy> userCreationStrategies;
 
     @Transactional
-    public NguoiDung createUser(CreateUserDto dto) {
+    public NguoiDung createUser(TaoNguoiDungRequest dto) {
         // Username giờ được tự sinh bên trong từng TaoNguoiDungStrategy (GV+SĐT / HS+Mã HS)
         // và được kiểm tra trùng ngay tại đó, nên không cần check dto.getUsername() ở đây nữa.
         String defaultPasswordHash = passwordEncoder.encode(AppConstants.DEFAULT_PASSWORD);
@@ -41,9 +41,9 @@ public class QuanLyNguoiDungService {
     }
 
     @Transactional(readOnly = true)
-    public List<AdminUserDto> getAllUsers() {
+    public List<NguoiDungQuanTriResponse> getAllUsers() {
         return userRepository.findAll().stream().map(user -> {
-            AdminUserDto dto = new AdminUserDto();
+            NguoiDungQuanTriResponse dto = new NguoiDungQuanTriResponse();
             dto.setId(user.getNguoiDungId());
             dto.setUsername(user.getTenDangNhap());
             dto.setEmail(user.getEmail());

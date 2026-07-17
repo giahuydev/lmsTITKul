@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class TeacherDashboardDto {
+public class GiaoVienDashboardResponse {
     private String fullName;
     private int classesCount;
     private String homeroomClass;

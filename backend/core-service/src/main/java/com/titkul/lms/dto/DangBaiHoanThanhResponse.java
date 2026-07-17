@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ContentNodeCompleteResultDto {
+public class DangBaiHoanThanhResponse {
     private Integer xpEarned;
     private Integer totalXp;
     private Boolean alreadyCompleted;

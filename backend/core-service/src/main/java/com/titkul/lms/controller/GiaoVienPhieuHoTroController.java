@@ -1,7 +1,7 @@
 package com.titkul.lms.controller;
 
-import com.titkul.lms.dto.SupportTicketDto;
-import com.titkul.lms.dto.SupportTicketRequest;
+import com.titkul.lms.dto.PhieuHoTroResponse;
+import com.titkul.lms.dto.PhieuHoTroRequest;
 import com.titkul.lms.entity.NguoiDung;
 import com.titkul.lms.service.PhieuHoTroService;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +19,14 @@ public class GiaoVienPhieuHoTroController {
     private final PhieuHoTroService ticketService;
 
     @GetMapping
-    public ResponseEntity<List<SupportTicketDto>> getMyTickets(Authentication authentication) {
+    public ResponseEntity<List<PhieuHoTroResponse>> getMyTickets(Authentication authentication) {
         return ResponseEntity.ok(ticketService.getTicketsByTeacherUsername(authentication.getName()));
     }
 
     @PostMapping
-    public ResponseEntity<SupportTicketDto> createTicket(
+    public ResponseEntity<PhieuHoTroResponse> createTicket(
             Authentication authentication,
-            @RequestBody SupportTicketRequest request) {
+            @RequestBody PhieuHoTroRequest request) {
         return ResponseEntity.ok(ticketService.createTicket(authentication.getName(), request));
     }
 }

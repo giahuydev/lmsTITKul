@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class ParentDashboardDto {
+public class PhuHuynhDashboardResponse {
     private String fullName;
     private int childrenCount;
     private List<ChildDto> children;

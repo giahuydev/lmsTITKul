@@ -1,6 +1,6 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.dto.AssignmentRequestDTO;
+import com.titkul.lms.dto.BaiTapRequest;
 import com.titkul.lms.entity.BaiTap;
 import com.titkul.lms.entity.LoaiBaiTap;
 import com.titkul.lms.entity.LopHoc;
@@ -31,7 +31,7 @@ public class BaiTapService {
     private final HocKyRepository semesterRepository;
     private final HocLieuRepository hocLieuRepository;
 
-    public BaiTap createAssignment(AssignmentRequestDTO dto) {
+    public BaiTap createAssignment(BaiTapRequest dto) {
         BaiTap assignment = new BaiTap();
         assignment.setTieuDe(dto.getTitle());
         assignment.setMoTa(dto.getDescription());

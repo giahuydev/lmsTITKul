@@ -2,10 +2,10 @@ package com.titkul.lms.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.titkul.lms.constant.AppConstants;
-import com.titkul.lms.dto.ImportRecordDTO;
-import com.titkul.lms.dto.ImportResultDTO;
-import com.titkul.lms.dto.ParsedStudentExcelRow;
-import com.titkul.lms.dto.ParsedTeacherExcelRow;
+import com.titkul.lms.dto.BanGhiImportResponse;
+import com.titkul.lms.dto.KetQuaImportResponse;
+import com.titkul.lms.dto.ParsedHocSinhExcelRow;
+import com.titkul.lms.dto.ParsedGiaoVienExcelRow;
 import com.titkul.lms.entity.*;
 import com.titkul.lms.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -35,17 +35,17 @@ public class QuanTriVienService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public ImportResultDTO importStudentsAndParents(MultipartFile file) {
-        List<ParsedStudentExcelRow> parsedRows = excelImportService.parseStudentImportFile(file);
+    public KetQuaImportResponse importStudentsAndParents(MultipartFile file) {
+        List<ParsedHocSinhExcelRow> parsedRows = excelImportService.parseStudentImportFile(file);
 
         String defaultPasswordHash = passwordEncoder.encode(AppConstants.DEFAULT_PASSWORD);
         Map<String, LopHoc> classCache = new HashMap<>();
         Map<String, HoSoPhuHuynh> parentCache = new HashMap<>();
 
-        List<ImportRecordDTO> failures = new ArrayList<>();
+        List<BanGhiImportResponse> failures = new ArrayList<>();
         int successCount = 0;
 
-        for (ParsedStudentExcelRow row : parsedRows) {
+        for (ParsedHocSinhExcelRow row : parsedRows) {
             if (!row.isValid()) {
                 failures.add(toFailRecord(row.getRowNumber(), row.getStudentCode(), row.getStudentName(), row.getErrorMsg()));
                 continue;
@@ -65,19 +65,19 @@ public class QuanTriVienService {
             }
         }
 
-        ImportResultDTO result = buildResult(parsedRows.size(), successCount, failures);
+        KetQuaImportResponse result = buildResult(parsedRows.size(), successCount, failures);
         saveImportBatch("TAI_KHOAN", file.getOriginalFilename(), result, failures);
         return result;
     }
 
-    public ImportResultDTO importTeachers(MultipartFile file) {
-        List<ParsedTeacherExcelRow> parsedRows = excelImportService.parseTeacherImportFile(file);
+    public KetQuaImportResponse importTeachers(MultipartFile file) {
+        List<ParsedGiaoVienExcelRow> parsedRows = excelImportService.parseTeacherImportFile(file);
         String defaultPasswordHash = passwordEncoder.encode(AppConstants.DEFAULT_PASSWORD);
 
-        List<ImportRecordDTO> failures = new ArrayList<>();
+        List<BanGhiImportResponse> failures = new ArrayList<>();
         int successCount = 0;
 
-        for (ParsedTeacherExcelRow row : parsedRows) {
+        for (ParsedGiaoVienExcelRow row : parsedRows) {
             if (!row.isValid()) {
                 failures.add(toFailRecord(row.getRowNumber(), row.getTeacherCode(), row.getFullName(), row.getErrorMsg()));
                 continue;
@@ -138,7 +138,7 @@ public class QuanTriVienService {
         });
     }
 
-    private HoSoPhuHuynh resolveOrCreateParent(ParsedStudentExcelRow row, Map<String, HoSoPhuHuynh> cache, String passwordHash) {
+    private HoSoPhuHuynh resolveOrCreateParent(ParsedHocSinhExcelRow row, Map<String, HoSoPhuHuynh> cache, String passwordHash) {
         String phone = row.getParentPhone();
         if (cache.containsKey(phone)) return cache.get(phone);
 
@@ -171,7 +171,7 @@ public class QuanTriVienService {
         return profile;
     }
 
-    private void createStudent(ParsedStudentExcelRow row, LopHoc cls, HoSoPhuHuynh parent, String passwordHash) {
+    private void createStudent(ParsedHocSinhExcelRow row, LopHoc cls, HoSoPhuHuynh parent, String passwordHash) {
         NguoiDung sUser = new NguoiDung();
         sUser.setTenDangNhap(row.getStudentCode());
         sUser.setMatKhauHash(passwordHash);
@@ -191,7 +191,7 @@ public class QuanTriVienService {
         studentProfileRepository.save(student);
     }
 
-    private void createTeacher(ParsedTeacherExcelRow row, String passwordHash) {
+    private void createTeacher(ParsedGiaoVienExcelRow row, String passwordHash) {
         NguoiDung user = new NguoiDung();
         user.setTenDangNhap(row.getTeacherCode());
         user.setMatKhauHash(passwordHash);
@@ -210,8 +210,8 @@ public class QuanTriVienService {
         teacherProfileRepository.save(profile);
     }
 
-    private ImportResultDTO buildResult(int total, int successCount, List<ImportRecordDTO> failures) {
-        ImportResultDTO result = new ImportResultDTO();
+    private KetQuaImportResponse buildResult(int total, int successCount, List<BanGhiImportResponse> failures) {
+        KetQuaImportResponse result = new KetQuaImportResponse();
         result.setTotalRows(total);
         result.setSuccessCount(successCount);
         result.setFailureCount(failures.size());
@@ -219,11 +219,11 @@ public class QuanTriVienService {
         return result;
     }
 
-    private ImportRecordDTO toFailRecord(int row, String code, String name, String msg) {
-        return new ImportRecordDTO(row, code, name, msg);
+    private BanGhiImportResponse toFailRecord(int row, String code, String name, String msg) {
+        return new BanGhiImportResponse(row, code, name, msg);
     }
 
-    private void saveImportBatch(String type, String fileName, ImportResultDTO result, List<ImportRecordDTO> failures) {
+    private void saveImportBatch(String type, String fileName, KetQuaImportResponse result, List<BanGhiImportResponse> failures) {
         try {
             LoImport batch = new LoImport();
             batch.setLoaiImport(type);

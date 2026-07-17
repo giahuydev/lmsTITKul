@@ -5,15 +5,16 @@ import lombok.Data;
 
 @Data
 @Builder
-public class H5PAssignmentDetailDto {
+public class BaiTapTuLuanDetailResponse {
     private Long assignmentId;
     private String title;
-    private String h5pContentId;
-    private Integer xpReward;
+    private String description;
+    private String deadline;
+    private Boolean isPastDeadline;
     private Boolean allowResubmit;
     private Integer maxResubmitCount;
     private Integer attemptsUsed;
     private Boolean canSubmit;
-    private String deadline;
-    private Boolean isPastDeadline;
+    private String draftText;
+    private String draftAttachmentUrl;
 }

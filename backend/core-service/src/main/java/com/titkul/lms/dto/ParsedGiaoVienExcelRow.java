@@ -4,7 +4,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class ParsedTeacherExcelRow {
+public class ParsedGiaoVienExcelRow {
     private int rowNumber;
     private String teacherCode; // Username
     private String fullName;

@@ -4,7 +4,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class CreateUserDto {
+public class TaoNguoiDungRequest {
     private String role; // GIAO_VIEN, HOC_SINH
     
     // Common

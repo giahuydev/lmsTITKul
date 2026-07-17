@@ -31,9 +31,9 @@ public class LopHocService {
     }
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public List<com.titkul.lms.dto.ClassStudentDto> getStudentsByClassId(Long classId) {
+    public List<com.titkul.lms.dto.HocSinhLopResponse> getStudentsByClassId(Long classId) {
         return studentProfileRepository.findByLopHoc_LopHocId(classId).stream().map(student -> {
-            com.titkul.lms.dto.ClassStudentDto dto = new com.titkul.lms.dto.ClassStudentDto();
+            com.titkul.lms.dto.HocSinhLopResponse dto = new com.titkul.lms.dto.HocSinhLopResponse();
             dto.setId(student.getNguoiDung().getNguoiDungId());
             dto.setCode(student.getMaHocSinh());
             dto.setName(student.getHoTen());
@@ -52,7 +52,7 @@ public class LopHocService {
         }).toList();
     }
 
-    public LopHoc createClass(com.titkul.lms.dto.ClassRoomDto dto) {
+    public LopHoc createClass(com.titkul.lms.dto.LopHocRequest dto) {
         com.titkul.lms.entity.NamHoc academicYear = academicYearRepository.findById(dto.getAcademicYearId())
                 .orElseThrow(() -> new RuntimeException("Niên khóa không tồn tại"));
 
@@ -76,7 +76,7 @@ public class LopHocService {
         return classRoomRepository.save(classRoom);
     }
 
-    public LopHoc updateClass(Long id, com.titkul.lms.dto.ClassRoomDto dto) {
+    public LopHoc updateClass(Long id, com.titkul.lms.dto.LopHocRequest dto) {
         LopHoc classRoom = classRoomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Lớp học không tồn tại"));
 

@@ -1,6 +1,6 @@
 package com.titkul.lms.controller;
 
-import com.titkul.lms.dto.ImportResultDTO;
+import com.titkul.lms.dto.KetQuaImportResponse;
 import com.titkul.lms.service.QuanTriVienService;
 import com.titkul.lms.service.QuanTriVienDashboardService;
 import com.titkul.lms.service.CauHinhHeThongService;
@@ -34,7 +34,7 @@ public class QuanTriVienController {
             return ResponseEntity.badRequest().build();
         }
         
-        ImportResultDTO result = adminService.importStudentsAndParents(file);
+        KetQuaImportResponse result = adminService.importStudentsAndParents(file);
         return ResponseEntity.ok(result);
     }
 
@@ -44,12 +44,12 @@ public class QuanTriVienController {
             return ResponseEntity.badRequest().build();
         }
         
-        ImportResultDTO result = adminService.importTeachers(file);
+        KetQuaImportResponse result = adminService.importTeachers(file);
         return ResponseEntity.ok(result);
     }
 
     @PostMapping("/users")
-    public ResponseEntity<?> createUser(@RequestBody com.titkul.lms.dto.CreateUserDto dto) {
+    public ResponseEntity<?> createUser(@RequestBody com.titkul.lms.dto.TaoNguoiDungRequest dto) {
         try {
             return ResponseEntity.ok(userManagementService.createUser(dto));
         } catch (RuntimeException e) {

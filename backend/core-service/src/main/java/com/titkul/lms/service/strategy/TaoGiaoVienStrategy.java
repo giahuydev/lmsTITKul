@@ -1,6 +1,6 @@
 package com.titkul.lms.service.strategy;
 
-import com.titkul.lms.dto.CreateUserDto;
+import com.titkul.lms.dto.TaoNguoiDungRequest;
 import com.titkul.lms.entity.VaiTro;
 import com.titkul.lms.entity.HoSoGiaoVien;
 import com.titkul.lms.entity.NguoiDung;
@@ -25,7 +25,7 @@ public class TaoGiaoVienStrategy implements TaoNguoiDungStrategy {
 
     @Override
     @Transactional
-    public NguoiDung createUser(CreateUserDto dto, String defaultPasswordHash) {
+    public NguoiDung createUser(TaoNguoiDungRequest dto, String defaultPasswordHash) {
         if (dto.getPhone() == null || dto.getPhone().isBlank()) {
             throw new IllegalArgumentException("Số điện thoại là bắt buộc để tạo tài khoản Giáo viên.");
         }

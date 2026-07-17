@@ -1,15 +1,15 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.dto.AssignmentResponseDto;
-import com.titkul.lms.dto.ContentNodeCompleteResultDto;
-import com.titkul.lms.dto.ContentNodeDetailDto;
-import com.titkul.lms.dto.EssayAssignmentDetailDto;
-import com.titkul.lms.dto.EssaySubmissionRequest;
-import com.titkul.lms.dto.EssaySubmissionResultDto;
-import com.titkul.lms.dto.H5PAssignmentDetailDto;
-import com.titkul.lms.dto.H5PSubmissionRequest;
-import com.titkul.lms.dto.H5PSubmissionResultDto;
-import com.titkul.lms.dto.StudentDashboardDto;
+import com.titkul.lms.dto.BaiTapResponse;
+import com.titkul.lms.dto.DangBaiHoanThanhResponse;
+import com.titkul.lms.dto.DangBaiDetailResponse;
+import com.titkul.lms.dto.BaiTapTuLuanDetailResponse;
+import com.titkul.lms.dto.BaiNopTuLuanRequest;
+import com.titkul.lms.dto.BaiNopTuLuanResultResponse;
+import com.titkul.lms.dto.BaiTapH5PDetailResponse;
+import com.titkul.lms.dto.BaiNopH5PRequest;
+import com.titkul.lms.dto.BaiNopH5PResultResponse;
+import com.titkul.lms.dto.HocSinhDashboardResponse;
 import com.titkul.lms.entity.*;
 import com.titkul.lms.repository.*;
 import com.titkul.lms.util.AssignmentStatusUtils;
@@ -49,7 +49,7 @@ public class HocSinhService {
     private final HuyHieuRepository huyHieuRepository;
     private final KhenThuongHocSinhRepository khenThuongHocSinhRepository;
 
-    public StudentDashboardDto getDashboard(String username) {
+    public HocSinhDashboardResponse getDashboard(String username) {
         NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
@@ -63,8 +63,8 @@ public class HocSinhService {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-        List<StudentDashboardDto.EvaluationDto> evalDtos = recentEvaluations.stream()
-                .map(eval -> StudentDashboardDto.EvaluationDto.builder()
+        List<HocSinhDashboardResponse.EvaluationDto> evalDtos = recentEvaluations.stream()
+                .map(eval -> HocSinhDashboardResponse.EvaluationDto.builder()
                         .assignmentTitle(eval.getBaiNop().getBaiTap().getTieuDe())
                         .score(eval.getDiemSo() != null ? eval.getDiemSo().toString() : null)
                         .grade(eval.getXepLoai() != null ? eval.getXepLoai().name() : null)
@@ -73,24 +73,24 @@ public class HocSinhService {
                         .build())
                 .collect(Collectors.toList());
 
-        List<StudentDashboardDto.SubjectProgressDto> subjects = buildSubjectProgress(profile, classRoom);
+        List<HocSinhDashboardResponse.SubjectProgressDto> subjects = buildSubjectProgress(profile, classRoom);
 
-        List<StudentDashboardDto.UpcomingTaskDto> upcomingTasks = List.of(
-            StudentDashboardDto.UpcomingTaskDto.builder().id(1L).title("Luyện tập phép cộng trừ").subject("Toán Học").time("3 giờ nữa").build()
+        List<HocSinhDashboardResponse.UpcomingTaskDto> upcomingTasks = List.of(
+            HocSinhDashboardResponse.UpcomingTaskDto.builder().id(1L).title("Luyện tập phép cộng trừ").subject("Toán Học").time("3 giờ nữa").build()
         );
 
         List<ThongBao> visibleNotifications = classRoom != null
                 ? notificationRepository.findVisibleToClass(classRoom.getLopHocId(), STUDENT_AUDIENCE)
                 : notificationRepository.findGlobalOnly(STUDENT_AUDIENCE);
         DateTimeFormatter notiFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        List<StudentDashboardDto.NotificationDto> notifications = visibleNotifications.stream()
+        List<HocSinhDashboardResponse.NotificationDto> notifications = visibleNotifications.stream()
                 .limit(3)
                 .map(n -> {
                     boolean read = notificationReadStatusRepository
                             .findByUser_NguoiDungIdAndThongBao_ThongBaoId(user.getNguoiDungId(), n.getThongBaoId())
                             .map(TrangThaiDocThongBao::isDaDoc)
                             .orElse(false);
-                    return StudentDashboardDto.NotificationDto.builder()
+                    return HocSinhDashboardResponse.NotificationDto.builder()
                             .id(n.getThongBaoId())
                             .title(n.getTieuDe())
                             .isNew(!read)
@@ -102,7 +102,7 @@ public class HocSinhService {
                 })
                 .collect(Collectors.toList());
 
-        return StudentDashboardDto.builder()
+        return HocSinhDashboardResponse.builder()
                 .fullName(profile.getHoTen())
                 .className(classRoom != null ? classRoom.getTenLop() : "Chưa có lớp")
                 .academicYear(classRoom != null && classRoom.getNamHoc() != null ? classRoom.getNamHoc().getTenNamHoc() : "")
@@ -123,7 +123,7 @@ public class HocSinhService {
 
     // Chỉ hiện những môn ĐÃ có nội dung thật trong cây SGK cho đúng khối của lớp học sinh —
     // không hiện môn giả/rỗng. % tiến độ tính thật từ StudentProgress.
-    private List<StudentDashboardDto.SubjectProgressDto> buildSubjectProgress(HoSoHocSinh profile, LopHoc classRoom) {
+    private List<HocSinhDashboardResponse.SubjectProgressDto> buildSubjectProgress(HoSoHocSinh profile, LopHoc classRoom) {
         if (classRoom == null || classRoom.getKhoiLop() == null) return List.of();
         Integer grade = classRoom.getKhoiLop().intValue();
         List<MonHoc> subjectsWithContent = contentNodeRepository.findDistinctSubjectsByGrade(grade);
@@ -134,7 +134,7 @@ public class HocSinhService {
             int progress = nodes.isEmpty() ? 0 : (int) Math.round(completed * 100.0 / nodes.size());
             String[] style = SUBJECT_STYLE.getOrDefault(subject.getTenMon(), DEFAULT_SUBJECT_STYLE);
 
-            return StudentDashboardDto.SubjectProgressDto.builder()
+            return HocSinhDashboardResponse.SubjectProgressDto.builder()
                     .id(String.valueOf(subject.getMonHocId()))
                     .name(subject.getTenMon())
                     .desc(nodes.size() + " bài học")
@@ -148,7 +148,7 @@ public class HocSinhService {
         }).collect(Collectors.toList());
     }
 
-    public List<AssignmentResponseDto> getAssignments(String username) {
+    public List<BaiTapResponse> getAssignments(String username) {
         NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
@@ -171,7 +171,7 @@ public class HocSinhService {
                 .collect(Collectors.toList());
     }
 
-    public H5PAssignmentDetailDto getH5PAssignmentDetail(String username, Long assignmentId) {
+    public BaiTapH5PDetailResponse getH5PAssignmentDetail(String username, Long assignmentId) {
         HoSoHocSinh profile = resolveProfile(username);
         BaiTap assignment = resolveH5PAssignmentForStudent(assignmentId, profile);
 
@@ -182,7 +182,7 @@ public class HocSinhService {
         boolean canSubmit = !hasSubmitted
                 || (Boolean.TRUE.equals(assignment.getChoNopLai()) && attemptsUsed < assignment.getSoLanNopLaiToiDa());
 
-        return H5PAssignmentDetailDto.builder()
+        return BaiTapH5PDetailResponse.builder()
                 .assignmentId(assignment.getBaiTapId())
                 .title(assignment.getTieuDe())
                 .h5pContentId(resolveH5pContentId(assignment))
@@ -197,7 +197,7 @@ public class HocSinhService {
     }
 
     @Transactional
-    public H5PSubmissionResultDto submitH5PAssignment(String username, Long assignmentId, H5PSubmissionRequest request) {
+    public BaiNopH5PResultResponse submitH5PAssignment(String username, Long assignmentId, BaiNopH5PRequest request) {
         HoSoHocSinh profile = resolveProfile(username);
         BaiTap assignment = resolveH5PAssignmentForStudent(assignmentId, profile);
         Integer xpReward = resolveXpReward(assignment);
@@ -238,7 +238,7 @@ public class HocSinhService {
             studentProfileRepository.save(profile);
         }
 
-        return H5PSubmissionResultDto.builder()
+        return BaiNopH5PResultResponse.builder()
                 .submissionId(saved.getBaiNopId())
                 .score(score)
                 .xpEarned(xpEarned)
@@ -248,7 +248,7 @@ public class HocSinhService {
                 .build();
     }
 
-    public EssayAssignmentDetailDto getEssayAssignmentDetail(String username, Long assignmentId) {
+    public BaiTapTuLuanDetailResponse getEssayAssignmentDetail(String username, Long assignmentId) {
         HoSoHocSinh profile = resolveProfile(username);
         BaiTap assignment = resolveEssayAssignmentForStudent(assignmentId, profile);
 
@@ -261,7 +261,7 @@ public class HocSinhService {
         boolean canSubmit = !hasFinalized
                 || (Boolean.TRUE.equals(assignment.getChoNopLai()) && finalizedCount < assignment.getSoLanNopLaiToiDa());
 
-        return EssayAssignmentDetailDto.builder()
+        return BaiTapTuLuanDetailResponse.builder()
                 .assignmentId(assignment.getBaiTapId())
                 .title(assignment.getTieuDe())
                 .description(assignment.getMoTa())
@@ -277,7 +277,7 @@ public class HocSinhService {
     }
 
     @Transactional
-    public EssaySubmissionResultDto submitEssay(String username, Long assignmentId, EssaySubmissionRequest request) {
+    public BaiNopTuLuanResultResponse submitEssay(String username, Long assignmentId, BaiNopTuLuanRequest request) {
         HoSoHocSinh profile = resolveProfile(username);
         BaiTap assignment = resolveEssayAssignmentForStudent(assignmentId, profile);
 
@@ -304,7 +304,7 @@ public class HocSinhService {
         if (isDraft) {
             submission.setTrangThai(TrangThaiBaiNop.LUU_NHAP);
             BaiNop saved = submissionRepository.save(submission);
-            return EssaySubmissionResultDto.builder()
+            return BaiNopTuLuanResultResponse.builder()
                     .submissionId(saved.getBaiNopId())
                     .status(saved.getTrangThai().name())
                     .isLate(false)
@@ -312,7 +312,7 @@ public class HocSinhService {
         }
 
         BaiNop saved = submissionService.submitAssignment(submission);
-        return EssaySubmissionResultDto.builder()
+        return BaiNopTuLuanResultResponse.builder()
                 .submissionId(saved.getBaiNopId())
                 .status(saved.getTrangThai().name())
                 .isLate(saved.getLaNopTre())
@@ -550,7 +550,7 @@ public class HocSinhService {
         return result;
     }
 
-    public ContentNodeDetailDto getContentNodeDetail(String username, Integer contentNodeId) {
+    public DangBaiDetailResponse getContentNodeDetail(String username, Integer contentNodeId) {
         NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
         HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
@@ -563,7 +563,7 @@ public class HocSinhService {
                 .map(p -> Boolean.TRUE.equals(p.getCompleted()))
                 .orElse(false);
 
-        return ContentNodeDetailDto.builder()
+        return DangBaiDetailResponse.builder()
                 .id(contentNode.getDangBaiId())
                 .title(contentNode.getTenDangBai())
                 .h5pContentId(contentNode.getH5pNoiDungId())
@@ -574,7 +574,7 @@ public class HocSinhService {
 
     // Chỉ cộng XP lần đầu hoàn thành, tránh cày XP qua việc gọi lại API nhiều lần.
     @Transactional
-    public ContentNodeCompleteResultDto markContentNodeComplete(String username, Integer contentNodeId) {
+    public DangBaiHoanThanhResponse markContentNodeComplete(String username, Integer contentNodeId) {
         NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
         HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
@@ -609,7 +609,7 @@ public class HocSinhService {
             }
         }
 
-        return ContentNodeCompleteResultDto.builder()
+        return DangBaiHoanThanhResponse.builder()
                 .xpEarned(xpEarned)
                 .totalXp(profile.getTongXp())
                 .alreadyCompleted(wasCompleted)

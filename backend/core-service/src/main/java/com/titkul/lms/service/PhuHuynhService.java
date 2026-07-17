@@ -1,7 +1,7 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.dto.AssignmentResponseDto;
-import com.titkul.lms.dto.ParentDashboardDto;
+import com.titkul.lms.dto.BaiTapResponse;
+import com.titkul.lms.dto.PhuHuynhDashboardResponse;
 import com.titkul.lms.entity.*;
 import com.titkul.lms.repository.*;
 import com.titkul.lms.util.AssignmentStatusUtils;
@@ -34,14 +34,14 @@ public class PhuHuynhService {
     private final HocSinhService studentService;
 
     @Transactional(readOnly = true)
-    public ParentDashboardDto getDashboard(String username) {
+    public PhuHuynhDashboardResponse getDashboard(String username) {
         NguoiDung user = resolveUser(username);
         HoSoPhuHuynh profile = resolveProfile(user);
 
         List<HoSoHocSinh> children = profile.getDanhSachHocSinh() != null ? profile.getDanhSachHocSinh() : Collections.emptyList();
 
-        List<ParentDashboardDto.ChildDto> childDtos = children.stream()
-                .map(c -> ParentDashboardDto.ChildDto.builder()
+        List<PhuHuynhDashboardResponse.ChildDto> childDtos = children.stream()
+                .map(c -> PhuHuynhDashboardResponse.ChildDto.builder()
                         .id(c.getHocSinhId())
                         .studentName(c.getHoTen())
                         .className(c.getLopHoc() != null ? c.getLopHoc().getTenLop() : "Chưa có lớp")
@@ -50,11 +50,11 @@ public class PhuHuynhService {
 
         List<Long> childIds = children.stream().map(HoSoHocSinh::getHocSinhId).collect(Collectors.toList());
 
-        List<ParentDashboardDto.ActivityDto> activities = buildActivities(childIds);
-        List<ParentDashboardDto.AlertDto> alerts = buildAlerts(children);
-        List<ParentDashboardDto.AnnouncementDto> announcements = buildAnnouncements(profile);
+        List<PhuHuynhDashboardResponse.ActivityDto> activities = buildActivities(childIds);
+        List<PhuHuynhDashboardResponse.AlertDto> alerts = buildAlerts(children);
+        List<PhuHuynhDashboardResponse.AnnouncementDto> announcements = buildAnnouncements(profile);
 
-        return ParentDashboardDto.builder()
+        return PhuHuynhDashboardResponse.builder()
                 .fullName(profile.getHoTen())
                 .childrenCount(children.size())
                 .children(childDtos)
@@ -117,7 +117,7 @@ public class PhuHuynhService {
     }
 
     @Transactional(readOnly = true)
-    public List<AssignmentResponseDto> getAssignments(String username, Long childId) {
+    public List<BaiTapResponse> getAssignments(String username, Long childId) {
         HoSoPhuHuynh profile = resolveProfile(resolveUser(username));
 
         HoSoHocSinh child = profile.getDanhSachHocSinh().stream()
@@ -263,11 +263,11 @@ public class PhuHuynhService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ phụ huynh"));
     }
 
-    private List<ParentDashboardDto.ActivityDto> buildActivities(List<Long> childIds) {
+    private List<PhuHuynhDashboardResponse.ActivityDto> buildActivities(List<Long> childIds) {
         if (childIds.isEmpty()) return Collections.emptyList();
         return evaluationRepository.findByBaiNop_HocSinh_HocSinhIdInOrderByThoiDiemChamDesc(childIds, PageRequest.of(0, 5))
                 .stream()
-                .map(eval -> ParentDashboardDto.ActivityDto.builder()
+                .map(eval -> PhuHuynhDashboardResponse.ActivityDto.builder()
                         .title("Bài tập - " + eval.getBaiNop().getBaiTap().getTieuDe())
                         .type(eval.getBaiNop().getBaiTap().getLoaiBaiTap() == LoaiBaiTap.H5P ? "Bài tập H5P" : "Bài tự luận")
                         .badge(eval.getXepLoai() != null ? eval.getXepLoai().name() : "Đã chấm điểm")
@@ -275,7 +275,7 @@ public class PhuHuynhService {
                 .collect(Collectors.toList());
     }
 
-    private List<ParentDashboardDto.AlertDto> buildAlerts(List<HoSoHocSinh> children) {
+    private List<PhuHuynhDashboardResponse.AlertDto> buildAlerts(List<HoSoHocSinh> children) {
         List<Long> classRoomIds = children.stream()
                 .filter(c -> c.getLopHoc() != null)
                 .map(c -> c.getLopHoc().getLopHocId())
@@ -288,7 +288,7 @@ public class PhuHuynhService {
                 .stream()
                 .filter(a -> a.getDeadline() != null && a.getDeadline().isAfter(LocalDateTime.now()))
                 .limit(3)
-                .map(a -> ParentDashboardDto.AlertDto.builder()
+                .map(a -> PhuHuynhDashboardResponse.AlertDto.builder()
                         .title("Sắp đến hạn nộp bài!")
                         .description("Bài tập \"" + a.getTieuDe() + "\" sẽ hết hạn vào "
                                 + a.getDeadline().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + ".")
@@ -296,10 +296,10 @@ public class PhuHuynhService {
                 .collect(Collectors.toList());
     }
 
-    private List<ParentDashboardDto.AnnouncementDto> buildAnnouncements(HoSoPhuHuynh profile) {
+    private List<PhuHuynhDashboardResponse.AnnouncementDto> buildAnnouncements(HoSoPhuHuynh profile) {
         return resolveVisibleNotifications(profile).stream()
                 .limit(3)
-                .map(n -> ParentDashboardDto.AnnouncementDto.builder()
+                .map(n -> PhuHuynhDashboardResponse.AnnouncementDto.builder()
                         .title(n.getTieuDe())
                         .content(n.getNoiDung())
                         .date(n.getNgayDang().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))

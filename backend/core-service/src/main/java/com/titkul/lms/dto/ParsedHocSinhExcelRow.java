@@ -4,7 +4,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class ParsedStudentExcelRow {
+public class ParsedHocSinhExcelRow {
     private int rowNumber;
     private String className;
     private String studentCode;

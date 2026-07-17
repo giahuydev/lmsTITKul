@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class AdminDashboardDto {
+public class QuanTriVienDashboardResponse {
     private long totalStudents;
     private long totalTeachers;
     private long totalParents;

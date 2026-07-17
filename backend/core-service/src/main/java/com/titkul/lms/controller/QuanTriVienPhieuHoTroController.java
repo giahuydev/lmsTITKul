@@ -1,7 +1,7 @@
 package com.titkul.lms.controller;
 
-import com.titkul.lms.dto.ProcessTicketRequest;
-import com.titkul.lms.dto.SupportTicketDto;
+import com.titkul.lms.dto.XuLyPhieuHoTroRequest;
+import com.titkul.lms.dto.PhieuHoTroResponse;
 import com.titkul.lms.entity.NguoiDung;
 import com.titkul.lms.service.PhieuHoTroService;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +19,15 @@ public class QuanTriVienPhieuHoTroController {
     private final PhieuHoTroService ticketService;
 
     @GetMapping
-    public ResponseEntity<List<SupportTicketDto>> getPendingTickets() {
+    public ResponseEntity<List<PhieuHoTroResponse>> getPendingTickets() {
         return ResponseEntity.ok(ticketService.getPendingTickets());
     }
 
     @PostMapping("/{ticketId}/process")
-    public ResponseEntity<SupportTicketDto> processTicket(
+    public ResponseEntity<PhieuHoTroResponse> processTicket(
             @PathVariable Long ticketId,
             Authentication authentication,
-            @RequestBody ProcessTicketRequest request) {
+            @RequestBody XuLyPhieuHoTroRequest request) {
         return ResponseEntity.ok(ticketService.processTicket(ticketId, authentication.getName(), request));
     }
 }

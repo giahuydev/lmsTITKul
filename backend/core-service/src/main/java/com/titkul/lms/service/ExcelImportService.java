@@ -9,8 +9,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.titkul.lms.dto.ParsedStudentExcelRow;
-import com.titkul.lms.dto.ParsedTeacherExcelRow;
+import com.titkul.lms.dto.ParsedHocSinhExcelRow;
+import com.titkul.lms.dto.ParsedGiaoVienExcelRow;
 import com.titkul.lms.service.excel.HocSinhExcelParser;
 import com.titkul.lms.service.excel.GiaoVienExcelParser;
 
@@ -25,11 +25,11 @@ public class ExcelImportService {
     private final HocSinhExcelParser studentParser;
     private final GiaoVienExcelParser teacherParser;
 
-    public List<ParsedStudentExcelRow> parseStudentImportFile(MultipartFile file) {
+    public List<ParsedHocSinhExcelRow> parseStudentImportFile(MultipartFile file) {
         return parseFile(file, studentParser);
     }
 
-    public List<ParsedTeacherExcelRow> parseTeacherImportFile(MultipartFile file) {
+    public List<ParsedGiaoVienExcelRow> parseTeacherImportFile(MultipartFile file) {
         return parseFile(file, teacherParser);
     }
 

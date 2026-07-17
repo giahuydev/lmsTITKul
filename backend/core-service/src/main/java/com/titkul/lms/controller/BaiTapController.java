@@ -18,7 +18,7 @@ public class BaiTapController {
 
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('GIAO_VIEN') or hasRole('QUAN_TRI_VIEN')")
     @PostMapping
-    public ResponseEntity<BaiTap> createAssignment(@RequestBody com.titkul.lms.dto.AssignmentRequestDTO dto) {
+    public ResponseEntity<BaiTap> createAssignment(@RequestBody com.titkul.lms.dto.BaiTapRequest dto) {
         return ResponseEntity.ok(assignmentService.createAssignment(dto));
     }
 

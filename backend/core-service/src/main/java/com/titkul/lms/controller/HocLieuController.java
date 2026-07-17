@@ -1,7 +1,7 @@
 package com.titkul.lms.controller;
 
-import com.titkul.lms.dto.HocLieuClassificationDTO;
-import com.titkul.lms.dto.HocLieuInternalDTO;
+import com.titkul.lms.dto.HocLieuPhanLoaiRequest;
+import com.titkul.lms.dto.HocLieuNoiBoRequest;
 import com.titkul.lms.entity.HocLieu;
 import com.titkul.lms.service.HocLieuService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class HocLieuController {
 
     @PostMapping("/api/v1/internal/hoc-lieu")
     public ResponseEntity<?> receiveFromH5pService(
-            @RequestBody HocLieuInternalDTO dto,
+            @RequestBody HocLieuNoiBoRequest dto,
             @RequestHeader(value = "X-Internal-Secret", required = false) String secret) {
         if (!Objects.equals(secret, internalSecret)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -61,7 +61,7 @@ public class HocLieuController {
     @PreAuthorize("hasRole('GIAO_VIEN')")
     public ResponseEntity<HocLieu> updateClassification(
             @PathVariable Long id,
-            @RequestBody HocLieuClassificationDTO dto,
+            @RequestBody HocLieuPhanLoaiRequest dto,
             Authentication authentication) {
         return ResponseEntity.ok(hocLieuService.updateClassification(id, dto, authentication.getName()));
     }

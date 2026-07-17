@@ -1,7 +1,7 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.dto.HocLieuClassificationDTO;
-import com.titkul.lms.dto.HocLieuInternalDTO;
+import com.titkul.lms.dto.HocLieuPhanLoaiRequest;
+import com.titkul.lms.dto.HocLieuNoiBoRequest;
 import com.titkul.lms.entity.HocLieu;
 import com.titkul.lms.entity.LoaiHocLieu;
 import com.titkul.lms.entity.NguonGocHocLieu;
@@ -25,7 +25,7 @@ public class HocLieuService {
     private final MonHocRepository subjectRepository;
 
     // Upsert theo h5pContentId, tránh tạo trùng khi GV sửa lại bài.
-    public HocLieu createOrUpdateFromH5p(HocLieuInternalDTO dto) {
+    public HocLieu createOrUpdateFromH5p(HocLieuNoiBoRequest dto) {
         if (dto.getH5pContentId() == null || dto.getH5pContentId().isBlank()) {
             throw new IllegalArgumentException("h5pContentId không được để trống!");
         }
@@ -85,7 +85,7 @@ public class HocLieuService {
     }
 
     // Chỉ chủ sở hữu mới được gán Khối/Môn cho học liệu của mình.
-    public HocLieu updateClassification(Long id, HocLieuClassificationDTO dto, String requesterUsername) {
+    public HocLieu updateClassification(Long id, HocLieuPhanLoaiRequest dto, String requesterUsername) {
         HocLieu hocLieu = getById(id);
         boolean isOwner = hocLieu.getTeacher() != null
                 && hocLieu.getTeacher().getNguoiDung() != null

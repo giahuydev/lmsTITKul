@@ -1,6 +1,6 @@
 package com.titkul.lms.controller;
 
-import com.titkul.lms.dto.TeacherDashboardDto;
+import com.titkul.lms.dto.GiaoVienDashboardResponse;
 import com.titkul.lms.service.BaoCaoAiBuoiSangService;
 import com.titkul.lms.service.GiaoVienService;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +43,7 @@ public class GiaoVienController {
         }
 
         try {
-            TeacherDashboardDto dashboard = teacherService.getDashboard(authentication.getName());
+            GiaoVienDashboardResponse dashboard = teacherService.getDashboard(authentication.getName());
             return ResponseEntity.ok(dashboard);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
@@ -96,7 +96,7 @@ public class GiaoVienController {
     }
 
     @org.springframework.web.bind.annotation.PostMapping("/me/announcements")
-    public ResponseEntity<?> createAnnouncement(@org.springframework.web.bind.annotation.RequestBody com.titkul.lms.dto.AnnouncementCreateDTO dto) {
+    public ResponseEntity<?> createAnnouncement(@org.springframework.web.bind.annotation.RequestBody com.titkul.lms.dto.ThongBaoRequest dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));

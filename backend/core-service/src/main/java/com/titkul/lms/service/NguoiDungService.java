@@ -1,6 +1,6 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.dto.UserProfileDto;
+import com.titkul.lms.dto.NguoiDungProfileResponse;
 import com.titkul.lms.entity.NguoiDung;
 import com.titkul.lms.repository.HoSoPhuHuynhRepository;
 import com.titkul.lms.repository.HoSoHocSinhRepository;
@@ -18,11 +18,11 @@ public class NguoiDungService {
     private final HoSoGiaoVienRepository teacherProfileRepository;
     private final HoSoPhuHuynhRepository parentProfileRepository;
 
-    public UserProfileDto getMyProfile(String username) {
+    public NguoiDungProfileResponse getMyProfile(String username) {
         NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        UserProfileDto dto = UserProfileDto.builder()
+        NguoiDungProfileResponse dto = NguoiDungProfileResponse.builder()
                 .username(user.getTenDangNhap())
                 .email(user.getEmail())
                 .phone(user.getSoDienThoai())

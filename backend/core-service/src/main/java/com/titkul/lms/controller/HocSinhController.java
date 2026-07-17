@@ -1,8 +1,8 @@
 package com.titkul.lms.controller;
 
-import com.titkul.lms.dto.EssaySubmissionRequest;
-import com.titkul.lms.dto.H5PSubmissionRequest;
-import com.titkul.lms.dto.StudentDashboardDto;
+import com.titkul.lms.dto.BaiNopTuLuanRequest;
+import com.titkul.lms.dto.BaiNopH5PRequest;
+import com.titkul.lms.dto.HocSinhDashboardResponse;
 import com.titkul.lms.service.HocSinhService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class HocSinhController {
         }
 
         try {
-            StudentDashboardDto dashboard = studentService.getDashboard(authentication.getName());
+            HocSinhDashboardResponse dashboard = studentService.getDashboard(authentication.getName());
             return ResponseEntity.ok(dashboard);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
@@ -68,7 +68,7 @@ public class HocSinhController {
     }
 
     @PostMapping("/me/assignments/{id}/h5p-submissions")
-    public ResponseEntity<?> submitH5PAssignment(@PathVariable Long id, @Valid @RequestBody H5PSubmissionRequest request) {
+    public ResponseEntity<?> submitH5PAssignment(@PathVariable Long id, @Valid @RequestBody BaiNopH5PRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
@@ -94,7 +94,7 @@ public class HocSinhController {
     }
 
     @PostMapping("/me/assignments/{id}/essay-submissions")
-    public ResponseEntity<?> submitEssay(@PathVariable Long id, @Valid @RequestBody EssaySubmissionRequest request) {
+    public ResponseEntity<?> submitEssay(@PathVariable Long id, @Valid @RequestBody BaiNopTuLuanRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));

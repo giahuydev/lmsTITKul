@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class EssaySubmissionRequest {
+public class BaiNopTuLuanRequest {
     @NotBlank(message = "Nội dung bài làm không được để trống")
     private String textContent;
 

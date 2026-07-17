@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class StudentDashboardDto {
+public class HocSinhDashboardResponse {
     private String fullName;
     private String className;
     private String academicYear;

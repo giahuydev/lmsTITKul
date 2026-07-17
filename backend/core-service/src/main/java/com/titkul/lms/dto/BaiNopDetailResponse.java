@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Data
 @Builder
-public class SubmissionDetailDto {
+public class BaiNopDetailResponse {
     private Long id;
     private String studentName;
     private String assignmentTitle;

@@ -1,7 +1,7 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.dto.EvaluateDTO;
-import com.titkul.lms.dto.SubmissionDetailDto;
+import com.titkul.lms.dto.DanhGiaRequest;
+import com.titkul.lms.dto.BaiNopDetailResponse;
 import com.titkul.lms.entity.*;
 import com.titkul.lms.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -44,12 +44,12 @@ public class BaiNopService {
 
     private static final DateTimeFormatter DETAIL_DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-    public SubmissionDetailDto getSubmissionDetail(Long submissionId) {
+    public BaiNopDetailResponse getSubmissionDetail(Long submissionId) {
         BaiNop submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy bài nộp!"));
         DanhGiaBaiLam evaluation = evaluationRepository.findByBaiNop_BaiNopId(submissionId).orElse(null);
 
-        return SubmissionDetailDto.builder()
+        return BaiNopDetailResponse.builder()
                 .id(submission.getBaiNopId())
                 .studentName(submission.getHocSinh().getHoTen())
                 .assignmentTitle(submission.getBaiTap().getTieuDe())
@@ -70,7 +70,7 @@ public class BaiNopService {
     }
 
     @Transactional
-    public DanhGiaBaiLam evaluateSubmission(Long submissionId, EvaluateDTO dto) {
+    public DanhGiaBaiLam evaluateSubmission(Long submissionId, DanhGiaRequest dto) {
         BaiNop submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy bài nộp!"));
 

@@ -28,13 +28,13 @@ public class LopHocController {
     }
 
     @GetMapping("/{id}/students")
-    public ResponseEntity<List<com.titkul.lms.dto.ClassStudentDto>> getStudentsByClass(@PathVariable Long id) {
+    public ResponseEntity<List<com.titkul.lms.dto.HocSinhLopResponse>> getStudentsByClass(@PathVariable Long id) {
         return ResponseEntity.ok(classRoomService.getStudentsByClassId(id));
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createClass(@jakarta.validation.Valid @RequestBody com.titkul.lms.dto.ClassRoomDto dto) {
+    public ResponseEntity<?> createClass(@jakarta.validation.Valid @RequestBody com.titkul.lms.dto.LopHocRequest dto) {
         try {
             LopHoc classRoom = classRoomService.createClass(dto);
             return ResponseEntity.ok(classRoom);
@@ -45,7 +45,7 @@ public class LopHocController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateClass(@PathVariable Long id, @jakarta.validation.Valid @RequestBody com.titkul.lms.dto.ClassRoomDto dto) {
+    public ResponseEntity<?> updateClass(@PathVariable Long id, @jakarta.validation.Valid @RequestBody com.titkul.lms.dto.LopHocRequest dto) {
         try {
             LopHoc classRoom = classRoomService.updateClass(id, dto);
             return ResponseEntity.ok(classRoom);

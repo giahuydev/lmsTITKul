@@ -3,7 +3,7 @@ package com.titkul.lms.dto;
 import lombok.Data;
 
 @Data
-public class AdminUserDto {
+public class NguoiDungQuanTriResponse {
     private Long id;
     private String username;
     private String email;

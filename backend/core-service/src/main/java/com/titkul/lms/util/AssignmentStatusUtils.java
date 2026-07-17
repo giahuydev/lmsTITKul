@@ -1,6 +1,6 @@
 package com.titkul.lms.util;
 
-import com.titkul.lms.dto.AssignmentResponseDto;
+import com.titkul.lms.dto.BaiTapResponse;
 import com.titkul.lms.entity.BaiTap;
 import com.titkul.lms.entity.BaiNop;
 
@@ -14,7 +14,7 @@ public final class AssignmentStatusUtils {
 
     private AssignmentStatusUtils() {}
 
-    public static AssignmentResponseDto toDto(BaiTap assignment, BaiNop sub) {
+    public static BaiTapResponse toDto(BaiTap assignment, BaiNop sub) {
         boolean isLate = false;
         String status;
 
@@ -27,7 +27,7 @@ public final class AssignmentStatusUtils {
             status = "CHUA_NOP";
         }
 
-        return AssignmentResponseDto.builder()
+        return BaiTapResponse.builder()
                 .id(assignment.getBaiTapId())
                 .title(assignment.getTieuDe())
                 .subject("Bài tập")

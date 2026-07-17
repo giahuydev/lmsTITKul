@@ -1,7 +1,7 @@
 package com.titkul.lms.controller;
 
-import com.titkul.lms.dto.EvaluateDTO;
-import com.titkul.lms.dto.SubmissionDetailDto;
+import com.titkul.lms.dto.DanhGiaRequest;
+import com.titkul.lms.dto.BaiNopDetailResponse;
 import com.titkul.lms.entity.DanhGiaBaiLam;
 import com.titkul.lms.entity.BaiNop;
 import com.titkul.lms.service.GoiYAiNhanXetService;
@@ -37,14 +37,14 @@ public class BaiNopController {
     }
 
     @GetMapping("/submissions/{id}")
-    public ResponseEntity<SubmissionDetailDto> getSubmissionDetail(@PathVariable Long id) {
+    public ResponseEntity<BaiNopDetailResponse> getSubmissionDetail(@PathVariable Long id) {
         return ResponseEntity.ok(submissionService.getSubmissionDetail(id));
     }
 
     @PostMapping("/submissions/{id}/evaluate")
     public ResponseEntity<DanhGiaBaiLam> evaluateSubmission(
             @PathVariable Long id,
-            @RequestBody EvaluateDTO dto) {
+            @RequestBody DanhGiaRequest dto) {
         return ResponseEntity.ok(submissionService.evaluateSubmission(id, dto));
     }
 

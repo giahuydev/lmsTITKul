@@ -3,7 +3,7 @@ package com.titkul.lms.dto;
 import lombok.Data;
 
 @Data
-public class HocLieuClassificationDTO {
+public class HocLieuPhanLoaiRequest {
     private Short grade;
     private Integer subjectId;
 }

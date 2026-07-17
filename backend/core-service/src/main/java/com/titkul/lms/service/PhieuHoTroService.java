@@ -1,8 +1,8 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.dto.ProcessTicketRequest;
-import com.titkul.lms.dto.SupportTicketDto;
-import com.titkul.lms.dto.SupportTicketRequest;
+import com.titkul.lms.dto.XuLyPhieuHoTroRequest;
+import com.titkul.lms.dto.PhieuHoTroResponse;
+import com.titkul.lms.dto.PhieuHoTroRequest;
 import com.titkul.lms.entity.PhieuHoTro;
 import com.titkul.lms.entity.TrangThaiPhieu;
 import com.titkul.lms.entity.NguoiDung;
@@ -26,7 +26,7 @@ public class PhieuHoTroService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public SupportTicketDto createTicket(String teacherUsername, SupportTicketRequest request) {
+    public PhieuHoTroResponse createTicket(String teacherUsername, PhieuHoTroRequest request) {
         NguoiDung teacher = userRepository.findByTenDangNhap(teacherUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
         NguoiDung student = userRepository.findById(request.getStudentId())
@@ -44,7 +44,7 @@ public class PhieuHoTroService {
     }
 
     @Transactional(readOnly = true)
-    public List<SupportTicketDto> getTicketsByTeacherUsername(String teacherUsername) {
+    public List<PhieuHoTroResponse> getTicketsByTeacherUsername(String teacherUsername) {
         NguoiDung teacher = userRepository.findByTenDangNhap(teacherUsername)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
         return ticketRepository.findByTeacher_NguoiDungIdOrderByNgayTaoDesc(teacher.getNguoiDungId())
@@ -52,13 +52,13 @@ public class PhieuHoTroService {
     }
 
     @Transactional(readOnly = true)
-    public List<SupportTicketDto> getPendingTickets() {
+    public List<PhieuHoTroResponse> getPendingTickets() {
         return ticketRepository.findByTrangThaiOrderByNgayTaoAsc(TrangThaiPhieu.CHO_DUYET)
                 .stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Transactional
-    public SupportTicketDto processTicket(Long ticketId, String adminUsername, ProcessTicketRequest request) {
+    public PhieuHoTroResponse processTicket(Long ticketId, String adminUsername, XuLyPhieuHoTroRequest request) {
         PhieuHoTro ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu hỗ trợ"));
         NguoiDung admin = userRepository.findByTenDangNhap(adminUsername)
@@ -86,8 +86,8 @@ public class PhieuHoTroService {
         return mapToDto(ticket);
     }
 
-    private SupportTicketDto mapToDto(PhieuHoTro ticket) {
-        SupportTicketDto dto = new SupportTicketDto();
+    private PhieuHoTroResponse mapToDto(PhieuHoTro ticket) {
+        PhieuHoTroResponse dto = new PhieuHoTroResponse();
         dto.setId(ticket.getPhieuId());
         dto.setTeacherId(ticket.getTeacher().getNguoiDungId());
         dto.setTeacherName(ticket.getTeacher().getTenDangNhap()); // Should map to profile name if available

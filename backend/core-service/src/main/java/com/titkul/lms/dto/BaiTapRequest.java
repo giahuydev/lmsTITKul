@@ -4,7 +4,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class AssignmentRequestDTO {
+public class BaiTapRequest {
     private String title;
     private String description;
     private Long classId;

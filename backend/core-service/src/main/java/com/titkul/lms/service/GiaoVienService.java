@@ -1,8 +1,8 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.dto.AnnouncementCreateDTO;
+import com.titkul.lms.dto.ThongBaoRequest;
 import com.titkul.lms.dto.TraoHuyHieuRequest;
-import com.titkul.lms.dto.TeacherDashboardDto;
+import com.titkul.lms.dto.GiaoVienDashboardResponse;
 import com.titkul.lms.entity.BaiTap;
 import com.titkul.lms.entity.HuyHieu;
 import com.titkul.lms.entity.LopHoc;
@@ -53,7 +53,7 @@ public class GiaoVienService {
     private final KhenThuongHocSinhRepository khenThuongHocSinhRepository;
     private final EmailService emailService;
 
-    public TeacherDashboardDto getDashboard(String username) {
+    public GiaoVienDashboardResponse getDashboard(String username) {
         NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
@@ -64,7 +64,7 @@ public class GiaoVienService {
         String homeroomClassStr = homeroomClasses.isEmpty() ? "Không có" : homeroomClasses.get(0).getTenLop();
         long totalAssignments = assignmentRepository.countByGiaoVien_GiaoVienId(profile.getGiaoVienId());
 
-        return TeacherDashboardDto.builder()
+        return GiaoVienDashboardResponse.builder()
                 .fullName(profile.getHoTen())
                 .classesCount(1)
                 .homeroomClass(homeroomClassStr)
@@ -213,7 +213,7 @@ public class GiaoVienService {
     }
 
     @Transactional
-    public ThongBao createAnnouncement(String username, AnnouncementCreateDTO dto) {
+    public ThongBao createAnnouncement(String username, ThongBaoRequest dto) {
         NguoiDung user = userRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
         HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())

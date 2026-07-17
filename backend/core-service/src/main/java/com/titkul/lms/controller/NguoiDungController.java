@@ -1,6 +1,6 @@
 package com.titkul.lms.controller;
 
-import com.titkul.lms.dto.UserProfileDto;
+import com.titkul.lms.dto.NguoiDungProfileResponse;
 import com.titkul.lms.service.NguoiDungService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +27,7 @@ public class NguoiDungController {
         }
 
         try {
-            UserProfileDto profile = userService.getMyProfile(authentication.getName());
+            NguoiDungProfileResponse profile = userService.getMyProfile(authentication.getName());
             return ResponseEntity.ok(profile);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));

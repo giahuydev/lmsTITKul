@@ -1,6 +1,6 @@
 package com.titkul.lms.controller;
 
-import com.titkul.lms.dto.ParentDashboardDto;
+import com.titkul.lms.dto.PhuHuynhDashboardResponse;
 import com.titkul.lms.dto.ResetChildPasswordRequest;
 import com.titkul.lms.service.PhuHuynhService;
 import jakarta.validation.Valid;
@@ -32,7 +32,7 @@ public class PhuHuynhController {
         }
 
         try {
-            ParentDashboardDto dashboard = parentService.getDashboard(authentication.getName());
+            PhuHuynhDashboardResponse dashboard = parentService.getDashboard(authentication.getName());
             return ResponseEntity.ok(dashboard);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));

@@ -4,9 +4,9 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ImportResultDTO {
+public class KetQuaImportResponse {
     private int totalRows;
     private int successCount;
     private int failureCount;
-    private List<ImportRecordDTO> failures;
+    private List<BanGhiImportResponse> failures;
 }

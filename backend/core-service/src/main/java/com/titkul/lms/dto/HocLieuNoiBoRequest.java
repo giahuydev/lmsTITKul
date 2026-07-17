@@ -4,7 +4,7 @@ import lombok.Data;
 
 // DTO nhận từ NestJS (h5p-service) mỗi khi GV lưu/cập nhật một học liệu H5P.
 @Data
-public class HocLieuInternalDTO {
+public class HocLieuNoiBoRequest {
     private String h5pContentId;
     private String tieuDe;
     private String loaiHocLieu; // TAI_LIEU / BAI_GIANG_H5P / BAI_TAP_H5P

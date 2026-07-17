@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class H5PSubmissionRequest {
+public class BaiNopH5PRequest {
     @NotNull(message = "rawScore không được để trống")
     private Integer rawScore;
 

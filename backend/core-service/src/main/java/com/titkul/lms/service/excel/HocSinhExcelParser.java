@@ -1,15 +1,15 @@
 package com.titkul.lms.service.excel;
 
-import com.titkul.lms.dto.ParsedStudentExcelRow;
+import com.titkul.lms.dto.ParsedHocSinhExcelRow;
 import org.apache.poi.ss.usermodel.Row;
 import org.springframework.stereotype.Component;
 
 @Component
-public class HocSinhExcelParser implements ExcelRowParser<ParsedStudentExcelRow> {
+public class HocSinhExcelParser implements ExcelRowParser<ParsedHocSinhExcelRow> {
 
     @Override
-    public ParsedStudentExcelRow parse(Row row, int rowNum) {
-        ParsedStudentExcelRow parsed = new ParsedStudentExcelRow();
+    public ParsedHocSinhExcelRow parse(Row row, int rowNum) {
+        ParsedHocSinhExcelRow parsed = new ParsedHocSinhExcelRow();
         parsed.setRowNumber(rowNum);
         try {
             parsed.setClassName(ExcelCellReader.getString(row.getCell(0)));
@@ -27,7 +27,7 @@ public class HocSinhExcelParser implements ExcelRowParser<ParsedStudentExcelRow>
         return parsed;
     }
 
-    private void validate(ParsedStudentExcelRow row) {
+    private void validate(ParsedHocSinhExcelRow row) {
         StringBuilder errors = new StringBuilder();
         if (isBlank(row.getClassName()))   errors.append("Thiếu Lớp Học; ");
         if (isBlank(row.getStudentCode())) errors.append("Thiếu Mã Học Sinh; ");

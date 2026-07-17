@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class ClassRoomDto {
+public class LopHocRequest {
     @NotBlank(message = "Tên lớp không được để trống")
     private String name;
 

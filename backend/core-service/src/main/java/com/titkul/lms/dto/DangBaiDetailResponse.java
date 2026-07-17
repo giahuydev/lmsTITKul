@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ContentNodeDetailDto {
+public class DangBaiDetailResponse {
     private Integer id;
     private String title;
     private String h5pContentId;

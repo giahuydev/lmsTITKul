@@ -1,6 +1,6 @@
 package com.titkul.lms.service.strategy;
 
-import com.titkul.lms.dto.CreateUserDto;
+import com.titkul.lms.dto.TaoNguoiDungRequest;
 import com.titkul.lms.entity.*;
 import com.titkul.lms.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class TaoHocSinhStrategy implements TaoNguoiDungStrategy {
 
     @Override
     @Transactional
-    public NguoiDung createUser(CreateUserDto dto, String defaultPasswordHash) {
+    public NguoiDung createUser(TaoNguoiDungRequest dto, String defaultPasswordHash) {
         if (dto.getStudentCode() == null || dto.getStudentCode().isBlank()) {
             throw new IllegalArgumentException("Mã học sinh là bắt buộc để tạo tài khoản Học sinh.");
         }

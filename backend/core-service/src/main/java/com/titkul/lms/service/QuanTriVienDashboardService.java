@@ -1,6 +1,6 @@
 package com.titkul.lms.service;
 
-import com.titkul.lms.dto.AdminDashboardDto;
+import com.titkul.lms.dto.QuanTriVienDashboardResponse;
 import com.titkul.lms.repository.LopHocRepository;
 import com.titkul.lms.repository.HoSoPhuHuynhRepository;
 import com.titkul.lms.repository.HoSoHocSinhRepository;
@@ -22,7 +22,7 @@ public class QuanTriVienDashboardService {
     private final LopHocRepository classRoomRepository;
 
     @Transactional(readOnly = true)
-    public AdminDashboardDto getDashboardStats() {
+    public QuanTriVienDashboardResponse getDashboardStats() {
         long totalStudents = studentProfileRepository.count();
         long totalTeachers = teacherProfileRepository.count();
         long totalParents = parentProfileRepository.count();
@@ -48,7 +48,7 @@ public class QuanTriVienDashboardService {
 
         List<Integer> mockTraffic = java.util.Arrays.asList(120, 200, 150, 300, 250, 400, 380);
 
-        return AdminDashboardDto.builder()
+        return QuanTriVienDashboardResponse.builder()
                 .totalStudents(totalStudents)
                 .totalTeachers(totalTeachers)
                 .totalParents(totalParents)

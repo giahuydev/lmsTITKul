@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ImportRecordDTO {
+public class BanGhiImportResponse {
     private int rowNumber;
     private String studentCode;
     private String studentName;
