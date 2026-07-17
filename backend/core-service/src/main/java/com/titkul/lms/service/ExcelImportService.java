@@ -11,8 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.titkul.lms.dto.ParsedStudentExcelRow;
 import com.titkul.lms.dto.ParsedTeacherExcelRow;
-import com.titkul.lms.service.excel.StudentExcelParser;
-import com.titkul.lms.service.excel.TeacherExcelParser;
+import com.titkul.lms.service.excel.HocSinhExcelParser;
+import com.titkul.lms.service.excel.GiaoVienExcelParser;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -22,8 +22,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExcelImportService {
 
-    private final StudentExcelParser studentParser;
-    private final TeacherExcelParser teacherParser;
+    private final HocSinhExcelParser studentParser;
+    private final GiaoVienExcelParser teacherParser;
 
     public List<ParsedStudentExcelRow> parseStudentImportFile(MultipartFile file) {
         return parseFile(file, studentParser);
