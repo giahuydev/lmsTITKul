@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { teacherService } from '../../services/teacher.service';
-import type { ClassRoom, Material } from '../../services/teacher.service';
+import type { ClassRoom, Material, Subject } from '../../services/teacher.service';
 import { useAuthStore } from '../../stores/useAuthStore';
 
 // Gợi ý yêu cầu bài tập theo từ khóa trong tiêu đề — quy tắc dựa dữ liệu thật (tiêu đề
@@ -45,6 +45,11 @@ export default function TeacherAssignments() {
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [h5pMaterials, setH5pMaterials] = useState<Material[]>([]);
   const [selectedHocLieuId, setSelectedHocLieuId] = useState<number | ''>('');
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [quizSubjectId, setQuizSubjectId] = useState<number | ''>('');
+  const [quizSlots, setQuizSlots] = useState<any[]>([]);
+  const [selectedDangBaiId, setSelectedDangBaiId] = useState<number | ''>('');
+  const [isLoadingQuizSlots, setIsLoadingQuizSlots] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -53,13 +58,15 @@ export default function TeacherAssignments() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [classData, materialData] = await Promise.all([
+        const [classData, materialData, subjectData] = await Promise.all([
           teacherService.getClasses(),
           user?.userId ? teacherService.getMaterials(user.userId) : Promise.resolve([]),
+          teacherService.getSubjects(),
         ]);
         setClasses(classData);
         if (classData.length > 0) setSelectedClassId(classData[0].id);
         setH5pMaterials(materialData.filter((m) => m.h5pContentId));
+        setSubjects(subjectData);
 
         const prefillHocLieuId = searchParams.get('hocLieuId');
         if (prefillHocLieuId) {
@@ -75,6 +82,21 @@ export default function TeacherAssignments() {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (assignmentType !== 'TRAC_NGHIEM' || !quizSubjectId || !selectedClassId) {
+      setQuizSlots([]);
+      return;
+    }
+    const selectedClass = classes.find((c) => c.id === selectedClassId);
+    if (!selectedClass) return;
+    setIsLoadingQuizSlots(true);
+    teacherService
+      .getQuizSlots(quizSubjectId as number, selectedClass.grade)
+      .then((slots) => setQuizSlots(slots.filter((s) => s.hasContent)))
+      .catch(() => setQuizSlots([]))
+      .finally(() => setIsLoadingQuizSlots(false));
+  }, [assignmentType, quizSubjectId, selectedClassId, classes]);
 
   const handleApplyAI = () => {
     setTaskDesc(suggestDescription(taskTitle || 'chủ đề bài tập'));
@@ -92,6 +114,11 @@ export default function TeacherAssignments() {
       setErrorMsg('Vui lòng chọn học liệu H5P cho bài tập này!');
       return;
     }
+    if (assignmentType === 'TRAC_NGHIEM' && !selectedDangBaiId) {
+      setSubmitStatus('error');
+      setErrorMsg('Vui lòng chọn bài quiz bộ sách cho bài tập này!');
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitStatus('idle');
@@ -107,11 +134,13 @@ export default function TeacherAssignments() {
         deadline: new Date(deadline).toISOString(),
         maxResubmitCount,
         hocLieuId: assignmentType === 'H5P' ? (selectedHocLieuId as number) : undefined,
+        contentNodeId: assignmentType === 'TRAC_NGHIEM' ? (selectedDangBaiId as number) : undefined,
       });
       setSubmitStatus('success');
       setTaskTitle('');
       setTaskDesc('');
       setDeadline('');
+      setSelectedDangBaiId('');
     } catch (err: any) {
       setSubmitStatus('error');
       setErrorMsg(err.response?.data?.message || 'Giao bài thất bại! Vui lòng thử lại.');
@@ -191,6 +220,7 @@ export default function TeacherAssignments() {
             >
               <option value="TU_LUAN">Bài tự luận (Chấm tay)</option>
               <option value="H5P">Bài tập H5P (Tự động chấm)</option>
+              <option value="TRAC_NGHIEM">Bài tập bộ sách (Trắc nghiệm/Nối cặp/Điền khuyết - tự động chấm)</option>
             </select>
           </div>
 
@@ -215,6 +245,51 @@ export default function TeacherAssignments() {
                   ))}
                 </select>
               )}
+            </div>
+          )}
+
+          {assignmentType === 'TRAC_NGHIEM' && (
+            <div className="pt-2 space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Môn học</label>
+                <select
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary"
+                  value={quizSubjectId}
+                  onChange={(e) => { setQuizSubjectId(e.target.value ? Number(e.target.value) : ''); setSelectedDangBaiId(''); }}
+                >
+                  <option value="">-- Chọn môn học --</option>
+                  {subjects.map((s) => (
+                    <option key={s.monHocId} value={s.monHocId}>{s.tenMon}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Chọn bài quiz bộ sách</label>
+                {isLoadingQuizSlots ? (
+                  <div className="flex items-center gap-2 text-slate-500 text-sm p-3">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Đang tải...
+                  </div>
+                ) : !quizSubjectId ? (
+                  <p className="text-sm text-slate-500 italic p-3 bg-slate-50 border border-dashed border-slate-200 rounded-lg">
+                    Chọn môn học trước để xem danh sách bài quiz đã soạn.
+                  </p>
+                ) : quizSlots.length === 0 ? (
+                  <p className="text-sm text-slate-500 italic p-3 bg-slate-50 border border-dashed border-slate-200 rounded-lg">
+                    Chưa có bài quiz nào được soạn cho môn/khối này. Vào "Kho Học Liệu" &gt; "Soạn quiz bộ sách" để soạn trước.
+                  </p>
+                ) : (
+                  <select
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary"
+                    value={selectedDangBaiId}
+                    onChange={(e) => setSelectedDangBaiId(e.target.value ? Number(e.target.value) : '')}
+                  >
+                    <option value="">-- Chọn bài --</option>
+                    {quizSlots.map((slot) => (
+                      <option key={slot.id} value={slot.id}>{slot.tenChuDe} - {slot.tenDangBai} ({slot.loai})</option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
           )}
         </CardContent>

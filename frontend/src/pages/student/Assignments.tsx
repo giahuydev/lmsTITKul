@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle, AlertCircle, FileText, Upload, X, Loader2, ClipboardList, Puzzle } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, FileText, Upload, X, Loader2, ClipboardList, Puzzle, ListChecks } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { studentService } from '../../services/student.service';
 import toast from 'react-hot-toast';
@@ -113,9 +113,9 @@ export default function StudentAssignments() {
           }`}>
             <div className="flex items-start mb-4 md:mb-0">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 shrink-0 ${
-                task.type === 'H5P' ? 'bg-student-primary/10 text-student-primary' : 'bg-orange-100 text-orange-600'
+                task.type === 'H5P' ? 'bg-student-primary/10 text-student-primary' : task.type === 'TRAC_NGHIEM' ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'
               }`}>
-                {task.type === 'H5P' ? <Puzzle className="w-7 h-7" /> : <FileText className="w-6 h-6" />}
+                {task.type === 'H5P' ? <Puzzle className="w-7 h-7" /> : task.type === 'TRAC_NGHIEM' ? <ListChecks className="w-7 h-7" /> : <FileText className="w-6 h-6" />}
               </div>
               <div>
                 <div className="flex items-center space-x-2 mb-1">
@@ -149,6 +149,13 @@ export default function StudentAssignments() {
                    className="w-full md:w-auto bg-student-primary hover:bg-[#3A82DF] text-white rounded-xl shadow-[0_4px_0_0_theme(colors.primary.hover)] hover:shadow-[0_2px_0_0_theme(colors.primary.hover)] hover:translate-y-[2px] transition-all font-bold"
                  >
                    Làm bài H5P
+                 </Button>
+              ) : task.type === 'TRAC_NGHIEM' ? (
+                 <Button
+                   onClick={() => navigate(`/student/tasks/${task.id}/quiz`)}
+                   className="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-[0_4px_0_0_theme(colors.purple.800)] hover:shadow-[0_2px_0_0_theme(colors.purple.800)] hover:translate-y-[2px] transition-all font-bold"
+                 >
+                   Làm bài Quiz
                  </Button>
               ) : (
                  <Button onClick={() => handleOpenSubmit(task)} className="w-full md:w-auto bg-student-success hover:brightness-95 text-white rounded-xl shadow-[0_4px_0_0_theme(colors.student.success)] hover:shadow-[0_2px_0_0_theme(colors.student.success)] hover:translate-y-[2px] transition-all font-bold">

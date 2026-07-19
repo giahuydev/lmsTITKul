@@ -26,6 +26,7 @@ import TeacherClassDetails from './pages/teacher/ClassDetails';
 import TeacherMaterials from './pages/teacher/Materials';
 import TeacherMaterialDetail from './pages/teacher/MaterialDetail';
 import TeacherAssignments from './pages/teacher/Assignments';
+import QuizAuthoring from './pages/teacher/QuizAuthoring';
 import TeacherGrading from './pages/teacher/Grading';
 import TeacherGradingDetail from './pages/teacher/GradingDetail';
 import TeacherReports from './pages/teacher/Reports';
@@ -51,6 +52,7 @@ import SubjectTree from './pages/student/SubjectTree';
 import AdventureMap from './pages/student/AdventureMap';
 import LessonPlayer from './pages/student/LessonPlayer';
 import AssignmentH5PPlayer from './pages/student/AssignmentH5PPlayer';
+import AssignmentQuizPlayer from './pages/student/AssignmentQuizPlayer';
 import StudentRewards from './pages/student/Rewards';
 import StudentAssignments from './pages/student/Assignments';
 import StudentNotifications from './pages/student/Notifications';
@@ -81,6 +83,7 @@ function App() {
           <Route path="rewards" element={<StudentRewards />} />
           <Route path="tasks" element={<StudentAssignments />} />
           <Route path="tasks/:assignmentId/play" element={<AssignmentH5PPlayer />} />
+          <Route path="tasks/:assignmentId/quiz" element={<AssignmentQuizPlayer />} />
           <Route path="notifications" element={<StudentNotifications />} />
           <Route path="profile" element={<StudentProfile />} />
         </Route>
@@ -93,6 +96,7 @@ function App() {
           <Route path="import" element={<AdminImport />} />
           <Route path="classes" element={<AdminClasses />} />
           <Route path="classes/:id" element={<ClassDetails />} />
+          <Route path="quiz-authoring" element={<QuizAuthoring />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
 
@@ -107,6 +111,7 @@ function App() {
           <Route path="editor" element={<TeacherEditor />} />
           <Route path="editor/:contentId" element={<TeacherEditor />} />
           <Route path="assignments" element={<TeacherAssignments />} />
+          <Route path="quiz-authoring" element={<QuizAuthoring />} />
           <Route path="grading" element={<TeacherGrading />} />
           <Route path="grading/:submissionId" element={<TeacherGradingDetail />} />
           <Route path="reports" element={<TeacherReports />} />

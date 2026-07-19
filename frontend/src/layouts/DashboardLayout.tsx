@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Settings, BookOpen,
-  FileText, Award, Bell, Upload, ShieldCheck, MessageSquare, Repeat,
+  FileText, Award, Bell, Upload, ShieldCheck, MessageSquare, Repeat, ListChecks,
   type LucideIcon
 } from 'lucide-react';
 import { useAuthStore } from '../stores/useAuthStore';
@@ -99,6 +99,7 @@ export default function DashboardLayout({ role }: { role: Role }) {
       { name: 'Phiếu hỗ trợ', path: '/admin/tickets', icon: Bell, badge: pendingTicketsCount },
       { name: 'Import dữ liệu', path: '/admin/import', icon: Upload },
       { name: 'Lớp học', path: '/admin/classes', icon: BookOpen },
+      { name: 'Soạn quiz bộ sách', path: '/admin/quiz-authoring', icon: ListChecks },
       { name: 'Cấu hình', path: '/admin/settings', icon: Settings },
     ],
     teacher: [
@@ -106,6 +107,7 @@ export default function DashboardLayout({ role }: { role: Role }) {
       { name: 'Lớp học', path: '/teacher/classes', icon: Users },
       { name: 'Bảng tin', path: '/teacher/announcements', icon: Bell },
       { name: 'Kho học liệu', path: '/teacher/materials', icon: BookOpen },
+      { name: 'Soạn quiz bộ sách', path: '/teacher/quiz-authoring', icon: ListChecks },
       { name: 'Giao bài tập', path: '/teacher/assignments', icon: FileText },
       { name: 'Chấm bài', path: '/teacher/grading', icon: Award },
       { name: 'Sổ điểm', path: '/teacher/reports', icon: FileText },

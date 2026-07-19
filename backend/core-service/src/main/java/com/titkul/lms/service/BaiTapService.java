@@ -36,9 +36,14 @@ public class BaiTapService {
         assignment.setTieuDe(dto.getTitle());
         assignment.setMoTa(dto.getDescription());
         assignment.setDeadline(dto.getDeadline());
-        if (dto.getMaxResubmitCount() != null) {
-            assignment.setSoLanNopLaiToiDa(dto.getMaxResubmitCount());
+        // DB có constraint chk_nop_lai: cho_nop_lai=false đòi so_lan_nop_lai_toi_da=0,
+        // cho_nop_lai=true đòi so_lan_nop_lai_toi_da trong khoảng 1-10 — 2 field phải khớp nhau.
+        if (dto.getMaxResubmitCount() != null && dto.getMaxResubmitCount() > 10) {
+            throw new IllegalArgumentException("Số lần nộp lại tối đa không được vượt quá 10.");
         }
+        boolean choPhepNopLai = dto.getMaxResubmitCount() != null && dto.getMaxResubmitCount() > 0;
+        assignment.setChoNopLai(choPhepNopLai);
+        assignment.setSoLanNopLaiToiDa(choPhepNopLai ? dto.getMaxResubmitCount() : 0);
 
         if (dto.getType() != null) {
             assignment.setLoaiBaiTap(LoaiBaiTap.valueOf(dto.getType()));
@@ -85,6 +90,12 @@ public class BaiTapService {
                     : assignment.getDangBai() != null ? assignment.getDangBai().getH5pNoiDungId() : null;
             if (h5pContentId == null || h5pContentId.isBlank()) {
                 throw new IllegalArgumentException("Bài tập H5P phải gắn với một học liệu (hoặc bài giảng) đã có nội dung H5P.");
+            }
+        }
+
+        if (assignment.getLoaiBaiTap() == LoaiBaiTap.TRAC_NGHIEM) {
+            if (assignment.getDangBai() == null || assignment.getDangBai().getDapAnChuan() == null) {
+                throw new IllegalArgumentException("Bài tập bộ sách phải gắn với một bài đã được soạn nội dung quiz (trắc nghiệm/nối cặp/điền khuyết).");
             }
         }
 

@@ -73,6 +73,16 @@ export const studentService = {
     return response.data;
   },
 
+  getQuizAssignmentDetail: async (assignmentId: number) => {
+    const response = await api.get(`/students/me/assignments/${assignmentId}/quiz-detail`);
+    return response.data;
+  },
+
+  submitQuizAssignment: async (assignmentId: number, baiLam: Record<string, unknown>) => {
+    const response = await api.post(`/students/me/assignments/${assignmentId}/quiz-submissions`, baiLam);
+    return response.data;
+  },
+
   getEssayAssignmentDetail: async (assignmentId: number) => {
     const response = await api.get(`/students/me/assignments/${assignmentId}/essay-detail`);
     return response.data;

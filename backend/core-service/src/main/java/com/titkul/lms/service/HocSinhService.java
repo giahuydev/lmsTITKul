@@ -48,6 +48,8 @@ public class HocSinhService {
     private final TrangThaiDocThongBaoRepository notificationReadStatusRepository;
     private final HuyHieuRepository huyHieuRepository;
     private final KhenThuongHocSinhRepository khenThuongHocSinhRepository;
+    private final ChamDiemBaiTapBoSachService chamDiemBaiTapBoSachService;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     public HocSinhDashboardResponse getDashboard(String username) {
         NguoiDung user = userRepository.findByTenDangNhap(username)
@@ -317,6 +319,115 @@ public class HocSinhService {
                 .status(saved.getTrangThai().name())
                 .isLate(saved.getLaNopTre())
                 .build();
+    }
+
+    // AI-03 bổ sung: bài tập bộ sách (trắc nghiệm/nối cặp/điền khuyết) — chỉ trả cauHinh
+    // (câu hỏi), KHÔNG BAO GIỜ trả dapAnChuan cho học sinh.
+    public Map<String, Object> getQuizAssignmentDetail(String username, Long assignmentId) {
+        HoSoHocSinh profile = resolveProfile(username);
+        BaiTap assignment = resolveQuizAssignmentForStudent(assignmentId, profile);
+        DangBai dangBai = assignment.getDangBai();
+
+        List<BaiNop> attempts = submissionRepository.findByBaiTap_BaiTapIdAndHocSinh_HocSinhId(assignmentId, profile.getHocSinhId());
+        int attemptsUsed = attempts.size();
+        boolean hasSubmitted = attemptsUsed > 0;
+        boolean pastDeadline = assignment.getDeadline() != null && assignment.getDeadline().isBefore(LocalDateTime.now());
+        boolean canSubmit = !hasSubmitted
+                || (Boolean.TRUE.equals(assignment.getChoNopLai()) && attemptsUsed < assignment.getSoLanNopLaiToiDa());
+
+        Map<String, Object> cauHinh;
+        String loai;
+        try {
+            Map<String, Object> parsed = objectMapper.readValue(dangBai.getCauHinh(), Map.class);
+            loai = (String) parsed.get("loai");
+            cauHinh = parsed;
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi đọc nội dung bài tập");
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("assignmentId", assignment.getBaiTapId());
+        result.put("title", assignment.getTieuDe());
+        result.put("loai", loai);
+        result.put("cauHinh", cauHinh);
+        result.put("allowResubmit", assignment.getChoNopLai());
+        result.put("maxResubmitCount", assignment.getSoLanNopLaiToiDa());
+        result.put("attemptsUsed", attemptsUsed);
+        result.put("canSubmit", canSubmit);
+        result.put("deadline", assignment.getDeadline() != null ? assignment.getDeadline().format(DEADLINE_FMT) : null);
+        result.put("isPastDeadline", pastDeadline);
+        return result;
+    }
+
+    @Transactional
+    public Map<String, Object> submitQuizAssignment(String username, Long assignmentId, Map<String, Object> baiLam) {
+        HoSoHocSinh profile = resolveProfile(username);
+        BaiTap assignment = resolveQuizAssignmentForStudent(assignmentId, profile);
+        DangBai dangBai = assignment.getDangBai();
+
+        List<BaiNop> previousAttempts = submissionRepository.findByBaiTap_BaiTapIdAndHocSinh_HocSinhId(assignmentId, profile.getHocSinhId());
+        boolean hasSubmitted = !previousAttempts.isEmpty();
+        boolean canResubmit = Boolean.TRUE.equals(assignment.getChoNopLai()) && previousAttempts.size() < assignment.getSoLanNopLaiToiDa();
+        if (hasSubmitted && !canResubmit) {
+            throw new RuntimeException("Bạn đã hết lượt làm lại cho bài tập này.");
+        }
+
+        String baiLamJson;
+        try {
+            baiLamJson = objectMapper.writeValueAsString(baiLam);
+        } catch (Exception e) {
+            throw new RuntimeException("Dữ liệu bài làm không hợp lệ");
+        }
+        // Không tin điểm client gửi lên — luôn chấm lại từ dap_an_chuan lưu ở server.
+        BigDecimal score = chamDiemBaiTapBoSachService.chamDiem(dangBai.getDapAnChuan(), baiLamJson);
+
+        BaiNop submission = new BaiNop();
+        submission.setBaiTap(assignment);
+        submission.setHocSinh(profile);
+        submission.setDangBai(dangBai);
+        submission.setDiemTuDong(score);
+        submission.setChiTietBaiLam(baiLamJson);
+        submission.setSoLanLam((short) (previousAttempts.size() + 1));
+
+        // XP chỉ thưởng lần nộp đầu, tỷ lệ theo điểm đạt được (điểm/10 * xpThuong)
+        int xpEarned = 0;
+        if (!hasSubmitted && dangBai.getXpThuong() != null && dangBai.getXpThuong() > 0) {
+            xpEarned = score.multiply(BigDecimal.valueOf(dangBai.getXpThuong()))
+                    .divide(BigDecimal.TEN, 0, RoundingMode.HALF_UP)
+                    .intValue();
+        }
+        submission.setXpNhanDuoc(xpEarned);
+
+        BaiNop saved = submissionService.submitAssignment(submission);
+
+        if (xpEarned > 0) {
+            profile.setTongXp(profile.getTongXp() + xpEarned);
+            studentProfileRepository.save(profile);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("submissionId", saved.getBaiNopId());
+        result.put("score", score);
+        result.put("xpEarned", xpEarned);
+        result.put("totalXp", profile.getTongXp());
+        result.put("status", saved.getTrangThai().name());
+        result.put("isLate", saved.getLaNopTre());
+        return result;
+    }
+
+    private BaiTap resolveQuizAssignmentForStudent(Long assignmentId, HoSoHocSinh profile) {
+        BaiTap assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài tập"));
+        if (assignment.getLoaiBaiTap() != LoaiBaiTap.TRAC_NGHIEM) {
+            throw new RuntimeException("Bài tập này không phải dạng trắc nghiệm bộ sách.");
+        }
+        if (profile.getLopHoc() == null || !assignment.getLopHoc().getLopHocId().equals(profile.getLopHoc().getLopHocId())) {
+            throw new RuntimeException("Bạn không thuộc lớp được giao bài tập này.");
+        }
+        if (assignment.getDangBai() == null || assignment.getDangBai().getDapAnChuan() == null) {
+            throw new RuntimeException("Bài tập chưa có nội dung quiz.");
+        }
+        return assignment;
     }
 
     private BaiTap resolveEssayAssignmentForStudent(Long assignmentId, HoSoHocSinh profile) {

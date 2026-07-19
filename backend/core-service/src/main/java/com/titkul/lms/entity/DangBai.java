@@ -65,6 +65,12 @@ public class DangBai {
     @Column(name = "cau_hinh")
     private String cauHinh;
 
+    // Đáp án chuẩn cho bài tập bộ sách kiểu JSON_TEXT (trắc nghiệm/nối cặp/điền khuyết) —
+    // tách riêng khỏi cauHinh để không bao giờ lộ cho học sinh qua endpoint public.
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "dap_an_chuan")
+    private String dapAnChuan;
+
     @Column(name = "ngay_tao", nullable = false, updatable = false)
     private LocalDateTime ngayTao = LocalDateTime.now();
 }

@@ -95,6 +95,7 @@ export interface AssignmentCreateDTO {
   deadline: string;
   maxResubmitCount: number;
   hocLieuId?: number;
+  contentNodeId?: number;
 }
 
 export interface EvaluateDTO {
@@ -228,6 +229,20 @@ export const teacherService = {
   generateExerciseSuggestions: async (payload: { grade?: number; subjectId?: number; topicHint?: string }): Promise<{ suggestions: string[] }> => {
     const response = await api.post('/hoc-lieu/ai-goi-y-bai-tap', payload);
     return response.data;
+  },
+
+  getQuizSlots: async (subjectId: number, grade: number): Promise<any[]> => {
+    const response = await api.get('/dang-bai/quiz-slots', { params: { subjectId, grade } });
+    return response.data;
+  },
+
+  getQuizContent: async (dangBaiId: number): Promise<any> => {
+    const response = await api.get(`/dang-bai/${dangBaiId}/noi-dung`);
+    return response.data;
+  },
+
+  saveQuizContent: async (dangBaiId: number, payload: { loai: string; cauHinh: any; dapAnChuan: any }): Promise<void> => {
+    await api.put(`/dang-bai/${dangBaiId}/noi-dung`, payload);
   },
 
   getMorningReport: async (classId?: number): Promise<{

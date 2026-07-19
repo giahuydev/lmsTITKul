@@ -106,6 +106,32 @@ public class HocSinhController {
         }
     }
 
+    @GetMapping("/me/assignments/{id}/quiz-detail")
+    public ResponseEntity<?> getQuizAssignmentDetail(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
+        try {
+            return ResponseEntity.ok(studentService.getQuizAssignmentDetail(authentication.getName(), id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/me/assignments/{id}/quiz-submissions")
+    public ResponseEntity<?> submitQuizAssignment(@PathVariable Long id, @RequestBody java.util.Map<String, Object> baiLam) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
+        try {
+            return ResponseEntity.ok(studentService.submitQuizAssignment(authentication.getName(), id, baiLam));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
     @GetMapping("/me/notifications")
     public ResponseEntity<?> getNotifications() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
