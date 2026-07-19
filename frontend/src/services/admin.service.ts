@@ -64,6 +64,11 @@ export const adminService = {
     return response.data;
   },
 
+  getTongHopKetQuaCuoiNam: async (namHoc?: string, khoiLop?: number): Promise<any[]> => {
+    const response = await api.get('/admin/ket-qua-cuoi-nam', { params: { namHoc, khoiLop } });
+    return response.data;
+  },
+
   getSystemConfig: async (): Promise<any> => {
     const response = await api.get('/admin/config');
     return response.data;

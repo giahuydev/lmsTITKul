@@ -231,6 +231,22 @@ export const teacherService = {
     return response.data;
   },
 
+  getDanhSachXetLopHoc: async (classId: number): Promise<any[]> => {
+    const response = await api.get(`/teachers/me/classes/${classId}/ket-qua-cuoi-nam`);
+    return response.data;
+  },
+
+  luuKetQuaCuoiNam: async (classId: number, hocSinhId: number, dto: {
+    ketQuaHocTap: string;
+    ketQuaRenLuyen: string;
+    quyetDinh: string;
+    duocXetDacCach: boolean;
+    lyDoDacCach?: string;
+    ghiChu?: string;
+  }): Promise<void> => {
+    await api.put(`/teachers/me/classes/${classId}/students/${hocSinhId}/ket-qua-cuoi-nam`, dto);
+  },
+
   getQuizSlots: async (subjectId: number, grade: number): Promise<any[]> => {
     const response = await api.get('/dang-bai/quiz-slots', { params: { subjectId, grade } });
     return response.data;

@@ -1,8 +1,10 @@
 package com.titkul.lms.controller;
 
 import com.titkul.lms.dto.GiaoVienDashboardResponse;
+import com.titkul.lms.dto.KetQuaCuoiNamRequest;
 import com.titkul.lms.service.BaoCaoAiBuoiSangService;
 import com.titkul.lms.service.GiaoVienService;
+import com.titkul.lms.service.KetQuaCuoiNamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,6 +23,7 @@ public class GiaoVienController {
 
     private final GiaoVienService teacherService;
     private final BaoCaoAiBuoiSangService morningReportService;
+    private final KetQuaCuoiNamService ketQuaCuoiNamService;
 
     @GetMapping("/me/morning-report")
     public ResponseEntity<?> getMorningReport(@org.springframework.web.bind.annotation.RequestParam(required = false) Long classId) {
@@ -91,6 +94,36 @@ public class GiaoVienController {
         try {
             return ResponseEntity.ok(teacherService.getReports(authentication.getName(), classId, semesterId));
         } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/me/classes/{classId}/ket-qua-cuoi-nam")
+    public ResponseEntity<?> getDanhSachXetLopHoc(@org.springframework.web.bind.annotation.PathVariable Long classId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
+        try {
+            return ResponseEntity.ok(ketQuaCuoiNamService.getDanhSachXetLopHoc(authentication.getName(), classId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/me/classes/{classId}/students/{hocSinhId}/ket-qua-cuoi-nam")
+    public ResponseEntity<?> luuKetQuaCuoiNam(
+            @org.springframework.web.bind.annotation.PathVariable Long classId,
+            @org.springframework.web.bind.annotation.PathVariable Long hocSinhId,
+            @org.springframework.web.bind.annotation.RequestBody KetQuaCuoiNamRequest dto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
+        try {
+            ketQuaCuoiNamService.luuKetQua(authentication.getName(), classId, hocSinhId, dto);
+            return ResponseEntity.ok(java.util.Map.of("message", "Đã lưu kết quả cuối năm"));
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         }
     }

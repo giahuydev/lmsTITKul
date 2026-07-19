@@ -44,6 +44,11 @@ export const parentService = {
     return response.data;
   },
 
+  getKetQuaCuoiNam: async (childId: number) => {
+    const response = await api.get(`/parents/me/children/${childId}/ket-qua-cuoi-nam`);
+    return response.data;
+  },
+
   getSubjects: async () => {
     const response = await api.get('/subjects');
     return response.data;

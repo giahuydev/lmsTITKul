@@ -5,6 +5,7 @@ import com.titkul.lms.service.QuanTriVienService;
 import com.titkul.lms.service.QuanTriVienDashboardService;
 import com.titkul.lms.service.CauHinhHeThongService;
 import com.titkul.lms.service.QuanLyNguoiDungService;
+import com.titkul.lms.service.KetQuaCuoiNamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ public class QuanTriVienController {
     private final CauHinhHeThongService systemConfigService;
     private final QuanTriVienDashboardService adminDashboardService;
     private final JdbcTemplate jdbcTemplate;
+    private final KetQuaCuoiNamService ketQuaCuoiNamService;
 
     @GetMapping("/db-debug")
     public ResponseEntity<?> getDbDebug() {
@@ -97,6 +99,17 @@ public class QuanTriVienController {
                     : null;
             userManagementService.transferClass(id, newClassId, authentication.getName(), transferReason, note);
             return ResponseEntity.ok(java.util.Map.of("message", "Chuyển lớp thành công"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/ket-qua-cuoi-nam")
+    public ResponseEntity<?> getTongHopKetQuaCuoiNam(
+            @RequestParam(required = false) String namHoc,
+            @RequestParam(required = false) Short khoiLop) {
+        try {
+            return ResponseEntity.ok(ketQuaCuoiNamService.getTongHopToanTruong(namHoc, khoiLop));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         }

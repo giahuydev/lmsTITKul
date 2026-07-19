@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Download, Award, Loader2, Trophy } from 'lucide-react';
+import { Download, Award, Loader2, Trophy, GraduationCap } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
@@ -9,10 +9,19 @@ import { Badge } from '../../components/ui/Badge';
 import { parentService } from '../../services/parent.service';
 import { useParentContextStore } from '../../stores/useParentContextStore';
 
+const NHAN_HOC_TAP: Record<string, string> = {
+  HOAN_THANH_TOT: 'Hoàn thành Tốt',
+  HOAN_THANH: 'Hoàn thành',
+  CHUA_HOAN_THANH: 'Chưa hoàn thành',
+};
+const NHAN_REN_LUYEN: Record<string, string> = { TOT: 'Tốt', DAT: 'Đạt', CAN_CO_GANG: 'Cần cố gắng' };
+const NHAN_QUYET_DINH: Record<string, string> = { LEN_LOP: 'Lên lớp', O_LAI: 'Ở lại', CHUYEN_CUP: 'Chuyển cấp' };
+
 export default function ParentGrades() {
   const [grades, setGrades] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [badges, setBadges] = useState<any[]>([]);
+  const [ketQuaCuoiNam, setKetQuaCuoiNam] = useState<any[]>([]);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const selectedChild = useParentContextStore((state) => state.selectedChild);
   const printableRef = useRef<HTMLDivElement>(null);
@@ -42,6 +51,14 @@ export default function ParentGrades() {
       .getRewards(selectedChild.id)
       .then((data) => setBadges((data.huyHieu ?? []).filter((b: any) => b.daMoKhoa)))
       .catch((err) => console.error('Failed to fetch rewards', err));
+  }, [selectedChild]);
+
+  useEffect(() => {
+    if (!selectedChild) return;
+    parentService
+      .getKetQuaCuoiNam(selectedChild.id)
+      .then(setKetQuaCuoiNam)
+      .catch((err) => console.error('Failed to fetch ket qua cuoi nam', err));
   }, [selectedChild]);
 
   const handleExportPdf = async () => {
@@ -178,6 +195,34 @@ export default function ParentGrades() {
               )}
             </CardContent>
           </Card>
+
+          {ketQuaCuoiNam.length > 0 && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <GraduationCap className="h-5 w-5 mr-2 text-pro-primary" />
+                  Kết quả cuối năm
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {ketQuaCuoiNam.map((k) => (
+                  <div key={k.ketQuaId} className="p-3 border border-slate-100 rounded-lg space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-bold text-slate-800">Năm học {k.namHoc} — Lớp {k.tenLop}</span>
+                      <Badge variant={k.quyetDinh === 'LEN_LOP' ? 'success' : k.quyetDinh === 'O_LAI' ? 'danger' : 'outline'}>
+                        {NHAN_QUYET_DINH[k.quyetDinh] ?? k.quyetDinh}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-slate-500">Học tập: <span className="font-medium text-slate-700">{NHAN_HOC_TAP[k.ketQuaHocTap] ?? k.ketQuaHocTap}</span></p>
+                    <p className="text-xs text-slate-500">Rèn luyện: <span className="font-medium text-slate-700">{NHAN_REN_LUYEN[k.ketQuaRenLuyen] ?? k.ketQuaRenLuyen}</span></p>
+                    {k.duocXetDacCach && <p className="text-xs text-amber-600 italic">Được xét đặc cách{k.lyDoDacCach ? `: ${k.lyDoDacCach}` : ''}</p>}
+                    <p className="text-xs text-slate-400">GVCN xét: {k.tenGiaoVienXet} • {k.ngayXet}</p>
+                    {k.ghiChu && <p className="text-xs text-slate-500 italic">Ghi chú: {k.ghiChu}</p>}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 

@@ -3,6 +3,7 @@ package com.titkul.lms.controller;
 import com.titkul.lms.dto.PhuHuynhDashboardResponse;
 import com.titkul.lms.dto.ResetChildPasswordRequest;
 import com.titkul.lms.service.PhuHuynhService;
+import com.titkul.lms.service.KetQuaCuoiNamService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class PhuHuynhController {
 
     private final PhuHuynhService parentService;
+    private final KetQuaCuoiNamService ketQuaCuoiNamService;
 
     @GetMapping("/me/dashboard")
     public ResponseEntity<?> getDashboard(@org.springframework.web.bind.annotation.RequestParam(required = false) Long childId) {
@@ -141,6 +143,19 @@ public class PhuHuynhController {
         try {
             parentService.resetChildPassword(authentication.getName(), childId, request.getNewPassword());
             return ResponseEntity.ok(java.util.Map.of("message", "Đã cấp lại mật khẩu cho con. Con sẽ phải đổi mật khẩu ở lần đăng nhập tiếp theo."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/me/children/{childId}/ket-qua-cuoi-nam")
+    public ResponseEntity<?> getKetQuaCuoiNam(@PathVariable Long childId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
+        try {
+            return ResponseEntity.ok(ketQuaCuoiNamService.getKetQuaTheoConChoPhuHuynh(authentication.getName(), childId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         }
