@@ -59,7 +59,7 @@ export function TransferClassModal({
             >
               <option value="">-- Chọn lớp --</option>
               {classes.map(c => (
-                <option key={c.id} value={c.id}>{c.name} (Khối {c.grade})</option>
+                <option key={c.lopHocId} value={c.lopHocId}>{c.tenLop} (Khối {c.khoiLop})</option>
               ))}
             </select>
           </div>

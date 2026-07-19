@@ -78,7 +78,7 @@ export default function AdminUsers() {
               >
                 <option value="all">Tất cả các lớp</option>
                 {vm.classes.map((c) => (
-                  <option key={c.id} value={c.id.toString()}>{c.name}</option>
+                  <option key={c.lopHocId} value={c.lopHocId.toString()}>{c.tenLop}</option>
                 ))}
               </select>
             </div>

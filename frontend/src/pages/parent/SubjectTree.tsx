@@ -23,7 +23,7 @@ export default function ParentSubjectTree() {
           setSelectedChildId(childrenData[0].id);
         }
         if (subjectsData && subjectsData.length > 0) {
-          setSelectedSubjectId(subjectsData[0].id);
+          setSelectedSubjectId(subjectsData[0].monHocId);
         }
         if (!childrenData?.length) setIsLoading(false);
       } catch (err) {
@@ -86,7 +86,7 @@ export default function ParentSubjectTree() {
                   onChange={(e) => setSelectedSubjectId(Number(e.target.value))}
                 >
                   {subjects.map((subject: any) => (
-                    <option key={subject.id} value={subject.id}>{subject.tenMon}</option>
+                    <option key={subject.monHocId} value={subject.monHocId}>{subject.tenMon}</option>
                   ))}
                 </select>
               </div>

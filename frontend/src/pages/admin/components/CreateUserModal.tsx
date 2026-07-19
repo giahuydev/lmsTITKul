@@ -103,7 +103,7 @@ export function CreateUserModal({
                 >
                   <option value="">-- Chọn lớp --</option>
                   {classes.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.lopHocId} value={c.lopHocId}>{c.tenLop}</option>
                   ))}
                 </select>
               </div>
