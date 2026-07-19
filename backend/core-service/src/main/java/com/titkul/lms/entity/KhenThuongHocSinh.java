@@ -37,6 +37,7 @@ public class KhenThuongHocSinh {
     @Column(name = "nguon_cap", nullable = false)
     private NguonCap nguonCap = NguonCap.THU_CONG;
 
+    @Builder.Default
     @Column(name = "thoi_diem_trao", nullable = false, updatable = false)
     private LocalDateTime thoiDiemTrao = LocalDateTime.now();
 

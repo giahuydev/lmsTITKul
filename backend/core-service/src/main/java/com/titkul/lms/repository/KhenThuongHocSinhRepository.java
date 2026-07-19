@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface KhenThuongHocSinhRepository extends JpaRepository<KhenThuongHocSinh, Long> {
     List<KhenThuongHocSinh> findByHocSinh_HocSinhIdOrderByThoiDiemTraoDesc(Long hocSinhId);
+    boolean existsByHocSinh_HocSinhIdAndHuyHieu_HuyHieuId(Long hocSinhId, Integer huyHieuId);
 }

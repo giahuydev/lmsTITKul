@@ -19,6 +19,7 @@ public class BaiNopService {
     private final BaiTapRepository assignmentRepository;
     private final DanhGiaBaiLamRepository evaluationRepository;
     private final HoSoGiaoVienRepository teacherProfileRepository;
+    private final HuyHieuTuDongService huyHieuTuDongService;
 
     public BaiNop submitAssignment(BaiNop submission) {
         com.titkul.lms.entity.BaiTap assignment = assignmentRepository.findById(submission.getBaiTap().getBaiTapId())
@@ -35,7 +36,15 @@ public class BaiNopService {
         }
 
         submission.setThoiDiemNop(now);
-        return submissionRepository.save(submission);
+        BaiNop saved = submissionRepository.save(submission);
+
+        try {
+            huyHieuTuDongService.kiemTraVaTraoHuyHieu(saved.getHocSinh().getHocSinhId());
+        } catch (Exception e) {
+            // Không được để lỗi xét huy hiệu làm hỏng luồng nộp bài chính
+        }
+
+        return saved;
     }
 
     public List<BaiNop> getSubmissionsByAssignment(Long assignmentId) {

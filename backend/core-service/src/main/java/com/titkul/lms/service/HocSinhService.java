@@ -49,6 +49,7 @@ public class HocSinhService {
     private final HuyHieuRepository huyHieuRepository;
     private final KhenThuongHocSinhRepository khenThuongHocSinhRepository;
     private final ChamDiemBaiTapBoSachService chamDiemBaiTapBoSachService;
+    private final HuyHieuTuDongService huyHieuTuDongService;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     public HocSinhDashboardResponse getDashboard(String username) {
@@ -723,6 +724,12 @@ public class HocSinhService {
                 profile.setTongXp(profile.getTongXp() + xpEarned);
                 studentProfileRepository.save(profile);
             }
+        }
+
+        try {
+            huyHieuTuDongService.kiemTraVaTraoHuyHieu(profile.getHocSinhId());
+        } catch (Exception e) {
+            // Không được để lỗi xét huy hiệu làm hỏng luồng đánh dấu hoàn thành
         }
 
         return DangBaiHoanThanhResponse.builder()

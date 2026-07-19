@@ -28,6 +28,7 @@ import com.titkul.lms.repository.HoSoGiaoVienRepository;
 import com.titkul.lms.repository.NguoiDungRepository;
 import com.titkul.lms.repository.HoSoHocSinhRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GiaoVienService {
 
     private final NguoiDungRepository userRepository;
@@ -352,7 +354,9 @@ public class GiaoVienService {
                         "Titkul LMS - Con bạn vừa nhận được huy hiệu mới!", body);
                 emailSent = true;
             } catch (Exception e) {
-                // Không chặn việc trao thưởng nếu gửi email thất bại (VD: SMTP tạm lỗi)
+                // Không chặn việc trao thưởng nếu gửi email thất bại (VD: SMTP tạm lỗi), nhưng vẫn phải log để chẩn đoán được
+                log.warn("Gửi email thông báo huy hiệu '{}' cho học sinh {} thất bại: {}",
+                        huyHieu.getTenHuyHieu(), student.getHocSinhId(), e.getMessage());
             }
         }
 
