@@ -2,8 +2,10 @@ package com.titkul.lms.controller;
 
 import com.titkul.lms.dto.HocLieuPhanLoaiRequest;
 import com.titkul.lms.dto.HocLieuNoiBoRequest;
+import com.titkul.lms.dto.GoiYAiBaiTapRequest;
 import com.titkul.lms.entity.HocLieu;
 import com.titkul.lms.service.HocLieuService;
+import com.titkul.lms.service.GoiYAiBaiTapService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import java.util.Objects;
 public class HocLieuController {
 
     private final HocLieuService hocLieuService;
+    private final GoiYAiBaiTapService goiYAiBaiTapService;
 
     // Xác thực nội bộ NestJS bằng shared secret, không qua JWT người dùng.
     @Value("${jwt.secret}")
@@ -55,6 +58,13 @@ public class HocLieuController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         hocLieuService.delete(id, authentication.getName(), isAdmin);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/api/v1/hoc-lieu/ai-goi-y-bai-tap")
+    @PreAuthorize("hasRole('GIAO_VIEN') or hasRole('ADMIN')")
+    public ResponseEntity<?> generateExerciseSuggestions(@RequestBody GoiYAiBaiTapRequest dto) {
+        List<String> suggestions = goiYAiBaiTapService.generateExerciseSuggestions(dto.getGrade(), dto.getSubjectId(), dto.getTopicHint());
+        return ResponseEntity.ok(java.util.Map.of("suggestions", suggestions));
     }
 
     @PatchMapping("/api/v1/hoc-lieu/{id}/classification")

@@ -25,14 +25,14 @@ public class PhuHuynhController {
     private final PhuHuynhService parentService;
 
     @GetMapping("/me/dashboard")
-    public ResponseEntity<?> getDashboard() {
+    public ResponseEntity<?> getDashboard(@org.springframework.web.bind.annotation.RequestParam(required = false) Long childId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
         }
 
         try {
-            PhuHuynhDashboardResponse dashboard = parentService.getDashboard(authentication.getName());
+            PhuHuynhDashboardResponse dashboard = parentService.getDashboard(authentication.getName(), childId);
             return ResponseEntity.ok(dashboard);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
@@ -53,13 +53,13 @@ public class PhuHuynhController {
     }
 
     @GetMapping("/me/grades")
-    public ResponseEntity<?> getGrades() {
+    public ResponseEntity<?> getGrades(@org.springframework.web.bind.annotation.RequestParam(required = false) Long childId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
         }
         try {
-            return ResponseEntity.ok(parentService.getGrades(authentication.getName()));
+            return ResponseEntity.ok(parentService.getGrades(authentication.getName(), childId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         }
@@ -147,13 +147,14 @@ public class PhuHuynhController {
     }
 
     @GetMapping("/me/children/{childId}/subject-tree")
-    public ResponseEntity<?> getSubjectTree(@PathVariable Long childId) {
+    public ResponseEntity<?> getSubjectTree(@PathVariable Long childId,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer subjectId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
         }
         try {
-            return ResponseEntity.ok(parentService.getSubjectTree(authentication.getName(), childId));
+            return ResponseEntity.ok(parentService.getSubjectTree(authentication.getName(), childId, subjectId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         }

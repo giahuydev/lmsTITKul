@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, ArrowRightLeft } from 'lucide-react';
+import { ArrowLeft, Users, ArrowRightLeft, History } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
@@ -25,6 +25,11 @@ export default function ClassDetails() {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [transferClassId, setTransferClassId] = useState('');
+
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyStudent, setHistoryStudent] = useState<any>(null);
+  const [transferHistory, setTransferHistory] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const fetchData = async () => {
     if (!id) return;
@@ -54,6 +59,21 @@ export default function ClassDetails() {
     setSelectedStudent(student);
     setTransferClassId('');
     setShowTransferModal(true);
+  };
+
+  const handleOpenHistoryModal = async (student: any) => {
+    setHistoryStudent(student);
+    setShowHistoryModal(true);
+    setIsLoadingHistory(true);
+    try {
+      const data = await adminService.getClassTransferHistory(student.id);
+      setTransferHistory(data);
+    } catch (err) {
+      console.error(err);
+      toast.error('Không thể tải lịch sử chuyển lớp');
+    } finally {
+      setIsLoadingHistory(false);
+    }
   };
 
   const handleTransferClass = async () => {
@@ -136,6 +156,10 @@ export default function ClassDetails() {
                     <TableCell>{student.parentName || <span className="text-slate-400 italic">Chưa liên kết</span>}</TableCell>
                     <TableCell>{student.phone}</TableCell>
                     <TableCell className="text-right">
+                      <Button variant="ghost" size="sm" onClick={() => handleOpenHistoryModal(student)} className="text-slate-500 hover:text-slate-700 hover:bg-slate-100">
+                        <History className="h-4 w-4 mr-1.5" />
+                        Lịch sử
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleOpenTransferModal(student)} className="text-pro-primary hover:text-pro-primary hover:bg-pro-primary/10">
                         <ArrowRightLeft className="h-4 w-4 mr-1.5" />
                         Chuyển lớp
@@ -178,6 +202,45 @@ export default function ClassDetails() {
           <div className="pt-4 flex justify-end space-x-3 border-t border-slate-100 mt-2">
             <Button type="button" variant="outline" onClick={() => setShowTransferModal(false)}>Hủy bỏ</Button>
             <Button onClick={handleTransferClass} isLoading={isTransferring} disabled={!transferClassId}>Xác nhận chuyển</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Lịch sử chuyển lớp Modal */}
+      <Modal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        title="Lịch sử chuyển lớp"
+      >
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-slate-600">
+            <strong>Học sinh:</strong> {historyStudent?.name} ({historyStudent?.code})
+          </p>
+
+          {isLoadingHistory ? (
+            <div className="text-center py-6 text-slate-500 text-sm">Đang tải...</div>
+          ) : transferHistory.length === 0 ? (
+            <div className="text-center py-6 text-slate-500 text-sm">Chưa có lịch sử chuyển lớp nào.</div>
+          ) : (
+            <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-80 overflow-y-auto">
+              {transferHistory.map((h) => (
+                <div key={h.id} className="p-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-slate-800">
+                      {h.lopCu ? `${h.lopCu} (${h.namHocCu})` : 'Chưa có lớp'} → {h.lopMoi} ({h.namHocMoi})
+                    </span>
+                    <span className="text-xs text-slate-400">{h.thoiDiemChuyen}</span>
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">
+                    Lý do: {h.lyDo} {h.ghiChu ? `— ${h.ghiChu}` : ''} • Thực hiện bởi: {h.nguoiThucHien}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="pt-2 flex justify-end border-t border-slate-100">
+            <Button type="button" variant="outline" onClick={() => setShowHistoryModal(false)}>Đóng</Button>
           </div>
         </div>
       </Modal>

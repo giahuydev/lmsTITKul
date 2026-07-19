@@ -24,6 +24,8 @@ export default function StudentRewards() {
 
   const badges = rewardsData?.huyHieu || [];
   const letters = rewardsData?.thuKhen || [];
+  const unlockedBadgeCount = badges.filter((b: any) => b.daMoKhoa).length;
+  const totalXp = rewardsData?.tongXp ?? 0;
 
   return (
     <div className="max-w-5xl mx-auto pb-12">
@@ -40,13 +42,13 @@ export default function StudentRewards() {
           </div>
           <div>
             <h1 className="text-3xl font-black text-slate-800 mb-1">Kho báu của em</h1>
-            <p className="text-slate-500 font-medium">Em đã sưu tập được 3 huy hiệu và 2 thư khen!</p>
+            <p className="text-slate-500 font-medium">Em đã sưu tập được {unlockedBadgeCount} huy hiệu và {letters.length} thư khen!</p>
           </div>
         </div>
         <div className="bg-white px-6 py-4 rounded-2xl border-2 border-amber-100 shadow-sm text-center relative z-10">
            <div className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Tổng điểm thưởng</div>
            <div className="text-3xl font-black text-amber-500 flex items-center justify-center">
-             1,250 <Gem className="w-8 h-8 ml-2 text-cyan-500 fill-cyan-100" />
+             {totalXp.toLocaleString('vi-VN')} <Gem className="w-8 h-8 ml-2 text-cyan-500 fill-cyan-100" />
            </div>
         </div>
       </div>

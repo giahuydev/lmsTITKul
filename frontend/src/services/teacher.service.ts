@@ -183,6 +183,11 @@ export const teacherService = {
     return response.data;
   },
 
+  getStudentProgress: async (studentId: number): Promise<any> => {
+    const response = await api.get(`/teachers/me/students/${studentId}/progress`);
+    return response.data;
+  },
+
   getSemesters: async (): Promise<{ id: number; label: string }[]> => {
     const response = await api.get('/semesters');
     return response.data;
@@ -218,6 +223,11 @@ export const teacherService = {
 
   chooseCommentSuggestion: async (suggestionId: number): Promise<void> => {
     await api.post(`/submissions/comment-suggestions/${suggestionId}/choose`);
+  },
+
+  generateExerciseSuggestions: async (payload: { grade?: number; subjectId?: number; topicHint?: string }): Promise<{ suggestions: string[] }> => {
+    const response = await api.post('/hoc-lieu/ai-goi-y-bai-tap', payload);
+    return response.data;
   },
 
   getMorningReport: async (classId?: number): Promise<{

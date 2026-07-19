@@ -59,6 +59,11 @@ export const adminService = {
     return response.data;
   },
 
+  getClassTransferHistory: async (userId: number): Promise<any> => {
+    const response = await api.get(`/admin/users/${userId}/class-transfer-history`);
+    return response.data;
+  },
+
   getSystemConfig: async (): Promise<any> => {
     const response = await api.get('/admin/config');
     return response.data;

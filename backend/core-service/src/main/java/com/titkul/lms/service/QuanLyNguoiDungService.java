@@ -139,4 +139,28 @@ public class QuanLyNguoiDungService {
         profile.setLopHoc(newClass);
         studentProfileRepository.save(profile);
     }
+
+    @Transactional(readOnly = true)
+    public List<java.util.Map<String, Object>> getClassTransferHistory(Long userId) {
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
+
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        return classTransferHistoryRepository.findByStudent_HocSinhIdOrderByThoiDiemChuyenDesc(profile.getHocSinhId())
+                .stream()
+                .map(h -> {
+                    java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+                    map.put("id", h.getChuyenLopId());
+                    map.put("lopCu", h.getLopCu() != null ? h.getLopCu().getTenLop() : null);
+                    map.put("lopMoi", h.getLopMoi().getTenLop());
+                    map.put("namHocCu", h.getNamHocCu());
+                    map.put("namHocMoi", h.getNamHocMoi());
+                    map.put("lyDo", h.getLyDo().name());
+                    map.put("ghiChu", h.getGhiChu());
+                    map.put("nguoiThucHien", h.getNguoiThucHien().getTenDangNhap());
+                    map.put("thoiDiemChuyen", h.getThoiDiemChuyen().format(fmt));
+                    return map;
+                })
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

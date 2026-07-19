@@ -43,7 +43,8 @@ export function useReportsViewModel() {
     setShowRewardModal(true);
   };
 
-  const openProgressModal = (name: string) => {
+  const openProgressModal = (id: number, name: string) => {
+    setSelectedStudentId(id);
     setSelectedStudentName(name);
     setShowProgressModal(true);
   };

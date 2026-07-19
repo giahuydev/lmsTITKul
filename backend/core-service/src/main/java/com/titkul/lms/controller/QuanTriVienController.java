@@ -102,6 +102,15 @@ public class QuanTriVienController {
         }
     }
 
+    @GetMapping("/users/{id}/class-transfer-history")
+    public ResponseEntity<?> getClassTransferHistory(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(userManagementService.getClassTransferHistory(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
     @GetMapping("/config")
     public ResponseEntity<?> getSystemConfig() {
         return ResponseEntity.ok(systemConfigService.getSystemConfig());

@@ -21,6 +21,7 @@ public class LopHoc {
     @Column(name = "khoi_lop", nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Short khoiLop;
 
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nam_hoc_id", nullable = false, columnDefinition = "INT UNSIGNED")
     private NamHoc namHoc;

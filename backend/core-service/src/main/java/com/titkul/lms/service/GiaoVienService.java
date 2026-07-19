@@ -52,6 +52,8 @@ public class GiaoVienService {
     private final HuyHieuRepository huyHieuRepository;
     private final KhenThuongHocSinhRepository khenThuongHocSinhRepository;
     private final EmailService emailService;
+    private final com.titkul.lms.repository.StudentProgressRepository studentProgressRepository;
+    private final com.titkul.lms.repository.BaiNopRepository submissionRepository;
 
     public GiaoVienDashboardResponse getDashboard(String username) {
         NguoiDung user = userRepository.findByTenDangNhap(username)
@@ -153,6 +155,62 @@ public class GiaoVienService {
         }).collect(java.util.stream.Collectors.toList());
 
         return Map.of("students", result);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getStudentProgress(String username, Long studentId) {
+        NguoiDung user = userRepository.findByTenDangNhap(username)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+        HoSoGiaoVien profile = teacherProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ giáo viên"));
+
+        HoSoHocSinh student = studentProfileRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
+
+        List<LopHoc> homeroomClasses = classRoomRepository.findByGiaoVienChuNhiem_GiaoVienId(profile.getGiaoVienId());
+        boolean ownsStudent = student.getLopHoc() != null && homeroomClasses.stream()
+                .anyMatch(c -> c.getLopHocId().equals(student.getLopHoc().getLopHocId()));
+        if (!ownsStudent) {
+            throw new RuntimeException("Học sinh không thuộc lớp bạn phụ trách");
+        }
+
+        List<com.titkul.lms.entity.StudentProgress> progressList = studentProgressRepository.findByStudent_HocSinhId(studentId);
+        Map<Integer, List<com.titkul.lms.entity.StudentProgress>> bySubject = progressList.stream()
+                .filter(p -> p.getContentNode() != null && p.getContentNode().getMonHoc() != null)
+                .collect(Collectors.groupingBy(p -> p.getContentNode().getMonHoc().getMonHocId()));
+
+        List<Map<String, Object>> subjectProgress = bySubject.values().stream().map(list -> {
+            MonHoc subject = list.get(0).getContentNode().getMonHoc();
+            long completed = list.stream().filter(p -> Boolean.TRUE.equals(p.getCompleted())).count();
+            int percent = list.isEmpty() ? 0 : (int) Math.round(completed * 100.0 / list.size());
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("subject", subject.getTenMon());
+            map.put("percent", percent);
+            map.put("completed", completed);
+            map.put("total", list.size());
+            return map;
+        }).collect(Collectors.toList());
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        List<Map<String, Object>> recentSubmissions = submissionRepository.findByHocSinh_HocSinhId(studentId).stream()
+                .filter(s -> s.getThoiDiemNop() != null)
+                .sorted((a, b) -> b.getThoiDiemNop().compareTo(a.getThoiDiemNop()))
+                .limit(5)
+                .map(s -> {
+                    Map<String, Object> map = new LinkedHashMap<>();
+                    map.put("title", s.getBaiTap().getTieuDe());
+                    map.put("late", Boolean.TRUE.equals(s.getLaNopTre()));
+                    map.put("date", s.getThoiDiemNop().format(fmt));
+                    return map;
+                })
+                .collect(Collectors.toList());
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("studentCode", student.getMaHocSinh());
+        result.put("className", student.getLopHoc() != null ? student.getLopHoc().getTenLop() : "");
+        result.put("subjectProgress", subjectProgress);
+        result.put("recentSubmissions", recentSubmissions);
+        return result;
     }
 
     // Ưu tiên hocLieu.subject (Kho Học Liệu GV tự soạn), fallback contentNode.subject (cây SGK).

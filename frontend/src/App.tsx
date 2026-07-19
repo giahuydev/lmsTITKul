@@ -48,6 +48,7 @@ import ParentProfile from './pages/parent/Profile';
 import StudentLayout from './layouts/StudentLayout';
 import StudentDashboard from './pages/student/Dashboard';
 import SubjectTree from './pages/student/SubjectTree';
+import AdventureMap from './pages/student/AdventureMap';
 import LessonPlayer from './pages/student/LessonPlayer';
 import AssignmentH5PPlayer from './pages/student/AssignmentH5PPlayer';
 import StudentRewards from './pages/student/Rewards';
@@ -75,6 +76,7 @@ function App() {
         <Route path="/student" element={<StudentLayout />}>
           <Route index element={<StudentDashboard />} />
           <Route path="subject/:subjectId" element={<SubjectTree />} />
+          <Route path="subject/:subjectId/map" element={<AdventureMap />} />
           <Route path="lesson/:lessonId" element={<LessonPlayer />} />
           <Route path="rewards" element={<StudentRewards />} />
           <Route path="tasks" element={<StudentAssignments />} />

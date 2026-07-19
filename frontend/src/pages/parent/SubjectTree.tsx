@@ -5,34 +5,42 @@ import { parentService } from '../../services/parent.service';
 export default function ParentSubjectTree() {
   const [children, setChildren] = useState<any[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<number | null>(null);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
   const [chapters, setChapters] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchChildren = async () => {
+    const fetchInitial = async () => {
       try {
-        const data = await parentService.getChildren();
-        setChildren(data);
-        if (data && data.length > 0) {
-          setSelectedChildId(data[0].id);
-        } else {
-          setIsLoading(false);
+        const [childrenData, subjectsData] = await Promise.all([
+          parentService.getChildren(),
+          parentService.getSubjects(),
+        ]);
+        setChildren(childrenData);
+        setSubjects(subjectsData);
+        if (childrenData && childrenData.length > 0) {
+          setSelectedChildId(childrenData[0].id);
         }
+        if (subjectsData && subjectsData.length > 0) {
+          setSelectedSubjectId(subjectsData[0].id);
+        }
+        if (!childrenData?.length) setIsLoading(false);
       } catch (err) {
-        console.error('Failed to fetch children', err);
+        console.error('Failed to fetch children/subjects', err);
         setIsLoading(false);
       }
     };
-    fetchChildren();
+    fetchInitial();
   }, []);
 
   useEffect(() => {
     const fetchTree = async () => {
-      if (!selectedChildId) return;
+      if (!selectedChildId || !selectedSubjectId) return;
       setIsLoading(true);
       try {
-        const data = await parentService.getSubjectTree(selectedChildId);
-        setChapters(data);
+        const data = await parentService.getSubjectTree(selectedChildId, selectedSubjectId);
+        setChapters(data.chapters ?? []);
       } catch (err) {
         console.error('Failed to fetch subject tree', err);
       } finally {
@@ -40,7 +48,7 @@ export default function ParentSubjectTree() {
       }
     };
     fetchTree();
-  }, [selectedChildId]);
+  }, [selectedChildId, selectedSubjectId]);
 
   return (
     <div className="max-w-4xl mx-auto pb-20">
@@ -56,17 +64,33 @@ export default function ParentSubjectTree() {
         </div>
 
         {children.length > 0 && (
-          <div className="flex items-center space-x-3 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
-            <span className="text-sm font-medium text-slate-500 pl-2">Chọn học sinh:</span>
-            <select
-              className="bg-slate-50 border-none text-sm font-semibold rounded-lg focus:ring-0 py-2 pl-3 pr-8"
-              value={selectedChildId || ''}
-              onChange={(e) => setSelectedChildId(Number(e.target.value))}
-            >
-              {children.map(child => (
-                <option key={child.id} value={child.id}>{child.name} - {child.className}</option>
-              ))}
-            </select>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center space-x-3 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
+              <span className="text-sm font-medium text-slate-500 pl-2">Chọn học sinh:</span>
+              <select
+                className="bg-slate-50 border-none text-sm font-semibold rounded-lg focus:ring-0 py-2 pl-3 pr-8"
+                value={selectedChildId || ''}
+                onChange={(e) => setSelectedChildId(Number(e.target.value))}
+              >
+                {children.map(child => (
+                  <option key={child.id} value={child.id}>{child.name} - {child.className}</option>
+                ))}
+              </select>
+            </div>
+            {subjects.length > 0 && (
+              <div className="flex items-center space-x-3 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
+                <span className="text-sm font-medium text-slate-500 pl-2">Môn học:</span>
+                <select
+                  className="bg-slate-50 border-none text-sm font-semibold rounded-lg focus:ring-0 py-2 pl-3 pr-8"
+                  value={selectedSubjectId || ''}
+                  onChange={(e) => setSelectedSubjectId(Number(e.target.value))}
+                >
+                  {subjects.map((subject: any) => (
+                    <option key={subject.id} value={subject.id}>{subject.tenMon}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -95,7 +95,7 @@ export default function TeacherReports() {
                     <TableCell className="font-medium text-slate-800">
                       <button
                         className="hover:text-primary hover:underline transition-colors text-left"
-                        onClick={() => vm.openProgressModal(student.name)}
+                        onClick={() => vm.openProgressModal(student.id, student.name)}
                       >
                         {student.name}
                       </button>
@@ -137,8 +137,9 @@ export default function TeacherReports() {
         />
       )}
 
-      {vm.showProgressModal && (
+      {vm.showProgressModal && vm.selectedStudentId != null && (
         <StudentProgressModal
+          studentId={vm.selectedStudentId}
           studentName={vm.selectedStudentName}
           onClose={() => vm.setShowProgressModal(false)}
         />

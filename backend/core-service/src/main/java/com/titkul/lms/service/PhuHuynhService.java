@@ -34,9 +34,8 @@ public class PhuHuynhService {
     private final HocSinhService studentService;
 
     @Transactional(readOnly = true)
-    public PhuHuynhDashboardResponse getDashboard(String username) {
-        NguoiDung user = resolveUser(username);
-        HoSoPhuHuynh profile = resolveProfile(user);
+    public PhuHuynhDashboardResponse getDashboard(String username, Long childId) {
+        HoSoPhuHuynh profile = resolveProfile(resolveUser(username));
 
         List<HoSoHocSinh> children = profile.getDanhSachHocSinh() != null ? profile.getDanhSachHocSinh() : Collections.emptyList();
 
@@ -48,10 +47,13 @@ public class PhuHuynhService {
                         .build())
                 .collect(Collectors.toList());
 
-        List<Long> childIds = children.stream().map(HoSoHocSinh::getHocSinhId).collect(Collectors.toList());
+        List<HoSoHocSinh> scopedChildren = childId != null
+                ? children.stream().filter(c -> c.getHocSinhId().equals(childId)).collect(Collectors.toList())
+                : children;
+        List<Long> scopedChildIds = scopedChildren.stream().map(HoSoHocSinh::getHocSinhId).collect(Collectors.toList());
 
-        List<PhuHuynhDashboardResponse.ActivityDto> activities = buildActivities(childIds);
-        List<PhuHuynhDashboardResponse.AlertDto> alerts = buildAlerts(children);
+        List<PhuHuynhDashboardResponse.ActivityDto> activities = buildActivities(scopedChildIds);
+        List<PhuHuynhDashboardResponse.AlertDto> alerts = buildAlerts(scopedChildren);
         List<PhuHuynhDashboardResponse.AnnouncementDto> announcements = buildAnnouncements(profile);
 
         return PhuHuynhDashboardResponse.builder()
@@ -83,11 +85,14 @@ public class PhuHuynhService {
     }
 
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getGrades(String username) {
+    public List<Map<String, Object>> getGrades(String username, Long childId) {
         HoSoPhuHuynh profile = resolveProfile(resolveUser(username));
-        List<Long> childIds = profile.getDanhSachHocSinh() != null
+        List<Long> allChildIds = profile.getDanhSachHocSinh() != null
                 ? profile.getDanhSachHocSinh().stream().map(HoSoHocSinh::getHocSinhId).collect(Collectors.toList())
                 : Collections.emptyList();
+        List<Long> childIds = childId != null
+                ? allChildIds.stream().filter(id -> id.equals(childId)).collect(Collectors.toList())
+                : allChildIds;
 
         if (childIds.isEmpty()) return Collections.emptyList();
 
@@ -239,16 +244,14 @@ public class PhuHuynhService {
         userRepository.save(childUser);
     }
 
-    public List<Map<String, Object>> getSubjectTree(String username, Long childId) {
-        resolveUser(username);
-        return List.of(
-            Map.of("id", 1, "title", "Chương 1: Khám phá",
-                "icon", "https://img.icons8.com/color/96/1-circle.png",
-                "lessons", List.of(
-                    Map.of("id", 101, "title", "Bài học số 1", "type", "video", "status", "completed"),
-                    Map.of("id", 102, "title", "Bài tập thực hành", "type", "h5p", "status", "completed")
-                ))
-        );
+    @Transactional(readOnly = true)
+    public Map<String, Object> getSubjectTree(String username, Long childId, Integer subjectId) {
+        HoSoPhuHuynh profile = resolveProfile(resolveUser(username));
+        HoSoHocSinh child = profile.getDanhSachHocSinh().stream()
+                .filter(c -> c.getHocSinhId().equals(childId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Học sinh không thuộc phụ huynh này"));
+        return studentService.buildSubjectTree(child, subjectId);
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────────

@@ -1,8 +1,8 @@
 import { api } from '../lib/axios';
 
 export const parentService = {
-  getDashboard: async () => {
-    const response = await api.get('/parents/me/dashboard');
+  getDashboard: async (childId?: number) => {
+    const response = await api.get('/parents/me/dashboard', { params: childId ? { childId } : undefined });
     return response.data;
   },
   
@@ -11,8 +11,8 @@ export const parentService = {
     return response.data;
   },
 
-  getGrades: async () => {
-    const response = await api.get('/parents/me/grades');
+  getGrades: async (childId?: number) => {
+    const response = await api.get('/parents/me/grades', { params: childId ? { childId } : undefined });
     return response.data;
   },
 
@@ -39,8 +39,13 @@ export const parentService = {
     return response.data;
   },
 
-  getSubjectTree: async (childId: number) => {
-    const response = await api.get(`/parents/me/children/${childId}/subject-tree`);
+  getSubjectTree: async (childId: number, subjectId: number) => {
+    const response = await api.get(`/parents/me/children/${childId}/subject-tree`, { params: { subjectId } });
+    return response.data;
+  },
+
+  getSubjects: async () => {
+    const response = await api.get('/subjects');
     return response.data;
   },
 

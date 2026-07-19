@@ -478,6 +478,7 @@ public class HocSinhService {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("huyHieu", huyHieu);
         result.put("thuKhen", thuKhen);
+        result.put("tongXp", profile.getTongXp());
         return result;
     }
 
@@ -488,7 +489,11 @@ public class HocSinhService {
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
         HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
+        return buildSubjectTree(profile, subjectId);
+    }
 
+    // Dùng chung cho cả HS xem của mình (getSubjectTree) và PH xem của con (PhuHuynhService).
+    Map<String, Object> buildSubjectTree(HoSoHocSinh profile, Integer subjectId) {
         if (profile.getLopHoc() == null || profile.getLopHoc().getKhoiLop() == null || subjectId == null) {
             return Map.of("subjectName", "", "totalLessons", 0, "completedLessons", 0, "chapters", List.of());
         }

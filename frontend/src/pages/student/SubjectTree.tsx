@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, Calculator, PlayCircle, Puzzle, FileQuestion, CheckCircle2, Lock } from 'lucide-react';
+import { ArrowLeft, Loader2, Calculator, PlayCircle, Puzzle, FileQuestion, CheckCircle2, Lock, Map } from 'lucide-react';
 import { studentService } from '../../services/student.service';
 
 export default function SubjectTree() {
@@ -40,10 +40,16 @@ export default function SubjectTree() {
 
   return (
     <div className="max-w-4xl mx-auto pb-20">
-      <Link to="/student" className="inline-flex items-center text-student-primary font-bold hover:text-student-accent mb-8 bg-student-primary/10 px-4 py-2 rounded-full transition-colors">
-        <ArrowLeft className="w-5 h-5 mr-2" />
-        Quay lại Trang Chủ
-      </Link>
+      <div className="flex items-center justify-between mb-8">
+        <Link to="/student" className="inline-flex items-center text-student-primary font-bold hover:text-student-accent bg-student-primary/10 px-4 py-2 rounded-full transition-colors">
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Quay lại Trang Chủ
+        </Link>
+        <Link to={`/student/subject/${subjectId}/map`} className="inline-flex items-center text-student-primary font-bold hover:text-student-accent bg-student-primary/10 px-4 py-2 rounded-full transition-colors">
+          <Map className="w-5 h-5 mr-2" />
+          Xem dạng bản đồ phiêu lưu
+        </Link>
+      </div>
 
       <div className="flex items-center mb-10">
         <div className="w-16 h-16 bg-student-primary/10 rounded-2xl flex items-center justify-center mr-4 border-2 border-student-primary/20">

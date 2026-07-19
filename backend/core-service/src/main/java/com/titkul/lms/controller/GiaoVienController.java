@@ -95,6 +95,19 @@ public class GiaoVienController {
         }
     }
 
+    @GetMapping("/me/students/{studentId}/progress")
+    public ResponseEntity<?> getStudentProgress(@org.springframework.web.bind.annotation.PathVariable Long studentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
+        try {
+            return ResponseEntity.ok(teacherService.getStudentProgress(authentication.getName(), studentId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
     @org.springframework.web.bind.annotation.PostMapping("/me/announcements")
     public ResponseEntity<?> createAnnouncement(@org.springframework.web.bind.annotation.RequestBody com.titkul.lms.dto.ThongBaoRequest dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

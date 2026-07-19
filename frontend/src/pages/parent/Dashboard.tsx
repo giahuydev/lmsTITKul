@@ -46,9 +46,11 @@ export default function ParentDashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!selectedChild) return;
+    setIsLoading(true);
     const fetchDashboard = async () => {
       try {
-        const data = await parentService.getDashboard();
+        const data = await parentService.getDashboard(selectedChild.id);
         setDashboardData(data);
       } catch (err) {
         console.error('Failed to fetch dashboard', err);
@@ -57,7 +59,15 @@ export default function ParentDashboard() {
       }
     };
     fetchDashboard();
-  }, []);
+  }, [selectedChild]);
+
+  if (!selectedChild) {
+    return (
+      <div className="flex justify-center items-center h-64 text-slate-500">
+        Vui lòng chọn hồ sơ con để xem tiến độ học tập.
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

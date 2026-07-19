@@ -8,6 +8,7 @@ import H5PEditor, { type H5PEditorHandle } from '../../components/h5p/H5PEditor'
 import H5PPlayer from '../../components/h5p/H5PPlayer';
 import { teacherService, type Subject } from '../../services/teacher.service';
 import { GRADES } from '../../constants';
+import { ExerciseSuggestionsPanel } from './components/ExerciseSuggestionsPanel';
 
 export default function TeacherEditor() {
   const { contentId } = useParams();
@@ -123,19 +124,27 @@ export default function TeacherEditor() {
         </div>
       )}
 
-      {/* H5P tự giới hạn cứng nội dung trong iframe ở 960px — canh giữa thay vì để trống hai bên. */}
-      <div
-        className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 min-h-[70vh] max-w-[1040px] mx-auto"
-        onClickCapture={handleEditorInteraction}
-        onInputCapture={handleEditorInteraction}
-        onKeyDownCapture={handleEditorInteraction}
-      >
-        <H5PEditor
-          ref={editorRef}
-          contentId={contentId}
-          grade={isNew && grade ? Number(grade) : undefined}
-          subjectId={isNew && subjectId ? Number(subjectId) : undefined}
-        />
+      <div className={`flex gap-4 ${isFullscreen ? '' : 'max-w-[1360px] mx-auto'} items-start`}>
+        {/* H5P tự giới hạn cứng nội dung trong iframe ở 960px — canh giữa thay vì để trống hai bên. */}
+        <div
+          className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 min-h-[70vh] max-w-[1040px] flex-1"
+          onClickCapture={handleEditorInteraction}
+          onInputCapture={handleEditorInteraction}
+          onKeyDownCapture={handleEditorInteraction}
+        >
+          <H5PEditor
+            ref={editorRef}
+            contentId={contentId}
+            grade={isNew && grade ? Number(grade) : undefined}
+            subjectId={isNew && subjectId ? Number(subjectId) : undefined}
+          />
+        </div>
+
+        {isNew && grade && subjectId && (
+          <div className="w-[300px] shrink-0 sticky top-4">
+            <ExerciseSuggestionsPanel grade={Number(grade)} subjectId={Number(subjectId)} />
+          </div>
+        )}
       </div>
 
       <Modal
