@@ -25,9 +25,60 @@ public class NoiDungBaiTapService {
     private final ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
+    public List<Map<String, Object>> getThuVienGocLibrary() {
+        return dangBaiRepository.findAllBoSachOrdered().stream()
+                .map(db -> {
+                    Map<String, Object> map = new LinkedHashMap<>();
+                    map.put("id", db.getDangBaiId());
+                    map.put("tenDangBai", db.getTenDangBai());
+                    map.put("loai", extractLoai(db.getCauHinh()));
+                    map.put("hasContent", db.getDapAnChuan() != null);
+                    map.put("xpThuong", db.getXpThuong());
+                    map.put("baiHocId", db.getBaiHoc().getBaiHocId());
+                    map.put("tenBaiHoc", db.getBaiHoc().getTenBaiHoc());
+                    map.put("tenChuDe", db.getBaiHoc().getChuDe().getTenChuDe());
+                    map.put("tenSach", db.getBaiHoc().getChuDe().getSach().getTenSach());
+                    map.put("khoiLop", db.getBaiHoc().getChuDe().getSach().getKhoiLop());
+                    map.put("hocKy", db.getBaiHoc().getChuDe().getSach().getHocKy());
+                    map.put("monHocId", db.getMonHoc().getMonHocId());
+                    map.put("tenMon", db.getMonHoc().getTenMon());
+                    return map;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getBaiHocDetail(Integer baiHocId) {
+        List<DangBai> items = dangBaiRepository.findByBaiHocIdOrdered(baiHocId);
+        if (items.isEmpty()) {
+            throw new RuntimeException("Không tìm thấy nội dung cho bài này");
+        }
+        DangBai first = items.get(0);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("baiHocId", baiHocId);
+        result.put("tenBaiHoc", first.getBaiHoc().getTenBaiHoc());
+        result.put("tenChuDe", first.getBaiHoc().getChuDe().getTenChuDe());
+        result.put("tenSach", first.getBaiHoc().getChuDe().getSach().getTenSach());
+        result.put("khoiLop", first.getBaiHoc().getChuDe().getSach().getKhoiLop());
+        result.put("tenMon", first.getMonHoc().getTenMon());
+        result.put("items", items.stream().map(db -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("id", db.getDangBaiId());
+            map.put("tenDangBai", db.getTenDangBai());
+            map.put("loai", extractLoai(db.getCauHinh()));
+            map.put("xpThuong", db.getXpThuong());
+            map.put("cauHinh", parseJsonOrNull(db.getCauHinh()));
+            map.put("dapAnChuan", parseJsonOrNull(db.getDapAnChuan()));
+            return map;
+        }).collect(Collectors.toList()));
+        return result;
+    }
+
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getQuizSlots(Integer subjectId, Integer grade) {
         return dangBaiRepository.findBySubjectAndGradeOrdered(subjectId, grade).stream()
                 .filter(db -> db.getLoaiNoiDung() == com.titkul.lms.entity.LoaiNoiDung.JSON_TEXT)
+                .filter(db -> !"LY_THUYET".equals(extractLoai(db.getCauHinh())))
                 .map(db -> {
                     Map<String, Object> map = new LinkedHashMap<>();
                     map.put("id", db.getDangBaiId());

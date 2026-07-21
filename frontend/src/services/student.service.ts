@@ -60,6 +60,11 @@ export const studentService = {
     return response.data;
   },
 
+  submitContentNodeQuiz: async (contentNodeId: number, baiLam: any) => {
+    const response = await api.post(`/students/me/content-nodes/${contentNodeId}/submit-quiz`, baiLam);
+    return response.data;
+  },
+
   getH5PAssignmentDetail: async (assignmentId: number) => {
     const response = await api.get(`/students/me/assignments/${assignmentId}/h5p-detail`);
     return response.data;

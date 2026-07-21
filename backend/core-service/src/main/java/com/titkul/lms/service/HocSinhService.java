@@ -680,13 +680,69 @@ public class HocSinhService {
                 .map(p -> Boolean.TRUE.equals(p.getCompleted()))
                 .orElse(false);
 
+        Object cauHinh = null;
+        String loai = null;
+        if (contentNode.getCauHinh() != null) {
+            try {
+                Map<String, Object> parsed = objectMapper.readValue(contentNode.getCauHinh(), Map.class);
+                loai = (String) parsed.get("loai");
+                cauHinh = parsed;
+            } catch (Exception ignored) {
+                // cauHinh không hợp lệ, bỏ qua để không chặn hiển thị bài
+            }
+        }
+
         return DangBaiDetailResponse.builder()
                 .id(contentNode.getDangBaiId())
                 .title(contentNode.getTenDangBai())
                 .h5pContentId(contentNode.getH5pNoiDungId())
                 .xpReward(contentNode.getXpThuong())
                 .completed(completed)
+                .loaiNoiDung(contentNode.getLoaiNoiDung() != null ? contentNode.getLoaiNoiDung().name() : null)
+                .loai(loai)
+                .cauHinh(cauHinh)
                 .build();
+    }
+
+    // Cham diem + danh dau hoan thanh cho quiz "bo sach" (JSON_TEXT) trong luong tu hoc
+    // (khac voi submitQuizAssignment: khong gan voi BaiTap/BaiNop, dung chung co che
+    // StudentProgress+XP nhu H5P de nhat quan voi luong "danh dau hoan thanh" hien co).
+    @Transactional
+    public Map<String, Object> submitContentNodeQuiz(String username, Integer contentNodeId, Map<String, Object> baiLam) {
+        NguoiDung user = userRepository.findByTenDangNhap(username)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+        HoSoHocSinh profile = studentProfileRepository.findByNguoiDung_NguoiDungId(user.getNguoiDungId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học sinh"));
+        DangBai contentNode = contentNodeRepository.findById(contentNodeId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nội dung bài học"));
+
+        if (contentNode.getLoaiNoiDung() != com.titkul.lms.entity.LoaiNoiDung.JSON_TEXT || contentNode.getDapAnChuan() == null) {
+            throw new RuntimeException("Bài này không phải dạng quiz có thể nộp bài");
+        }
+
+        String baiLamJson;
+        try {
+            baiLamJson = objectMapper.writeValueAsString(baiLam);
+        } catch (Exception e) {
+            throw new RuntimeException("Dữ liệu bài làm không hợp lệ");
+        }
+        BigDecimal score = chamDiemBaiTapBoSachService.chamDiem(contentNode.getDapAnChuan(), baiLamJson);
+
+        DangBaiHoanThanhResponse hoanThanh = markContentNodeComplete(username, contentNodeId);
+
+        Object dapAnChuan = null;
+        try {
+            dapAnChuan = objectMapper.readValue(contentNode.getDapAnChuan(), Object.class);
+        } catch (Exception ignored) {
+        }
+
+        Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("diem", score);
+        result.put("xpEarned", hoanThanh.getXpEarned());
+        result.put("totalXp", hoanThanh.getTotalXp());
+        result.put("alreadyCompleted", hoanThanh.getAlreadyCompleted());
+        result.put("dapAnChuan", dapAnChuan);
+        return result;
     }
 
     // Chỉ cộng XP lần đầu hoàn thành, tránh cày XP qua việc gọi lại API nhiều lần.

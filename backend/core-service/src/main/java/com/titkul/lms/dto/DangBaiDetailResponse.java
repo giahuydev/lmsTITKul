@@ -11,4 +11,7 @@ public class DangBaiDetailResponse {
     private String h5pContentId;
     private Integer xpReward;
     private Boolean completed;
+    private String loaiNoiDung;
+    private String loai;
+    private Object cauHinh;
 }

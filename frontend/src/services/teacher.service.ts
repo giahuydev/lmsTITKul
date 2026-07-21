@@ -30,6 +30,41 @@ export interface Material {
   subjectName: string | null;
 }
 
+export interface BoSachContentItem {
+  id: number;
+  tenDangBai: string;
+  loai: 'LY_THUYET' | 'TRAC_NGHIEM' | 'NOI_CAP' | 'DIEN_KHUYET' | null;
+  hasContent: boolean;
+  xpThuong: number;
+  baiHocId: number;
+  tenBaiHoc: string;
+  tenChuDe: string;
+  tenSach: string;
+  khoiLop: number;
+  hocKy: number | null;
+  monHocId: number;
+  tenMon: string;
+}
+
+export interface BaiHocDetailItem {
+  id: number;
+  tenDangBai: string;
+  loai: 'LY_THUYET' | 'TRAC_NGHIEM' | 'NOI_CAP' | 'DIEN_KHUYET' | null;
+  xpThuong: number;
+  cauHinh: any;
+  dapAnChuan: any;
+}
+
+export interface BaiHocDetail {
+  baiHocId: number;
+  tenBaiHoc: string;
+  tenChuDe: string;
+  tenSach: string;
+  khoiLop: number;
+  tenMon: string;
+  items: BaiHocDetailItem[];
+}
+
 export interface Subject {
   monHocId: number;
   tenMon: string;
@@ -245,6 +280,16 @@ export const teacherService = {
     ghiChu?: string;
   }): Promise<void> => {
     await api.put(`/teachers/me/classes/${classId}/students/${hocSinhId}/ket-qua-cuoi-nam`, dto);
+  },
+
+  getThuVienGocLibrary: async (): Promise<BoSachContentItem[]> => {
+    const response = await api.get<BoSachContentItem[]>('/dang-bai/thu-vien-goc');
+    return response.data;
+  },
+
+  getBaiHocDetail: async (baiHocId: number): Promise<BaiHocDetail> => {
+    const response = await api.get<BaiHocDetail>(`/dang-bai/bai-hoc/${baiHocId}`);
+    return response.data;
   },
 
   getQuizSlots: async (subjectId: number, grade: number): Promise<any[]> => {

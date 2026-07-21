@@ -19,12 +19,14 @@ export default function AdminKetQuaCuoiNam() {
   const [khoiLop, setKhoiLop] = useState('');
   const [rows, setRows] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
+    setIsError(false);
     adminService.getTongHopKetQuaCuoiNam(namHoc || undefined, khoiLop ? Number(khoiLop) : undefined)
       .then(setRows)
-      .catch(() => setRows([]))
+      .catch(() => { setRows([]); setIsError(true); })
       .finally(() => setIsLoading(false));
   }, [namHoc, khoiLop]);
 
@@ -36,16 +38,16 @@ export default function AdminKetQuaCuoiNam() {
       </h1>
 
       <Card>
-        <div className="p-4 border-b border-slate-100 flex gap-4 bg-slate-50 items-center">
+        <div className="p-4 border-b border-slate-100 flex flex-wrap gap-4 bg-slate-50 items-center">
           <div className="font-semibold text-slate-700 mr-2">Bộ lọc:</div>
           <input
-            className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary"
+            className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
             placeholder="Năm học (VD: 2025-2026)"
             value={namHoc}
             onChange={(e) => setNamHoc(e.target.value)}
           />
           <select
-            className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary"
+            className="px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
             value={khoiLop}
             onChange={(e) => setKhoiLop(e.target.value)}
           >
@@ -79,12 +81,14 @@ export default function AdminKetQuaCuoiNam() {
                 <TableBody>
                   {rows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-slate-500">Chưa có kết quả nào phù hợp bộ lọc.</TableCell>
+                      <TableCell colSpan={8} className="text-center py-8 text-slate-500">
+                        {isError ? 'Không tải được dữ liệu, vui lòng thử lại.' : 'Chưa có kết quả nào phù hợp bộ lọc.'}
+                      </TableCell>
                     </TableRow>
                   ) : (
                     rows.map((r) => (
                       <TableRow key={r.ketQuaId}>
-                        <TableCell className="font-medium text-slate-800">{r.hoTenHocSinh} <span className="text-xs text-slate-400">({r.maHocSinh})</span></TableCell>
+                        <TableCell className="font-medium text-slate-800">{r.hoTenHocSinh} <span className="text-xs text-slate-500">({r.maHocSinh})</span></TableCell>
                         <TableCell>{r.tenLop}</TableCell>
                         <TableCell>{r.namHoc}</TableCell>
                         <TableCell className="text-center">{NHAN_HOC_TAP[r.ketQuaHocTap] ?? r.ketQuaHocTap}</TableCell>

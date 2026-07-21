@@ -19,6 +19,20 @@ public class NoiDungBaiTapController {
 
     private final NoiDungBaiTapService noiDungBaiTapService;
 
+    @GetMapping("/thu-vien-goc")
+    public ResponseEntity<?> getThuVienGocLibrary() {
+        return ResponseEntity.ok(noiDungBaiTapService.getThuVienGocLibrary());
+    }
+
+    @GetMapping("/bai-hoc/{baiHocId}")
+    public ResponseEntity<?> getBaiHocDetail(@PathVariable Integer baiHocId) {
+        try {
+            return ResponseEntity.ok(noiDungBaiTapService.getBaiHocDetail(baiHocId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @GetMapping("/quiz-slots")
     public ResponseEntity<?> getQuizSlots(@RequestParam Integer subjectId, @RequestParam Integer grade) {
         try {

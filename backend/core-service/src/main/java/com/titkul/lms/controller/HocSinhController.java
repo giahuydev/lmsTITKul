@@ -215,6 +215,19 @@ public class HocSinhController {
         }
     }
 
+    @PostMapping("/me/content-nodes/{contentNodeId}/submit-quiz")
+    public ResponseEntity<?> submitContentNodeQuiz(@PathVariable Integer contentNodeId, @RequestBody java.util.Map<String, Object> baiLam) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "Vui lòng đăng nhập"));
+        }
+        try {
+            return ResponseEntity.ok(studentService.submitContentNodeQuiz(authentication.getName(), contentNodeId, baiLam));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
     @PostMapping("/me/content-nodes/{contentNodeId}/complete")
     public ResponseEntity<?> markContentNodeComplete(@PathVariable Integer contentNodeId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

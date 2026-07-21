@@ -25,6 +25,7 @@ import TeacherClasses from './pages/teacher/Classes';
 import TeacherClassDetails from './pages/teacher/ClassDetails';
 import TeacherMaterials from './pages/teacher/Materials';
 import TeacherMaterialDetail from './pages/teacher/MaterialDetail';
+import BoSachLessonDetail from './pages/teacher/BoSachLessonDetail';
 import TeacherAssignments from './pages/teacher/Assignments';
 import QuizAuthoring from './pages/teacher/QuizAuthoring';
 import TeacherKetQuaCuoiNam from './pages/teacher/KetQuaCuoiNam';
@@ -110,6 +111,7 @@ function App() {
           <Route path="classes/:classId" element={<TeacherClassDetails />} />
           <Route path="announcements" element={<TeacherAnnouncements />} />
           <Route path="materials" element={<TeacherMaterials />} />
+          <Route path="materials/bo-sach/:baiHocId" element={<BoSachLessonDetail />} />
           <Route path="materials/:materialId" element={<TeacherMaterialDetail />} />
           <Route path="editor" element={<TeacherEditor />} />
           <Route path="editor/:contentId" element={<TeacherEditor />} />

@@ -11,9 +11,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @Component
 @RequiredArgsConstructor
 public class TaoGiaoVienStrategy implements TaoNguoiDungStrategy {
+
+    private static final Pattern MA_GIAO_VIEN_PATTERN = Pattern.compile("^GV(\\d{4})(\\d{4})$");
 
     private final NguoiDungRepository userRepository;
     private final HoSoGiaoVienRepository teacherProfileRepository;
@@ -50,8 +55,21 @@ public class TaoGiaoVienStrategy implements TaoNguoiDungStrategy {
         tp.setHoTen(dto.getFullName());
         tp.setBoMon(dto.getDepartment());
         tp.setNgaySinh(dto.getDateOfBirth());
+        tp.setMaGiaoVien(generateMaGiaoVien());
         teacherProfileRepository.save(tp);
 
         return user;
+    }
+
+    private String generateMaGiaoVien() {
+        String prefix = "GV2025";
+        int maxSeq = 0;
+        for (HoSoGiaoVien existing : teacherProfileRepository.findByMaGiaoVienStartingWith(prefix)) {
+            Matcher m = MA_GIAO_VIEN_PATTERN.matcher(existing.getMaGiaoVien());
+            if (m.matches()) {
+                maxSeq = Math.max(maxSeq, Integer.parseInt(m.group(2)));
+            }
+        }
+        return prefix + String.format("%04d", maxSeq + 1);
     }
 }
